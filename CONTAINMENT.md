@@ -183,3 +183,9 @@ Qué revisar en la tablet: tocar EN y ES varias veces en vertical y en horizonta
 - El texto completo ("Audio de examen: activado/desactivado") queda como `aria-label` y `title`. `#audioLabel` y `#audioShort` siguen en el DOM, ocultos.
 - "Ranking" vuelve a su ancho natural: la palabra es la misma en EN y ES.
 - Medido: a 360, 412, 601, 800 y 1280 px, Audio, Ranking y las pestañas quedan en la misma posición en EN y ES. A 601 px la fila ya entra en una sola línea (encabezado de 169 px en lugar de 223 px).
+
+### Ajuste: pestañas como antes (`?v=20261119f`)
+**Archivos modificados:** `style.css` e `index.html` (versión).
+- Las pestañas I, II y III vuelven al diseño anterior: juntas a la izquierda, con número romano y nombre largo en pantallas de más de 600 px, y en 3 columnas con nombre corto en el celular. Se quitaron las columnas iguales de 200 px, que las separaban demasiado.
+- La regla que oculta las etiquetas largas ahora solo aplica a la fila de botones (`.mast-tools`), no a las pestañas.
+- Audio (ícono) y Ranking no cambian y siguen sin moverse al pasar de EN a ES. Encabezado: 192 px a 360 px.

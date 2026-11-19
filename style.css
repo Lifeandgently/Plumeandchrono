@@ -360,9 +360,9 @@ table.board td .tag.ex { border-style: dashed; font-style: normal; }
 
 /* ===== Header row stays put when switching EN <-> ES =====
    Audio and Ranking always show their short label (the long one stays in the DOM as aria-label) and have a fixed width,
-   so their size and position never depend on the interface language. The tabs use 3 equal columns for the same reason. */
-.masthead .lbl-long { display: none; }
-.masthead .lbl-short { display: inline; }
+   so their size and position never depend on the interface language. The tabs keep their original layout. */
+.mast-tools .lbl-long { display: none; }
+.mast-tools .lbl-short { display: inline; }
 .masthead #audioBtn, .masthead #boardBtn { justify-content: center; white-space: nowrap; flex: none; }
 /* Audio: icon-only round button (speaker; a cross replaces the waves when sound is off). */
 .masthead #audioBtn.icon-btn { width: 40px; height: 40px; min-height: 40px; padding: 0; border-radius: 50%; }
@@ -371,9 +371,6 @@ table.board td .tag.ex { border-style: dashed; font-style: normal; }
 #audioBtn[aria-pressed="false"] .snd-on { display: none; }
 #audioBtn[aria-pressed="false"] .snd-off { display: inline; }
 #audioBtn[aria-pressed="false"] { color: var(--ink-soft); }
-.tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 200px)); gap: 0; overflow: visible; }
-.tab { justify-content: center; text-align: center; white-space: normal; line-height: 1.2; }
 @media (max-width: 600px) {
   .masthead #audioBtn.icon-btn { width: 36px; height: 36px; min-height: 36px; }
-  .tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
