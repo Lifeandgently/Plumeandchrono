@@ -119,7 +119,7 @@ Límites: C1 se muestra como "Avanzado". El ranking mezcla niveles; el nivel es 
 
 | Responsabilidad | Dueño en el código | Qué previene |
 |---|---|---|
-| Caché en la tablet | `index.html`: `style.css`, `exercises.js`, `audio.js` y `app.js` llevan `?v=20261119a` | Que el navegador mezcle un `app.js` viejo con un marcado nuevo. Al subir archivos nuevos, cambia el mismo valor en las 4 líneas |
+| Caché en la tablet | `index.html`: `style.css`, `exercises.js`, `audio.js` y `app.js` llevan `?v=20261119b` (antes `20261119a`) | Que el navegador mezcle un `app.js` viejo con un marcado nuevo. Al subir archivos nuevos, cambia el mismo valor en las 4 líneas |
 | Ids estables | `exercises.js`: cada ítem de Sprint, Improvisación y Lectura tiene `id` (`fr_sp_b1_01`, `fr_a1_01`, `fr_rd_a2_01`…). `Bank.find()` / `Bank.idAt()` en `app.js` | Agregar o reordenar ítems ya no manda al alumno a otro ejercicio. Un id nunca se reutiliza ni se renombra |
 | Progreso guardado | `pc_ex_id` (Sprint), `pc_imp_last` (última consigna), `pc_rd_last` (última lectura), `exId` en "Mis mejores puntajes" | Se guarda el id, no la posición. Los datos viejos (`pc_ex` por posición) se siguen leyendo como respaldo |
 | Validación visible | `PROBLEMS[mode]` + `Bank.list()` | Un ítem mal formado se descarta y aparece en la consola (`console.warn`) con su posición, id y motivo. Un id ausente o repetido no rompe nada: usa la posición y también avisa |
@@ -138,3 +138,11 @@ Qué probar en la tablet:
 - Nivel A1 y A2 en Improvisación: las consignas usan frases simples; "Otro ejercicio" no repite la misma consigna dos veces seguidas.
 - Lectura: la respuesta correcta cambia de letra; "Leer otro texto" pasa a otro texto; en A1 (un solo texto) el botón dice "Intentar de nuevo (opciones mezcladas)" y las correctas cambian de lugar.
 - Lo de siempre: teclado y franja del Sprint, devolución de Improvisación, ranking por nivel y cambio de pestaña con el reloj corriendo.
+
+## Encabezado compacto, anuncios ocultos y Plume Writing Kit
+**Archivos modificados:** `index.html`, `style.css`, `app.js` (más este archivo). No cambian `exercises.js` ni `audio.js`; se conservan los IDs estables y los `console.warn`.
+**Versión:** `?v=20261119b` en las 4 líneas de `index.html`. En la próxima subida, cámbiala de nuevo (por ejemplo `20261120a`).
+- **Encabezado (≤ 600 px):** a 360 px baja de unos 382 px a 192 px. Arriba van el mimo y la marca. Debajo, en una sola fila, EN|ES, "Audio: sí/no" y "Ranking" (`.lbl-short`). Los textos largos (`.lbl-long`) siguen en el DOM y son el nombre accesible (`aria-label`, traducido en `applyLang` y `paintAudio`). Las 3 pestañas usan una grilla de 3 columnas con etiquetas cortas (`tab1s`, `tab2s` y `tab3s`, cada una con su `data-i18n`), sin scroll. Los niveles van en una línea; la palabra "Nivel" se oculta a la vista, pero sigue nombrando el grupo para el lector de pantalla. El mimo del encabezado no cambia: solo se ve a 40 px.
+- **Posiciones fijas:** el encabezado no es fijo. En Lectura (≥ 900 px), la columna del texto se pega debajo de la barra del reloj usando su altura real (`--m3-sticky`, que mide un ResizeObserver al arrancar), en lugar de 150 px fijos.
+- **`#adSlot`:** mientras `SITE.ads` esté vacío, `#adWrap` lleva `hidden` y `.ads-off` y no ocupa altura. `#adSlot` sigue en el DOM y `Results.ads()` no cambia: al completar `client` y `slot`, el bloque vuelve a aparecer con el `<ins class="adsbygoogle">`.
+- **Plume Writing Kit:** reemplaza al "French Exam Survival PDF Kit". Es un kit de escritura: ordenar ideas, conectar frases con sentido y desarrollar un tema, útil para el trabajo y para un examen, sin prometer calificaciones oficiales. Tras Improvisación aparece la tarjeta completa antes de los botones, con una línea que la conecta con lo que se acaba de escribir. Tras Sprint y Lectura aparece una versión compacta después de los botones. Sin enlace muestra "In preparation / En preparación", en lugar de un botón gris. Las claves EN y ES son las mismas (`kitPrep`, `kitPrepNote`, `kitShort` y `kitLead`; `kitSoon` se quitó).

@@ -31,7 +31,8 @@ const store = {
 const I18N = {
   en: {
     board: 'Weekly Leaderboard', tab1: 'Typing Sprint', tab2: '60s Improv', tab3: 'Speed Reading', soon: 'Soon',
-    audioOn: 'Exam Audio: ON', audioOff: 'Exam Audio: OFF',
+    audioOn: 'Exam Audio: ON', audioOff: 'Exam Audio: OFF', audioShortOn: 'Audio on', audioShortOff: 'Audio off',
+    boardShort: 'Ranking', tab1s: 'Sprint', tab2s: 'Improv', tab3s: 'Reading', langLabel: 'Interface language', tabsLabel: 'Training modes',
     m1eyebrow: 'Module I · 2 minutes', m1title: 'Typing Sprint & Accents',
     m1intro: 'Copy the French text exactly as written: accents and capitals count; a missing space before ? ! : ; is only a typography notice. The clock starts with your first letter. Paste is disabled.',
     time: 'Time', wpm: 'WPM', acc: 'Accuracy', score: 'Score',
@@ -78,7 +79,7 @@ const I18N = {
     lbNoPrize: 'Practice ranking: there are no prizes for now. Rows tagged “example” are samples, not real people.', lbLocal: 'For now your scores are saved only on this device.',
     lbRulesMin: (a) => `To enter the ranking: at least ${a}% accuracy, 30 seconds and 60 characters. Each level has its own ranking.`, lbYou: 'you', lbNick: 'Nickname',
     lbReset: (d, h) => `Resets Monday 00:00 Eastern Time · in ${d} d ${h} h`,
-    lbPrize1: '#1 of the week wins the Life and Gently French Exam Survival PDF Kit for free.',
+    lbPrize1: '#1 of the week receives the Plume Writing Kit for free.',
     lbPrize10: '#2 to #10 receive a 30% discount code.',
     lbDemo: 'Demo mode: sample entries are shown and prizes activate when the live ranking is connected. Your email stays on this device.',
     lbSeeAll: 'See the full Top 20',
@@ -89,10 +90,12 @@ const I18N = {
     lbSubmit: 'Publish my score', lbDone: (k) => `Published! You are #${k} this week.`,
     lbErr: { acc: 'This run cannot enter the ranking.', 'nick-len': 'The nickname needs 3 to 16 characters.', 'nick-chars': 'Use only letters, numbers, spaces and . _ -', 'nick-bad': 'Please choose another nickname.',
              email: 'That email does not look right.', speed: 'This run cannot be ranked.', short: 'This run cannot be ranked.', suspect: 'This run cannot be ranked.', empty: 'This run cannot be ranked.', other: 'Something went wrong. Try again.' },
-    kitEyebrow: 'Study kit', kitTitle: 'French Exam Survival PDF Kit',
-    kitText: 'Practice pages by Life and Gently, made for tablet and for printing.',
-    kitPoints: ['Typing drills with accents and punctuation', 'Writing frames with ready-to-use connectors', 'Timed reading sets with answer keys'],
-    kitCta: 'Get the PDF Kit', kitSoon: 'Link coming soon', kitFine: 'Hybrid PDF for tablet and print',
+    kitEyebrow: 'Writing kit · Life and Gently', kitTitle: 'Plume Writing Kit',
+    kitText: 'A calm, step-by-step method to write better in French: put your ideas in order, link your sentences with meaning and develop a topic clearly. Useful at work and when preparing an exam. It does not promise any official score.',
+    kitShort: 'Write more clearly in French: order your ideas, link your sentences and develop a topic.',
+    kitLead: 'To keep building on what you just wrote:',
+    kitPoints: ['Put your ideas in order before you write', 'Link sentences with connectors that make sense', 'Develop a topic in clear, well-built paragraphs'],
+    kitCta: 'See the Plume Writing Kit', kitPrep: 'In preparation', kitPrepNote: 'The link will appear here when the kit is ready.', kitFine: 'PDF for tablet and print',
     adLabel: 'Advertisement', adReserved: 'Space reserved for Google AdSense',
     boardBusy: 'Finish or stop the exercise to open the ranking.',
     m2eyebrow: 'Module II · 60 s + 4 min', m2title: '60s Improv',
@@ -181,7 +184,8 @@ const I18N = {
   },
   es: {
     board: 'Ranking semanal', tab1: 'Sprint de tipeo', tab2: 'Improvisación 60s', tab3: 'Lectura exprés', soon: 'Pronto',
-    audioOn: 'Audio de examen: activado', audioOff: 'Audio de examen: desactivado',
+    audioOn: 'Audio de examen: activado', audioOff: 'Audio de examen: desactivado', audioShortOn: 'Audio: sí', audioShortOff: 'Audio: no',
+    boardShort: 'Ranking', tab1s: 'Sprint', tab2s: 'Improvisación', tab3s: 'Lectura', langLabel: 'Idioma de la interfaz', tabsLabel: 'Modos de práctica',
     m1eyebrow: 'Módulo I · 2 minutos', m1title: 'Sprint de tipeo y acentos',
     m1intro: 'Copia el texto en francés tal cual: cuentan las tildes y las mayúsculas; si falta el espacio antes de ? ! : ; solo se muestra un aviso tipográfico. El reloj empieza con tu primera letra. La función de pegar está desactivada.',
     time: 'Tiempo', wpm: 'PPM', acc: 'Precisión', score: 'Puntaje',
@@ -228,7 +232,7 @@ const I18N = {
     lbNoPrize: 'Ranking de práctica: por ahora no hay premios. Las filas marcadas «ejemplo» son de muestra y no son personas reales.', lbLocal: 'Por ahora tus puntajes se guardan solo en este dispositivo.',
     lbRulesMin: (a) => `Para entrar al ranking: al menos ${a} % de precisión, 30 segundos y 60 caracteres. Cada nivel tiene su propio ranking.`, lbYou: 'tú', lbNick: 'Apodo',
     lbReset: (d, h) => `Se reinicia el lunes a las 00:00 hora del Este · en ${d} d ${h} h`,
-    lbPrize1: 'El puesto #1 de la semana gana gratis el Life and Gently French Exam Survival PDF Kit.',
+    lbPrize1: 'El puesto #1 de la semana recibe gratis el Plume Writing Kit.',
     lbPrize10: 'Del #2 al #10 reciben un código de descuento del 30%.',
     lbDemo: 'Modo demo: se muestran entradas de muestra y los premios se activan cuando se conecte el ranking en vivo. Tu email queda en este dispositivo.',
     lbSeeAll: 'Ver el Top 20 completo',
@@ -239,10 +243,12 @@ const I18N = {
     lbSubmit: 'Publicar mi puntaje', lbDone: (k) => `¡Publicado! Estás en el puesto #${k} de la semana.`,
     lbErr: { acc: 'Este intento no puede entrar al ranking.', 'nick-len': 'El apodo necesita entre 3 y 16 caracteres.', 'nick-chars': 'Usa solo letras, números, espacios y . _ -', 'nick-bad': 'Elige otro apodo, por favor.',
              email: 'Ese email no parece correcto.', speed: 'Este intento no puede entrar al ranking.', short: 'Este intento no puede entrar al ranking.', suspect: 'Este intento no puede entrar al ranking.', empty: 'Este intento no puede entrar al ranking.', other: 'Algo salió mal. Inténtalo de nuevo.' },
-    kitEyebrow: 'Kit de estudio', kitTitle: 'French Exam Survival PDF Kit',
-    kitText: 'Hojas de práctica de Life and Gently, pensadas para tablet y para imprimir.',
-    kitPoints: ['Ejercicios de tipeo con tildes y puntuación', 'Esquemas de redacción con conectores listos para usar', 'Lecturas cronometradas con respuestas'],
-    kitCta: 'Conseguir el kit en PDF', kitSoon: 'Enlace próximamente', kitFine: 'PDF híbrido para tablet e impresión',
+    kitEyebrow: 'Kit de escritura · Life and Gently', kitTitle: 'Plume Writing Kit',
+    kitText: 'Un método sereno y paso a paso para escribir mejor en francés: ordenar tus ideas, conectar las frases con sentido y desarrollar un tema con claridad. Sirve para el trabajo y para preparar un examen. No promete ninguna calificación oficial.',
+    kitShort: 'Escribe con más claridad en francés: ordena tus ideas, conecta tus frases y desarrolla un tema.',
+    kitLead: 'Para seguir trabajando sobre lo que acabas de escribir:',
+    kitPoints: ['Ordenar tus ideas antes de escribir', 'Conectar frases con conectores que tengan sentido', 'Desarrollar un tema en párrafos claros y bien armados'],
+    kitCta: 'Ver el Plume Writing Kit', kitPrep: 'En preparación', kitPrepNote: 'El enlace aparecerá aquí cuando el kit esté listo.', kitFine: 'PDF para tablet e impresión',
     adLabel: 'Publicidad', adReserved: 'Espacio reservado para Google AdSense',
     boardBusy: 'Termina o detén el ejercicio para abrir el ranking.',
     m2eyebrow: 'Módulo II · 60 s + 4 min', m2title: 'Improvisación 60s',
@@ -922,9 +928,27 @@ const Results = {
   render() {
     const c = Results.cur; if (!c) return;
     const n = c.n, p = c.p, view = $('resultsView');
-    const url = SITE.kit[lang] || '', cta = /^https:\/\//.test(url)
+    const url = SITE.kit[lang] || '', ready = /^https:\/\//.test(url);
+    const cta = ready
       ? `<a class="btn quill kit-cta" href="${esc(url)}" target="_blank" rel="noopener sponsored">${esc(t('kitCta'))}</a>`
-      : `<span class="btn alt kit-cta kit-pending" aria-disabled="true">${esc(t('kitSoon'))}</span>`;
+      : `<span class="kit-status" role="status"><span class="dot" aria-hidden="true"></span>${esc(t('kitPrep'))}</span><span class="kit-fine">${esc(t('kitPrepNote'))}</span>`;
+    // Plume Writing Kit: full card right after a writing practice (Improv), compact card after Sprint / Reading
+    const kit = n === 2
+      ? `<aside class="kit kit-full mt-5" id="rvKit">
+        <p class="kit-lead">${esc(t('kitLead'))}</p>
+        <div class="eyebrow">${esc(t('kitEyebrow'))}</div>
+        <h3 class="h-serif" style="font-size:1.25rem;margin:2px 0 6px">${esc(t('kitTitle'))}</h3>
+        <p style="margin:0 0 8px;max-width:60ch">${esc(t('kitText'))}</p>
+        <ul class="kit-points">${t('kitPoints').map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+        <div class="flex flex-wrap items-center gap-3 mt-3">${cta}${ready ? `<span class="kit-fine">${esc(t('kitFine'))}</span>` : ''}</div>
+      </aside>`
+      : `<aside class="kit kit-compact mt-6" id="rvKit">
+        <div class="eyebrow">${esc(t('kitEyebrow'))}</div>
+        <h3 class="h-serif" style="font-size:1.1rem;margin:2px 0 4px">${esc(t('kitTitle'))}</h3>
+        <p style="margin:0 0 8px;max-width:60ch">${esc(t('kitShort'))}</p>
+        <div class="flex flex-wrap items-center gap-3">${cta}</div>
+      </aside>`;
+    const adsOn = !!(SITE.ads.client && SITE.ads.slot);
     const others = [1, 2, 3].filter(m => m !== n);
     view.innerHTML = `
       <div class="eyebrow">${esc(t('rvEyebrow'))}${p.level ? ` <span class="chip lvl">${esc(t('rvLevel'))} ${esc(Levels.full(p.level))}</span>` : ''}</div>
@@ -932,19 +956,14 @@ const Results = {
       <p class="rv-note" style="margin:0 0 4px">${esc((t('rvReason') || {})[p.reason] || '')}</p>
       <div id="rvBody">${Results.body(n, p)}</div>
       ${n === 1 ? '<div id="rvBoard" class="mt-5"></div>' : ''}
+      ${n === 2 ? kit : ''}
       <div class="rv-actions mt-5">
         <button type="button" class="btn quill" id="rvAgain">${esc(n === 3 ? (Levels.pool('reading').list.length > 1 ? t('m3again') : t('m3againSame')) : t('again'))}</button>
         ${n === 3 ? '' : `<button type="button" class="btn alt" id="rvNew">${esc(t('rvNew'))}</button>`}
         <span class="rv-switch"><span class="eyebrow">${esc(t('rvSwitch'))}</span>${others.map(m => `<button type="button" class="btn alt" data-go="${m}">${esc(t('tab' + m))}</button>`).join('')}</span>
       </div>
-      <aside class="kit mt-6">
-        <div class="eyebrow">${esc(t('kitEyebrow'))}</div>
-        <h3 class="h-serif" style="font-size:1.25rem;margin:2px 0 6px">${esc(t('kitTitle'))}</h3>
-        <p style="margin:0 0 8px;max-width:60ch">${esc(t('kitText'))}</p>
-        <ul class="kit-points">${t('kitPoints').map(x => `<li>${esc(x)}</li>`).join('')}</ul>
-        <div class="flex flex-wrap items-center gap-3 mt-3">${cta}<span class="kit-fine">${esc(t('kitFine'))}</span></div>
-      </aside>
-      <div class="ad-wrap mt-6"><div class="ad-label">${esc(t('adLabel'))}</div>
+      ${n === 2 ? '' : kit}
+      <div class="ad-wrap mt-6${adsOn ? '' : ' ads-off'}" id="adWrap" ${adsOn ? '' : 'hidden aria-hidden="true"'}><div class="ad-label">${esc(t('adLabel'))}</div>
         <div class="ad-slot" id="adSlot" data-ad-client="${esc(SITE.ads.client)}" data-ad-slot="${esc(SITE.ads.slot)}"><span>${esc(t('adReserved'))}</span></div></div>`;
     $('rvAgain').onclick = () => { Results.hide(); safe(() => Modules[n].retry()); $('mod' + n).scrollIntoView({ behavior: 'smooth' }); };
     if ($('rvNew')) $('rvNew').onclick = () => { Results.hide(); safe(() => Modules[n].next()); $('mod' + n).scrollIntoView({ behavior: 'smooth' }); };
@@ -1032,13 +1051,20 @@ const LBView = {
   }
 };
 
+/* header audio button: full label on wide screens, short one on phones; the accessible name is always the full one */
+function paintAudio() {
+  const full = Sound.enabled ? t('audioOn') : t('audioOff');
+  $('audioLabel').textContent = full; $('audioBtn').setAttribute('aria-label', full);
+  const s = $('audioShort'); if (s) s.textContent = Sound.enabled ? t('audioShortOn') : t('audioShortOff');
+}
 /* i18n: shell texts here, module texts through each module's onLang() */
 function applyLang() {
   document.documentElement.lang = lang;
   document.querySelectorAll('[data-i18n]').forEach(el => { const v = t(el.dataset.i18n); if (typeof v === 'string') el.textContent = v; });
   $('langEN').setAttribute('aria-pressed', lang === 'en');
   $('langES').setAttribute('aria-pressed', lang === 'es');
-  $('audioLabel').textContent = Sound.enabled ? t('audioOn') : t('audioOff');
+  quiet(() => { $('langGroup').setAttribute('aria-label', t('langLabel')); $('tabBar').setAttribute('aria-label', t('tabsLabel')); $('boardBtn').setAttribute('aria-label', t('board')); });
+  paintAudio();
   $('rulesList').innerHTML = t('rules').concat(LB.prizes() ? [t('lbPrize1'), t('lbPrize10')] : []).map(r => `<li>${esc(r)}</li>`).join('');
   new Set(Object.values(Modules)).forEach(m => safe(() => m.onLang && m.onLang()));
   Results.onLang();
@@ -1054,7 +1080,7 @@ $('audioBtn').setAttribute('aria-pressed', Sound.enabled);
 $('audioBtn').addEventListener('click', () => {
   Sound.enabled = !Sound.enabled; store.set('pc_audio', Sound.enabled);
   $('audioBtn').setAttribute('aria-pressed', Sound.enabled);
-  $('audioLabel').textContent = Sound.enabled ? t('audioOn') : t('audioOff');
+  paintAudio();
   if (Sound.enabled) { Sound.unlock(); Sound.ding(); }
 });
 
@@ -1978,5 +2004,10 @@ document.querySelectorAll('#levelBar .lvl').forEach(b => b.addEventListener('cli
 safe(() => Feedback.init());
 Levels.paint();
 Levels.note({ 1: 'sprint', 2: 'improv', 3: 'reading' }[currentMod]);
+/* Reading: the text column sticks just below the clock bar, whatever its real height (compact bar on short screens, wrapped bubble…) */
+quiet(() => {
+  const sb = document.querySelector('#mod3 .stickybar'); if (!sb || !window.ResizeObserver) return;
+  new ResizeObserver(() => quiet(() => document.documentElement.style.setProperty('--m3-sticky', (sb.offsetHeight + 12) + 'px'))).observe(sb);
+});
 applyLang();
 })();

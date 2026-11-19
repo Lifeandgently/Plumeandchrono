@@ -20,7 +20,7 @@
   };
 </script>
 <!-- ASSET VERSION: when you upload new files, change v= on these 4 lines (same value everywhere) so tablets do not mix old and new files. -->
-<link rel="stylesheet" href="style.css?v=20261119a">
+<link rel="stylesheet" href="style.css?v=20261119b">
 </head>
 <body>
 <!-- ============ HEADER ============ -->
@@ -35,18 +35,20 @@
         </div>
       </div>
       <div class="flex flex-wrap items-center gap-2">
-        <div class="pill-group" role="group" aria-label="Language">
+      <div class="mast-tools">
+        <div class="pill-group" role="group" id="langGroup" aria-label="Language">
           <button type="button" id="langEN" data-lang="en">EN</button>
           <button type="button" id="langES" data-lang="es">ES</button>
         </div>
-        <button type="button" class="ghost-btn" id="audioBtn" aria-pressed="true"><span class="dot"></span><span id="audioLabel">Exam Audio: ON</span></button>
-        <button type="button" class="ghost-btn" id="boardBtn"><span aria-hidden="true">✒︎</span><span data-i18n="board">Weekly Leaderboard</span></button>
+        <button type="button" class="ghost-btn" id="audioBtn" aria-pressed="true"><span class="dot"></span><span id="audioLabel" class="lbl-long">Exam Audio: ON</span><span id="audioShort" class="lbl-short" aria-hidden="true">Audio on</span></button>
+        <button type="button" class="ghost-btn" id="boardBtn"><span aria-hidden="true">✒︎</span><span class="lbl-long" data-i18n="board">Weekly Leaderboard</span><span class="lbl-short" aria-hidden="true" data-i18n="boardShort">Ranking</span></button>
+      </div>
       </div>
     </div>
-    <nav class="tabs mt-2" role="tablist">
-      <button type="button" class="tab" role="tab" id="tab1" aria-selected="true" data-mod="1"><span class="num">I</span><span data-i18n="tab1">Typing Sprint</span></button>
-      <button type="button" class="tab" role="tab" id="tab2" aria-selected="false" data-mod="2"><span class="num">II</span><span data-i18n="tab2">60s Improv</span></button>
-      <button type="button" class="tab" role="tab" id="tab3" aria-selected="false" data-mod="3"><span class="num">III</span><span data-i18n="tab3">Speed Reading</span></button>
+    <nav class="tabs mt-2" role="tablist" id="tabBar" aria-label="Modes">
+      <button type="button" class="tab" role="tab" id="tab1" aria-selected="true" data-mod="1"><span class="num">I</span><span class="lbl-long" data-i18n="tab1">Typing Sprint</span><span class="lbl-short" data-i18n="tab1s">Sprint</span></button>
+      <button type="button" class="tab" role="tab" id="tab2" aria-selected="false" data-mod="2"><span class="num">II</span><span class="lbl-long" data-i18n="tab2">60s Improv</span><span class="lbl-short" data-i18n="tab2s">Improv</span></button>
+      <button type="button" class="tab" role="tab" id="tab3" aria-selected="false" data-mod="3"><span class="num">III</span><span class="lbl-long" data-i18n="tab3">Speed Reading</span><span class="lbl-short" data-i18n="tab3s">Reading</span></button>
     </nav>
     <div class="levelbar" id="levelBar" role="group" aria-labelledby="lvlLabel">
       <span class="eyebrow" id="lvlLabel" data-i18n="lvlLabel">Level</span>
@@ -192,8 +194,8 @@
 </div>
 
 <!-- Load order matters: data first, then audio, then the app (all relative paths, no build step). -->
-<script src="exercises.js?v=20261119a"></script>
-<script src="audio.js?v=20261119a"></script>
-<script src="app.js?v=20261119a"></script>
+<script src="exercises.js?v=20261119b"></script>
+<script src="audio.js?v=20261119b"></script>
+<script src="app.js?v=20261119b"></script>
 </body>
 </html>

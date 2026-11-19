@@ -206,8 +206,8 @@
   }
   @media (min-width: 900px) {
     .split { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; gap: 28px; }
-    .readbox { position: sticky; top: 150px; }
-    .readtext { max-height: calc(100vh - 220px); overflow-y: auto; }
+    .readbox { position: sticky; top: var(--m3-sticky, 150px); }   /* --m3-sticky = real height of the Reading clock bar (set in app.js) */
+    .readtext { max-height: calc(100vh - var(--m3-sticky, 150px) - 70px); overflow-y: auto; }
   }
 
 
@@ -323,3 +323,28 @@ table.board td .tag.ex { border-style: dashed; font-style: normal; }
 .conn-ex .k { font-size: .76rem; letter-spacing: .02em; }
 .conn-ex .s { font-family: var(--serif); font-style: italic; color: var(--ink); }
 
+
+/* ===== Compact header on phones (360 px and up), hidden empty ad slot, Plume Writing Kit ===== */
+.lbl-short { display: none; }
+.mast-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ad-wrap.ads-off, .ad-wrap[hidden] { display: none !important; }   /* #adSlot stays in the DOM for Results.ads() */
+.kit-lead { margin: 0 0 8px; font-size: .9rem; color: var(--ink-soft); font-style: italic; }
+.kit-status { display: inline-flex; align-items: center; gap: 8px; font-size: .85rem; font-weight: 600; color: var(--ink-soft); border: 1px dashed var(--pencil); border-radius: 999px; padding: 5px 12px; }
+.kit-status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--pending, var(--pencil)); }
+@media (max-width: 600px) {
+  .masthead > .wrap { padding-top: 8px !important; }
+  .masthead .lbl-long { display: none; }
+  .masthead .lbl-short { display: inline; }
+  .masthead #mimeHeader { width: 40px !important; height: 40px !important; }
+  .mast-tools { flex-wrap: nowrap; gap: 6px; width: 100%; }
+  .masthead .ghost-btn { padding: 4px 10px; min-height: 36px; font-size: .78rem; gap: 6px; white-space: nowrap; }
+  .masthead .pill-group button { padding: 4px 10px; min-height: 32px; }
+  .tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; overflow: visible; margin-top: 4px; }
+  .tab { justify-content: center; text-align: center; padding: 9px 4px 8px; min-height: 42px; font-size: .84rem; gap: 0; white-space: normal; line-height: 1.2; }
+  .tab .num { display: none; }
+  .levelbar { flex-wrap: nowrap; gap: 6px; padding: 4px 0 8px; overflow-x: auto; scrollbar-width: none; }
+  .levelbar::-webkit-scrollbar { display: none; }
+  #lvlLabel { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }   /* still names the group for screen readers */
+  .lvl-opts { flex-wrap: nowrap; gap: 4px; }
+  .levelbar .lvl { padding: 3px 8px; font-size: .78rem; white-space: nowrap; min-height: 34px; }
+}
