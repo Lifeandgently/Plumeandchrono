@@ -103,3 +103,9 @@ Límites: C1 se muestra como "Avanzado". El ranking mezcla niveles; el nivel es 
 - Hay un ranking por nivel: `LB.rows(level)` y Supabase usa `&level=eq.`. Resultados muestra el ranking del nivel jugado. La hoja del ranking tiene pastillas de nivel (`pc_lb_lvl`).
 - Premios honestos: `SITE.prizesLive` vale `false`. Los premios y el campo de email se muestran solo si vale `true` y además el ranking está en vivo con validación en el servidor. Las filas de muestra llevan la etiqueta "ejemplo", se ven atenuadas y hay 4 por nivel (`pc_week.v = 2`; las filas reales se conservan).
 - No se tocaron Improvisación, Lectura, Feedback (`#fbBox`), `#adSlot`, la tarjeta del kit ni el mimo del encabezado.
+
+## Idioma: inglés por defecto y español neutro
+- La interfaz arranca en inglés (`lang` = `pc_lang` guardado o `'en'`, ya no se detecta el idioma del dispositivo) y `<html lang="en">`. El español aparece solo cuando se elige con el botón ES, y queda guardado.
+- Las cadenas en español usan español neutro, sin voseo (tú, aquí). En la interfaz en español no quedan etiquetas sueltas en inglés: "activado/desactivado" reemplaza a ON/OFF, "Error técnico" a "Error / Bug" y "comentarios" a "feedback". Los mimos ya no dicen "Magnifique !", para no mezclar el francés del ejercicio con el idioma de la interfaz.
+- Las reglas del ranking ahora describen el Top 20 por nivel, el piso del 90 % y que no hay premios. Las líneas de premios se agregan solo si `LB.prizes()` es verdadero.
+- No cambia ninguna lógica del Punto 3.
