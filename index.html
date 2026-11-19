@@ -163,6 +163,56 @@
     .source { font-size: 1.1rem; }
     .clock { font-size: 2rem; }
   }
+
+  /* ===== Iteration 2: modules II and III ===== */
+  .wrap { max-width: 1040px; }
+  #mod1, #mod2 { max-width: 880px; margin-left: auto; margin-right: auto; }
+  .intro { margin: 8px 0 14px; color: var(--ink-soft); font-size: .93rem; max-width: 68ch; }
+  .pre-note { color: var(--ink-soft); font-size: .9rem; }
+  .stickybar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 6; background: var(--card); margin: 0 -18px; padding: 12px 18px 12px; border-bottom: 1px solid var(--pencil); border-top: 1px solid var(--pencil); }
+  .prompt { font-family: var(--serif); font-size: 1.2rem; line-height: 1.75; padding: 14px 16px; border: 1px solid var(--pencil); border-radius: 10px; background: var(--paper); max-width: 70ch; }
+  .chip.on { border-color: var(--quill); color: var(--quill); background: var(--quill-wash); font-weight: 600; }
+  .chip.ok { border-color: var(--quill); color: var(--quill); }
+  .chip.miss { border-color: var(--seal); color: var(--seal); background: var(--seal-wash); }
+  .chip.conn { font-family: var(--serif); font-size: 1rem; padding: 6px 12px; }
+  .chip.conn b { font-weight: 600; word-spacing: normal; }
+  .chip.conn small { font-family: var(--sans); color: var(--ink-soft); font-size: .76rem; }
+  .chip.conn.miss small { color: var(--seal); }
+  .field + .eyebrow, #m2writeBox .field { width: 100%; }
+
+  .split { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .readtext { max-height: none; font-size: 1.15rem; line-height: 1.85; }
+  .q { display: grid; gap: 8px; margin-bottom: 18px; }
+  .q-text { font-family: var(--serif); font-weight: 600; font-size: 1.08rem; line-height: 1.5; }
+  .opt { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 10px 14px; text-align: left; border: 1px solid var(--pencil); border-radius: 10px; background: var(--card); font-family: var(--serif); font-size: 1.05rem; line-height: 1.4; }
+  .opt .ltr { flex: none; width: 28px; height: 28px; border: 1px solid var(--pencil); border-radius: 50%; display: grid; place-items: center; font-family: var(--sans); font-weight: 700; font-size: .8rem; color: var(--ink-soft); }
+  .opt .otxt { min-width: 0; }
+  .opt[aria-checked="true"] { border-color: var(--quill); background: var(--quill-wash); }
+  .opt[aria-checked="true"] .ltr { background: var(--quill); border-color: var(--quill); color: var(--card); }
+  .opt:disabled { opacity: 1; cursor: default; }
+  .opt.right { border-color: var(--quill); background: var(--quill-wash); }
+  .opt.right .ltr { background: var(--quill); border-color: var(--quill); color: var(--card); }
+  .opt.wrong { border-color: var(--seal); background: var(--seal-wash); }
+  .opt.wrong .ltr { background: var(--seal); border-color: var(--seal); color: var(--card); }
+  .why { font-size: .9rem; color: var(--ink-soft); font-family: var(--serif); font-style: italic; }
+  /* compact sticky clock on phones and short tablet screens, so it never eats the writing area */
+  @media (max-width: 720px), (max-height: 760px) {
+    .stickybar { padding: 8px 18px; }
+    .stickybar .coach { gap: 10px; }
+    #m2Mime, #m3Mime { width: 46px !important; height: 46px !important; }
+    .stickybar .bubble { min-height: 0; padding: 6px 10px; font-size: .82rem; line-height: 1.3; }
+    .stickybar .clock { font-size: 1.7rem; }
+    .stickybar .clock-label { font-size: .62rem; }
+    .stickybar .timebar { margin-top: 8px; }
+    #mod2 .stickybar .chips { display: none; }
+    #mod3 .stickybar .chips { margin-top: 6px; }
+  }
+  @media (min-width: 900px) {
+    .split { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); align-items: start; gap: 28px; }
+    .readbox { position: sticky; top: 150px; }
+    .readtext { max-height: calc(100vh - 220px); overflow-y: auto; }
+  }
+
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
@@ -190,8 +240,8 @@
     </div>
     <nav class="tabs mt-2" role="tablist">
       <button type="button" class="tab" role="tab" id="tab1" aria-selected="true" data-mod="1"><span class="num">I</span><span data-i18n="tab1">Typing Sprint</span></button>
-      <button type="button" class="tab" role="tab" id="tab2" aria-selected="false" data-mod="2"><span class="num">II</span><span data-i18n="tab2">60s Improv</span><span class="soon" data-i18n="soon">Soon</span></button>
-      <button type="button" class="tab" role="tab" id="tab3" aria-selected="false" data-mod="3"><span class="num">III</span><span data-i18n="tab3">Speed Reading</span><span class="soon" data-i18n="soon">Soon</span></button>
+      <button type="button" class="tab" role="tab" id="tab2" aria-selected="false" data-mod="2"><span class="num">II</span><span data-i18n="tab2">60s Improv</span></button>
+      <button type="button" class="tab" role="tab" id="tab3" aria-selected="false" data-mod="3"><span class="num">III</span><span data-i18n="tab3">Speed Reading</span></button>
     </nav>
   </div>
 </header>
@@ -279,18 +329,9 @@
     </div>
   </section>
 
-  <!-- ============ MODULES 2 & 3 (placeholders) ============ -->
-  <section id="modSoon" class="page" hidden style="padding: 22px;">
-    <div class="flex items-center gap-4">
-      <div id="mimeSoon" style="width:68px;height:68px;flex:none" aria-hidden="true"></div>
-      <div style="min-width:0">
-        <div class="eyebrow" id="soonEyebrow"></div>
-        <h2 class="h-serif" style="font-size:1.4rem;margin:2px 0 6px" id="soonTitle"></h2>
-        <p style="margin:0;color:var(--ink-soft)" id="soonText"></p>
-      </div>
-    </div>
-    <button type="button" class="btn alt mt-4" id="backBtn" data-i18n="backSprint">Back to the Typing Sprint</button>
-  </section>
+  <!-- ============ MODULES 2 & 3 (built by their own scripts) ============ -->
+  <section id="mod2" class="page" hidden style="padding: 18px;"></section>
+  <section id="mod3" class="page" hidden style="padding: 18px;"></section>
 </main>
 
 <footer class="colophon">
@@ -324,7 +365,7 @@
 
 <script>
 /* =========================================================
-   Plume & Chrono · Iteration 1 · single-file prototype
+   Plume & Chrono · Iteration 2 · single-file prototype
    CONTAINMENT MAP (who owns what)
    - Clock ........ Timers (only creator of intervals/timeouts) + Modules[n] state (TypingSprint.tick)
    - Audio ........ Sound (all calls inside safe(); unlock() on pointerdown/touchend/click/keydown)
@@ -333,6 +374,9 @@
    - Storage ...... store (try/catch) + Board (personal top 10, Supabase-ready rows)
    - Mimes ........ header mime: static calm; coach mime (#mimeCoach): reacts, owned by TypingSprint
    - Tabs ......... showMod(): unmount() the old module, Timers.clearAll(), mount() the new one
+   - Module II ... Modules[2] (Improv): own phases, clock, coach mime, scenario + 2 connectors, detection
+   - Module III .. Modules[3] (Reading): own text/answers, 3-minute clock, coach mime, correction
+   - Shared UI .... Accents() key bar, Coach() mime+bubble+clock, both stateless between modules
    ========================================================= */
 
 (function () {
@@ -360,6 +404,44 @@ const I18N = {
     contact: 'Contact:',
     legal: 'Plume & Chrono is an independent training tool. It is not affiliated with or endorsed by CCIP (Paris Île-de-France Chamber of Commerce), France Éducation international or IRCC. Scores are indicative only and do not predict official exam results.',
     words: 'words',
+    m2eyebrow: 'Module II · 60 s + 4 min', m2title: '60s Improv',
+    m2intro: 'Read the exam situation and jot down three key ideas in 60 seconds. Then your notes lock and you have 4 minutes to write the introduction and first argument, using both required connectors.',
+    m2preNote: 'The situation and your two connectors appear when you start.',
+    m2start: 'Start planning', m2skip: 'Go to writing now', m2finish: 'Finish',
+    m2phasePlan: 'Planning · 60 s', m2phaseWrite: 'Writing · 4 min', m2phaseDone: 'Done',
+    m2phasePlanShort: 'Planning', m2phaseWriteShort: 'Writing',
+    m2scenarioLabel: 'Situation', m2connLabel: 'Required connectors (use both)',
+    m2notesLabel: 'Quick notes: 3 key ideas', m2notesLocked: 'Your notes (locked)',
+    m2notesPh: '1. …   2. …   3. …', m2editorLabel: 'Introduction and first argument', m2editorPh: 'Start writing here…',
+    m2resWords: 'Words', m2resConn: 'Connectors', m2resReact: 'Reaction time', m2resTime: 'Writing time',
+    m2used: 'used', m2missing: 'missing', m2noAccent: 'accent missing', m2next: 'New situation',
+    m2goalMet: 'Word goal reached', m2goalShort: (n) => `${n} words short of the goal`,
+    say2: {
+      ready: 'Pick your moment. The situation and your connectors appear when you start.',
+      plan: 'Sketch three ideas. The notes lock at 0:00.',
+      locked: 'Notes locked. Now write.',
+      write: 'Writing time. Introduction first, then your first argument.',
+      critical: 'Last 20 seconds! Wrap up your sentence.',
+      found: 'Connector spotted. Nice.',
+      paste: 'No copy and paste here. Type it.',
+      timeup: 'Time! The page is locked.',
+      win: 'Goal reached with both connectors. Magnifique !',
+      close: 'Good draft. Check the goal and the connectors below.',
+      empty: 'Nothing written this time. Try again?'
+    },
+    m3eyebrow: 'Module III · 3 minutes', m3title: 'Speed Reading',
+    m3intro: 'Read the French text and answer three multiple-choice questions before the clock runs out. Text and questions appear when you start.',
+    m3preNote: '3 questions · strict 3-minute clock',
+    m3start: 'Start reading', m3submit: 'Submit answers', m3answered: (n) => `${n}/3 answered`,
+    m3resScore: 'Correct answers', m3resTime: 'Time used', m3resBlank: 'Unanswered',
+    say3: {
+      ready: 'Take a breath. Text and questions appear when you start.',
+      read: 'Read first, then tap your answers.',
+      critical: 'Last 20 seconds! Tap your answers.',
+      timeup: 'Time! Your answers were submitted.',
+      win: 'Excellent reading. Magnifique !',
+      low: 'Tough one. Read the corrections and try another text.'
+    },
     say: {
       ready: 'Ready when you are. Tap the box and type: the clock starts on your first letter.',
       typing: 'Steady ink. Watch the accents.',
@@ -409,6 +491,44 @@ const I18N = {
     contact: 'Contacto:',
     legal: 'Plume & Chrono es una herramienta de entrenamiento independiente. No está afiliada ni avalada por la CCIP (Cámara de Comercio de París Île-de-France), France Éducation international ni IRCC. Los puntajes son orientativos y no predicen resultados de exámenes oficiales.',
     words: 'palabras',
+    m2eyebrow: 'Módulo II · 60 s + 4 min', m2title: 'Improvisación 60s',
+    m2intro: 'Leé la situación de examen y anotá tres ideas clave en 60 segundos. Después las notas se bloquean y tenés 4 minutos para escribir la introducción y el primer argumento usando los dos conectores obligatorios.',
+    m2preNote: 'La situación y tus dos conectores aparecen cuando empezás.',
+    m2start: 'Empezar planificación', m2skip: 'Pasar a redactar ya', m2finish: 'Terminar',
+    m2phasePlan: 'Planificación · 60 s', m2phaseWrite: 'Redacción · 4 min', m2phaseDone: 'Terminado',
+    m2phasePlanShort: 'Planificación', m2phaseWriteShort: 'Redacción',
+    m2scenarioLabel: 'Situación', m2connLabel: 'Conectores obligatorios (usá los dos)',
+    m2notesLabel: 'Bloc rápido: 3 ideas clave', m2notesLocked: 'Tus notas (bloqueadas)',
+    m2notesPh: '1. …   2. …   3. …', m2editorLabel: 'Introducción y primer argumento', m2editorPh: 'Empezá a escribir acá…',
+    m2resWords: 'Palabras', m2resConn: 'Conectores', m2resReact: 'Tiempo de reacción', m2resTime: 'Tiempo de redacción',
+    m2used: 'usado', m2missing: 'falta', m2noAccent: 'falta la tilde', m2next: 'Otra situación',
+    m2goalMet: 'Meta de palabras alcanzada', m2goalShort: (n) => `Faltaron ${n} palabras para la meta`,
+    say2: {
+      ready: 'Cuando quieras. La situación y tus conectores aparecen al empezar.',
+      plan: 'Esbozá tres ideas. Las notas se bloquean en 0:00.',
+      locked: 'Notas bloqueadas. Ahora redactá.',
+      write: 'A redactar. Primero la introducción, después tu primer argumento.',
+      critical: '¡Últimos 20 segundos! Cerrá la frase.',
+      found: 'Conector detectado. Muy bien.',
+      paste: 'Acá no se pega texto. Escribilo.',
+      timeup: '¡Tiempo! La hoja quedó bloqueada.',
+      win: 'Meta alcanzada con los dos conectores. Magnifique !',
+      close: 'Buen borrador. Mirá la meta y los conectores abajo.',
+      empty: 'No escribiste nada esta vez. ¿Probamos de nuevo?'
+    },
+    m3eyebrow: 'Módulo III · 3 minutos', m3title: 'Lectura exprés',
+    m3intro: 'Leé el texto en francés y respondé tres preguntas de opción múltiple antes de que termine el reloj. El texto y las preguntas aparecen al empezar.',
+    m3preNote: '3 preguntas · reloj estricto de 3 minutos',
+    m3start: 'Empezar a leer', m3submit: 'Enviar respuestas', m3answered: (n) => `${n}/3 respondidas`,
+    m3resScore: 'Respuestas correctas', m3resTime: 'Tiempo usado', m3resBlank: 'Sin responder',
+    say3: {
+      ready: 'Respirá hondo. El texto y las preguntas aparecen al empezar.',
+      read: 'Primero leé, después tocá tus respuestas.',
+      critical: '¡Últimos 20 segundos! Tocá tus respuestas.',
+      timeup: '¡Tiempo! Se enviaron tus respuestas.',
+      win: 'Excelente lectura. Magnifique !',
+      low: 'Difícil. Mirá las correcciones y probá otro texto.'
+    },
     say: {
       ready: 'Cuando quieras. Tocá el cuadro y escribí: el reloj arranca con tu primera letra.',
       typing: 'Pulso firme. Ojo con las tildes.',
@@ -460,6 +580,74 @@ const EXERCISES = [
     text: "Dès votre arrivée, renseignez-vous sur le régime d'assurance maladie de votre province. Dans certains cas, un délai d'attente s'applique ; pendant cette période, il est prudent de souscrire une assurance privée. Pour obtenir votre carte, présentez une pièce d'identité, une preuve de résidence et un document qui confirme votre statut. Une fois inscrit, vous pourrez consulter un médecin de famille ou vous rendre dans une clinique sans rendez-vous. Bon à savoir : signalez tout changement d'adresse le plus rapidement possible." },
   { theme: 'Lettre formelle', title: 'Candidature spontanée',
     text: "Monsieur le Directeur, je souhaite vous présenter ma candidature au poste d'adjoint administratif publié sur votre site. Titulaire d'un diplôme en gestion, j'ai travaillé quatre ans dans une entreprise de logistique où j'étais responsable de la facturation et de l'accueil des clients. Je parle couramment français et anglais. Pourquoi votre entreprise ? Parce que vos valeurs, l'innovation et le respect, correspondent aux miennes. Je serais ravi de vous rencontrer lors d'un entretien. Veuillez agréer, Monsieur le Directeur, mes salutations distinguées." }
+];
+
+/* =================== BANKS · module II (improv) and III (reading); always French, B1–B2 =================== */
+const IMPROV = [
+  { kind: 'letter',  theme: 'Voisinage', goal: 80,
+    text: "Votre voisin organise une fête bruyante presque tous les week-ends. Vous lui écrivez pour expliquer le problème et proposer une solution. Rédigez l'introduction de votre lettre et votre premier argument." },
+  { kind: 'opinion', theme: 'Travail', goal: 90,
+    text: "Le télétravail devrait-il devenir la norme pour la majorité des employés ? Présentez le sujet dans une introduction, puis développez votre premier argument." },
+  { kind: 'letter',  theme: 'Consommation', goal: 80,
+    text: "Vous avez acheté un grille-pain qui est tombé en panne après trois jours. Écrivez au service à la clientèle pour demander un remboursement. Rédigez l'introduction et votre premier argument." },
+  { kind: 'opinion', theme: 'Éducation', goal: 90,
+    text: "Pensez-vous que les cours devraient se donner en ligne plutôt qu'en classe ? Rédigez l'introduction de votre texte d'opinion et votre premier argument." },
+  { kind: 'letter',  theme: 'Formation', goal: 80,
+    text: "Vous souhaitez vous inscrire à un cours de français du soir. Écrivez au centre communautaire pour demander des renseignements sur les horaires, le prix et le niveau. Rédigez l'introduction et votre première question." },
+  { kind: 'opinion', theme: 'Ville', goal: 90,
+    text: "Les transports en commun devraient-ils être gratuits dans les grandes villes ? Rédigez une introduction claire et développez votre premier argument." },
+  { kind: 'letter',  theme: 'Logement', goal: 80,
+    text: "Le chauffage de votre appartement est en panne depuis une semaine, et votre propriétaire ne répond pas. Écrivez-lui une lettre formelle. Rédigez l'introduction et votre premier argument." },
+  { kind: 'opinion', theme: 'Immigration', goal: 90,
+    text: "Est-il préférable de vivre en ville ou à la campagne quand on s'installe dans un nouveau pays ? Rédigez l'introduction et votre premier argument." }
+];
+const CONNECTORS = [
+  { fr: 'En revanche',    type: 'contrast',    en: 'contrast',                       es: 'contraste' },
+  { fr: 'Cependant',      type: 'contrast',    en: 'contrast',                       es: 'contraste' },
+  { fr: 'Toutefois',      type: 'contrast',    en: 'contrast',                       es: 'contraste' },
+  { fr: 'Par conséquent', type: 'consequence', en: 'consequence',                    es: 'consecuencia' },
+  { fr: "C'est pourquoi", type: 'consequence', en: 'consequence',                    es: 'consecuencia' },
+  { fr: 'Ainsi',          type: 'consequence', en: 'consequence or example',         es: 'consecuencia o ejemplo' },
+  { fr: 'Bien que',       type: 'concession',  en: 'concession (+ subjunctive)',     es: 'concesión (+ subjuntivo)' },
+  { fr: 'Néanmoins',      type: 'concession',  en: 'concession',                     es: 'concesión' },
+  { fr: 'Certes',         type: 'concession',  en: 'concession',                     es: 'concesión' },
+  { fr: 'Par ailleurs',   type: 'addition',    en: 'addition',                       es: 'adición' },
+  { fr: 'En outre',       type: 'addition',    en: 'addition',                       es: 'adición' },
+  { fr: 'De plus',        type: 'addition',    en: 'addition',                       es: 'adición' },
+  { fr: "D'ailleurs",     type: 'reinforce',   en: 'reinforcing an argument',        es: 'reforzar un argumento' },
+  { fr: 'En effet',       type: 'explain',     en: 'confirming or explaining',       es: 'confirmar o explicar' },
+  { fr: 'Afin que',       type: 'purpose',     en: 'purpose (+ subjunctive)',        es: 'finalidad (+ subjuntivo)' },
+  { fr: 'Quant à',        type: 'topic',       en: 'changing the topic',             es: 'cambiar de tema' }
+];
+const READING = [
+  { theme: 'Ville', title: 'Le vélo en libre-service',
+    text: "Depuis trois ans, la ville de Lyon propose un service de vélos en libre-service accessible jour et nuit. Pour l'utiliser, il suffit de s'inscrire sur une application et de payer un abonnement de cinq euros par mois. Les trente premières minutes de chaque trajet sont gratuites ; ensuite, le tarif est d'un euro par demi-heure commencée. La municipalité espère ainsi réduire la circulation automobile dans le centre-ville, où les embouteillages sont fréquents aux heures de pointe. Pourtant, le projet ne fait pas l'unanimité. Certains commerçants craignent que les clients viennent moins souvent en voiture, tandis que des habitants se plaignent des vélos laissés n'importe où sur les trottoirs. Pour répondre à ces critiques, la mairie a installé deux cents stations supplémentaires et prévoit des amendes pour les utilisateurs qui ne rangent pas correctement leur vélo. Selon un récent sondage, sept usagers sur dix utilisent le service pour aller travailler, et plus de la moitié disent avoir laissé leur voiture au garage.",
+    qs: [
+      { q: "Combien coûte, en plus de l'abonnement, un trajet de quarante minutes ?", o: ['Rien du tout', 'Un euro', 'Cinq euros', 'Deux euros'], a: 1, why: "Les trente premières minutes sont gratuites ; ensuite, un euro par demi-heure commencée." },
+      { q: "Pourquoi certains commerçants s'inquiètent-ils ?", o: ['Les vélos bloquent leurs vitrines.', 'Ils pensent que moins de clients viendront en voiture.', "Ils doivent payer l'abonnement.", 'Les stations coûtent trop cher.'], a: 1, why: "Ils craignent que les clients viennent moins souvent en voiture." },
+      { q: "Que fait la mairie pour répondre aux critiques ?", o: ['Elle supprime des stations.', 'Elle augmente le prix.', 'Elle ajoute des stations et prévoit des amendes.', 'Elle interdit les vélos sur les trottoirs.'], a: 2, why: "Elle a installé deux cents stations supplémentaires et prévoit des amendes." }
+    ] },
+  { theme: 'Formation', title: 'Un nouveau cours du soir',
+    text: "Le centre communautaire de Gatineau ouvre en janvier un nouveau cours de français du soir destiné aux adultes qui travaillent. Les séances ont lieu le mardi et le jeudi, de dix-huit heures trente à vingt heures trente, pendant douze semaines. Contrairement aux cours traditionnels, la moitié du temps est consacrée à des situations concrètes : remplir un formulaire, passer un appel téléphonique ou préparer une entrevue d'embauche. Les places sont limitées à quinze personnes afin que chaque participant puisse s'exprimer régulièrement. L'inscription se fait en ligne avant le quinze décembre ; un test de niveau gratuit, d'une durée de vingt minutes, est obligatoire pour être placé dans le bon groupe. Le coût total est de quatre-vingt-dix dollars, mais les personnes qui reçoivent une aide à l'emploi peuvent suivre le cours gratuitement. Enfin, les participants qui assistent à au moins dix séances reçoivent une attestation officielle, très utile pour un dossier d'immigration ou une demande de promotion.",
+    qs: [
+      { q: 'Quand ont lieu les séances ?', o: ['Le lundi et le mercredi', 'Le mardi et le jeudi', 'Le samedi matin', 'Tous les soirs'], a: 1, why: "Les séances ont lieu le mardi et le jeudi soir." },
+      { q: 'Pourquoi le nombre de places est-il limité à quinze ?', o: ['La salle est trop petite.', 'Pour que chacun puisse parler souvent.', 'Parce que le test est très long.', 'Parce que le cours est gratuit.'], a: 1, why: "Les places sont limitées afin que chaque participant puisse s'exprimer régulièrement." },
+      { q: "Que faut-il faire pour obtenir l'attestation ?", o: ['Réussir un examen final', 'Payer quatre-vingt-dix dollars', 'Assister à au moins dix séances', "S'inscrire avant le quinze décembre"], a: 2, why: "Les participants qui assistent à au moins dix séances reçoivent une attestation." }
+    ] },
+  { theme: 'Travail', title: 'La semaine de quatre jours',
+    text: "Plusieurs entreprises québécoises testent depuis un an la semaine de travail de quatre jours, sans réduction de salaire. Au début, les dirigeants étaient sceptiques : ils redoutaient une baisse de la production et des clients mécontents. Les résultats ont pourtant surpris tout le monde. Dans une société de logiciels de Montréal, le chiffre d'affaires a augmenté de huit pour cent, alors que les absences pour maladie ont diminué de moitié. Les employés affirment se sentir moins stressés et plus concentrés, car la journée de congé supplémentaire leur permet de se reposer ou de s'occuper de leur famille. Tout n'est cependant pas parfait. Dans les services qui doivent rester ouverts cinq jours, comme les centres d'appels, il a fallu organiser des horaires en rotation, ce qui complique la gestion des équipes. Par ailleurs, certains salariés trouvent que les journées de dix heures sont épuisantes. Les chercheurs recommandent donc d'adapter le modèle à chaque secteur plutôt que de l'imposer partout.",
+    qs: [
+      { q: "Quel effet l'essai a-t-il eu dans la société de logiciels ?", o: ["Le chiffre d'affaires a baissé.", "Les absences ont diminué de moitié et le chiffre d'affaires a augmenté.", 'Les salaires ont baissé.', 'Les clients se sont plaints.'], a: 1, why: "Le chiffre d'affaires a augmenté de huit pour cent et les absences ont diminué de moitié." },
+      { q: 'Quelle difficulté rencontrent les centres d’appels ?', o: ['Ils manquent d’employés qualifiés.', 'Ils restent ouverts cinq jours, donc ils doivent organiser des horaires en rotation.', 'Ils ont perdu des clients.', 'Leurs employés refusent de travailler le vendredi.'], a: 1, why: "Ils doivent rester ouverts cinq jours, ce qui oblige à organiser des horaires en rotation." },
+      { q: 'Que recommandent les chercheurs ?', o: ['Imposer ce modèle à toutes les entreprises', "Abandonner l'essai", 'Adapter le modèle à chaque secteur', 'Allonger les journées de travail'], a: 2, why: "Ils recommandent d'adapter le modèle à chaque secteur plutôt que de l'imposer partout." }
+    ] },
+  { theme: 'Démarches', title: 'Ouvrir un compte bancaire',
+    text: "Pour ouvrir un compte bancaire au Canada, un nouvel arrivant doit généralement présenter deux pièces d'identité, dont une avec photo, ainsi qu'un document prouvant son adresse. Plusieurs banques offrent aux étudiants internationaux et aux résidents permanents un forfait sans frais pendant la première année. Il est toutefois conseillé de comparer les offres, car les frais mensuels peuvent atteindre quinze dollars si le solde du compte descend sous un certain montant. Beaucoup de personnes choisissent d'ouvrir un compte avant même leur arrivée, par vidéoconférence, ce qui permet de recevoir leur carte de débit dès leur atterrissage. Sachez aussi que la plupart des commerces acceptent le paiement sans contact jusqu'à cent dollars, mais que certains petits marchés n'acceptent encore que l'argent comptant. Enfin, pour construire un bon dossier de crédit, qui sera indispensable pour louer un appartement ou obtenir un prêt, il est recommandé de demander une carte de crédit à faible limite et de payer le solde chaque mois, avant la date d'échéance.",
+    qs: [
+      { q: 'Que doit-on présenter pour ouvrir un compte ?', o: ['Un contrat de travail', "Deux pièces d'identité et un justificatif d'adresse", 'Un passeport seulement', 'Une lettre de recommandation'], a: 1, why: "Il faut deux pièces d'identité, dont une avec photo, et un document prouvant son adresse." },
+      { q: "Quel avantage y a-t-il à ouvrir un compte avant d'arriver ?", o: ['Les frais sont supprimés pour toujours.', 'On reçoit sa carte de débit dès son arrivée.', 'On obtient un prêt immédiatement.', "On reçoit de l'argent comptant."], a: 1, why: "On peut recevoir sa carte de débit dès son atterrissage." },
+      { q: 'Que conseille le texte pour construire un bon dossier de crédit ?', o: ['Éviter toute carte de crédit', "Dépenser jusqu'à la limite", 'Demander une carte à faible limite et payer le solde chaque mois', 'Fermer son compte après un an'], a: 2, why: "Il recommande une carte à faible limite et de payer le solde chaque mois avant l'échéance." }
+    ] }
 ];
 
 /* =================== SERVICES (shared, module-agnostic) =================== */
@@ -519,6 +707,73 @@ const Sound = {
 };
 ['pointerdown', 'touchend', 'click', 'keydown'].forEach(ev =>
   window.addEventListener(ev, () => { if (Sound.enabled) Sound.unlock(); }, { capture: true, passive: true }));
+
+
+/* ---- shared UI helpers for the modules (no module state lives here) ---- */
+const NOASSIST = 'autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" writingsuggestions="false" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"';
+const fmtClock = (sec) => { const s = Math.max(0, Math.ceil(fin(sec))); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+
+/* Accents(): the French key bar. Inserts at the real cursor of whichever field getField() returns,
+   keeps the tablet keyboard open (buttons cancel pointerdown/touchstart), respects maxLength. */
+function Accents(box, getField, canInsert) {
+  let shiftOn = false;
+  const UPPER = { 'é':'É','è':'È','ê':'Ê','ë':'Ë','à':'À','â':'Â','ç':'Ç','ù':'Ù','û':'Û','ô':'Ô','î':'Î','œ':'Œ' };
+  const KEYS = ['é','è','ê','ë','à','â','ç','ù','û','ô','î','œ','«','»'];
+  const guard = (btn) => {
+    ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => btn.addEventListener(ev, (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false }));
+    btn.addEventListener('touchend', (e) => { if (e.cancelable) { e.preventDefault(); btn.click(); } }, { passive: false });
+  };
+  const paint = () => box.querySelectorAll('.key[data-ch]').forEach(b => { const ch = b.dataset.ch; b.textContent = shiftOn && UPPER[ch] ? UPPER[ch] : ch; });
+  function insert(ch) {
+    const field = getField();
+    if (!field || field.readOnly || field.disabled || (canInsert && !canInsert())) return;
+    if (document.activeElement !== field) field.focus({ preventScroll: true });
+    const val = field.value;
+    if (val.length + ch.length > (field.maxLength > 0 ? field.maxLength : Infinity)) return;
+    let s = field.selectionStart, e = field.selectionEnd;
+    if (typeof s !== 'number' || typeof e !== 'number') { s = e = val.length; }
+    if (s > e) { const x = s; s = e; e = x; }
+    try { field.setRangeText(ch, s, e, 'end'); }
+    catch (err) { field.value = val.slice(0, s) + ch + val.slice(e); const pos = s + ch.length; quiet(() => field.setSelectionRange(pos, pos)); }
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+    if (shiftOn) { shiftOn = false; const sh = box.querySelector('.shift'); if (sh) sh.setAttribute('aria-pressed', 'false'); paint(); }
+  }
+  box.innerHTML = '';
+  const sh = document.createElement('button');
+  sh.type = 'button'; sh.className = 'key shift'; sh.tabIndex = -1; sh.textContent = '⇧ Aa'; sh.setAttribute('aria-pressed', 'false'); sh.setAttribute('aria-label', 'Shift');
+  guard(sh); sh.addEventListener('click', () => { shiftOn = !shiftOn; sh.setAttribute('aria-pressed', shiftOn); paint(); });
+  box.appendChild(sh);
+  KEYS.forEach(ch => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'key'; b.tabIndex = -1; b.dataset.ch = ch; b.textContent = ch;
+    guard(b); b.addEventListener('click', () => insert(shiftOn && UPPER[ch] ? UPPER[ch] : ch));
+    box.appendChild(b);
+  });
+  return { setDisabled(d) { box.querySelectorAll('.key').forEach(k => { k.disabled = !!d; }); } };
+}
+
+/* Coach: markup + controller for the reactive mime next to a module's clock. One per module (prefix p). */
+function coachHTML(p) {
+  return `<div class="coach"><div id="${p}Mime" style="width:68px;height:68px;" aria-hidden="true"></div>
+    <div class="bubble" id="${p}Bubble" aria-live="polite">…</div>
+    <div class="clock-wrap"><div class="clock-label" id="${p}ClockLabel"></div><div class="clock" id="${p}Clock">0:00</div></div></div>
+    <div class="timebar mt-3" id="${p}Bar"><i id="${p}Fill"></i></div>`;
+}
+function Coach(p, sayKey, cardId) {
+  $(p + 'Mime').innerHTML = mimeSVG(p);
+  let state = 'calm', last = 'ready', lastWarn = false;
+  const api = {
+    get state() { return state; },
+    mime(s) { state = s; const m = document.querySelector('#' + p + 'Mime .mime'); if (m) m.setAttribute('data-state', s); },
+    say(key, warn) { last = key; lastWarn = !!warn; api.refresh(); },
+    refresh() { const b = $(p + 'Bubble'); b.textContent = (I18N[lang][sayKey] || {})[last] || ''; b.classList.toggle('warn', lastWarn); },
+    clock(sec) { $(p + 'Clock').textContent = fmtClock(sec); },
+    bar(frac) { $(p + 'Fill').style.transform = `scaleX(${Math.min(1, Math.max(0, fin(frac)))})`; },
+    label(txt) { $(p + 'ClockLabel').textContent = txt; },
+    critical(on) { $(p + 'Clock').classList.toggle('critical', on); $(p + 'Bar').classList.toggle('critical', on); $(cardId).classList.toggle('critical', on); }
+  };
+  return api;
+}
 
 /* =================== MIME (pure SVG, ink strokes) =================== */
 function mimeSVG(uid) {
@@ -589,7 +844,6 @@ const t = (k) => I18N[lang][k];
 
 /* Header mime: STATIC. It is drawn once in the calm state and nothing ever changes its data-state. */
 $('mimeHeader').innerHTML = mimeSVG('h');
-$('mimeSoon').innerHTML = mimeSVG('s');
 
 /* Module registry. A module is { mount(), unmount(), onLang() } and owns its own state and DOM ids.
    The shell never reads a module's variables; it only calls these three hooks, wrapped in safe(). */
@@ -664,7 +918,7 @@ Modules[1] = (function TypingSprint() {
   let t0 = 0, timerId = null, lastSec = DURATION;
   let prev = '';
   let errors = new Map();        // position -> 'accent' | 'space' | 'other'
-  let shiftOn = false, hintCooldown = 0, mimeState = 'calm', lastSay = 'ready', lastResult = null;
+  let hintCooldown = 0, mimeState = 'calm', lastSay = 'ready', lastResult = null;
   const field = $('field');
 
   /* ----- coach mime (the only mime that reacts) ----- */
@@ -776,7 +1030,7 @@ Modules[1] = (function TypingSprint() {
     $('clock').textContent = fmt(DURATION); $('timefill').style.transform = 'scaleX(1)';
     setCritical(false); setMime('calm'); say('ready');
     $('results').hidden = true;
-    document.querySelectorAll('#accents .key').forEach(k => { k.disabled = false; });
+    accents.setDisabled(false);
     $('startBtn').hidden = false;
     renderText(''); paintStats(compute(''));
   }
@@ -793,7 +1047,7 @@ Modules[1] = (function TypingSprint() {
     const r = compute(prev);
     phase = 'done';
     field.readOnly = true; field.blur();
-    document.querySelectorAll('#accents .key').forEach(k => { k.disabled = true; });
+    accents.setDisabled(true);
     setCritical(false);
     if (reason === 'time') { $('clock').textContent = '0:00'; $('timefill').style.transform = 'scaleX(0)'; Sound.alarm(); }
     else Sound.ding();
@@ -871,38 +1125,8 @@ Modules[1] = (function TypingSprint() {
     if (window.matchMedia('(pointer: coarse)').matches) Timers.after(() => field.scrollIntoView({ block: 'center', behavior: 'smooth' }), 320);
   });
 
-  /* ----- French accent bar: inserts at the real cursor, keeps focus, never opens a paste path ----- */
-  function guard(btn) {
-    ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => btn.addEventListener(ev, (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false }));
-    btn.addEventListener('touchend', (e) => { if (e.cancelable) { e.preventDefault(); btn.click(); } }, { passive: false });
-  }
-  function paintKeys() { document.querySelectorAll('#accents .key[data-ch]').forEach(b => { const ch = b.dataset.ch; b.textContent = shiftOn && UPPER[ch] ? UPPER[ch] : ch; }); }
-  function buildKeys() {
-    const box = $('accents'); box.innerHTML = '';
-    const sh = document.createElement('button');
-    sh.type = 'button'; sh.className = 'key shift'; sh.tabIndex = -1; sh.textContent = '⇧ Aa'; sh.setAttribute('aria-pressed', 'false'); sh.setAttribute('aria-label', 'Shift');
-    guard(sh); sh.addEventListener('click', () => { shiftOn = !shiftOn; sh.setAttribute('aria-pressed', shiftOn); paintKeys(); });
-    box.appendChild(sh);
-    ACCENT_KEYS.forEach(ch => {
-      const b = document.createElement('button');
-      b.type = 'button'; b.className = 'key'; b.tabIndex = -1; b.dataset.ch = ch; b.textContent = ch;
-      guard(b); b.addEventListener('click', () => insertChar(shiftOn && UPPER[ch] ? UPPER[ch] : ch));
-      box.appendChild(b);
-    });
-  }
-  function insertChar(ch) {
-    if (phase === 'done' || field.readOnly || field.disabled) return;
-    if (document.activeElement !== field) field.focus({ preventScroll: true });
-    const val = field.value;
-    if (val.length + ch.length > (field.maxLength > 0 ? field.maxLength : Infinity)) return;
-    let s = field.selectionStart, e = field.selectionEnd;
-    if (typeof s !== 'number' || typeof e !== 'number') { s = e = val.length; }
-    if (s > e) { const x = s; s = e; e = x; }
-    try { field.setRangeText(ch, s, e, 'end'); }
-    catch (err) { field.value = val.slice(0, s) + ch + val.slice(e); const pos = s + ch.length; safe(() => field.setSelectionRange(pos, pos)); }
-    field.dispatchEvent(new Event('input', { bubbles: true }));
-    if (shiftOn) { shiftOn = false; const sh = document.querySelector('#accents .shift'); if (sh) sh.setAttribute('aria-pressed', 'false'); paintKeys(); }
-  }
+  /* ----- French accent bar (shared service) ----- */
+  const accents = Accents($('accents'), () => field, () => phase !== 'done');
 
   /* ----- buttons ----- */
   $('startBtn').addEventListener('click', () => { Sound.unlock(); field.focus(); });
@@ -912,7 +1136,6 @@ Modules[1] = (function TypingSprint() {
   $('againBtn').addEventListener('click', () => { reset(); $('mod1').scrollIntoView({ behavior: 'smooth' }); Timers.after(() => field.focus({ preventScroll: true }), 300); });
   $('board2Btn').addEventListener('click', Board.open);
 
-  buildKeys();
   loadExercise(exIndex);
 
   return {
@@ -927,18 +1150,358 @@ Modules[1] = (function TypingSprint() {
   };
 })();
 
-/* =================== MODULES II & III · placeholders (isolated) =================== */
-const Placeholder = {
-  mount() { this.onLang(); },
-  unmount() {},
-  onLang() {
-    if (currentMod === 1) return;
-    $('soonEyebrow').textContent = t('soonEyebrow' + currentMod);
-    $('soonTitle').textContent = t('soonTitle' + currentMod);
-    $('soonText').textContent = t('soonText' + currentMod);
+/* =================== MODULE II · 60s IMPROV (isolated) =================== */
+/* Owns: #mod2, scenario + connectors, the two phases, its clock, its coach mime.
+   Shares only services: Timers, Sound, Accents, Coach, i18n (t / lang). */
+Modules[2] = (function Improv() {
+  const PLAN = 60, WRITE = 240, CRITICAL = 20;
+  const root = $('mod2');
+  root.innerHTML = `
+    <div class="eyebrow" data-i18n="m2eyebrow"></div>
+    <h1 class="h-serif" style="font-size:1.55rem;margin:2px 0 0" data-i18n="m2title"></h1>
+    <p class="intro" data-i18n="m2intro"></p>
+    <div class="stickybar">${coachHTML('m2')}
+      <div class="chips mt-3"><span class="chip" id="m2ph1" data-i18n="m2phasePlan"></span><span class="chip" id="m2ph2" data-i18n="m2phaseWrite"></span><span class="chip" id="m2ph3" data-i18n="m2phaseDone"></span></div></div>
+    <div id="m2pre" class="flex flex-wrap items-center gap-3 mt-4">
+      <button type="button" class="btn quill" id="m2startBtn" data-i18n="m2start"></button>
+      <span class="pre-note" data-i18n="m2preNote"></span></div>
+    <div id="m2body" hidden>
+      <div class="eyebrow mt-4" data-i18n="m2scenarioLabel"></div>
+      <div class="prompt mt-2" id="m2prompt" lang="fr"></div>
+      <div class="eyebrow mt-4" data-i18n="m2connLabel"></div>
+      <div class="chips mt-2" id="m2conns"></div>
+      <div class="flex items-center justify-between gap-2 mt-4 mb-2"><div class="eyebrow" data-i18n="keysLabel"></div><div class="eyebrow" style="text-transform:none;letter-spacing:0;font-weight:500" data-i18n="keysHint"></div></div>
+      <div class="accents" id="m2accents"></div>
+      <div class="eyebrow mt-4" id="m2notesLabel"></div>
+      <textarea id="m2notes" class="field mt-2" lang="fr" rows="3" maxlength="600" ${NOASSIST}></textarea>
+      <div id="m2writeBox" hidden>
+        <div class="flex items-center justify-between gap-2 mt-4"><div class="eyebrow" data-i18n="m2editorLabel"></div><span class="chip" id="m2count">0</span></div>
+        <textarea id="m2editor" class="field mt-2" lang="fr" rows="8" maxlength="3000" style="min-height:200px" ${NOASSIST}></textarea>
+      </div>
+      <div class="flex flex-wrap gap-2 mt-3">
+        <button type="button" class="btn quill" id="m2skipBtn" data-i18n="m2skip"></button>
+        <button type="button" class="btn quill" id="m2finishBtn" data-i18n="m2finish" hidden></button>
+        <button type="button" class="btn alt" id="m2restartBtn" data-i18n="restart"></button>
+      </div>
+    </div>
+    <div id="m2results" hidden class="mt-5" style="border-top:1px solid var(--pencil);padding-top:18px;">
+      <div class="eyebrow" data-i18n="resultsTitle"></div>
+      <div class="stats mt-3">
+        <div class="stat"><div class="k" data-i18n="m2resWords"></div><div class="v" id="m2rWords">0</div></div>
+        <div class="stat"><div class="k" data-i18n="m2resConn"></div><div class="v" id="m2rConn">0/2</div></div>
+        <div class="stat"><div class="k" data-i18n="m2resReact"></div><div class="v" id="m2rReact">—</div></div>
+      </div>
+      <div class="chips mt-3" id="m2rList"></div>
+      <div class="mt-3" id="m2rNote" style="font-size:.93rem"></div>
+      <div class="flex flex-wrap gap-2 mt-4">
+        <button type="button" class="btn quill" id="m2againBtn" data-i18n="again"></button>
+        <button type="button" class="btn alt" id="m2nextBtn" data-i18n="m2next"></button>
+      </div>
+    </div>`;
+  const coach = Coach('m2', 'say2', 'mod2');
+  const notes = $('m2notes'), editor = $('m2editor');
+  const accents = Accents($('m2accents'), () => (phase === 'plan' ? notes : editor), () => phase === 'plan' || phase === 'write');
+
+  let phase = 'ready';            // ready | plan | write | done
+  let scenario = null, conns = [], seen = [], lastIdx = -1;
+  let phaseT0 = 0, dur = PLAN, timerId = null, lastSec = PLAN, firstKeyAt = null, lastRes = null;
+
+  /* ----- text utilities ----- */
+  const countWords = (s) => (String(s || '').match(/[\p{L}\p{N}][\p{L}\p{N}'’\-]*/gu) || []).length;
+  const flat = (s) => String(s || '').toLowerCase().replace(/[’‘]/g, "'");
+  const loose = (s) => flat(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/œ/g, 'oe');
+  const spaced = (s, keepAccents) => ' ' + (keepAccents ? flat(s).replace(/[^\p{L}\p{N}' ]/gu, ' ') : loose(s).replace(/[^a-z0-9' ]/g, ' ')).replace(/\s+/g, ' ').trim() + ' ';
+  function detect(text, c) {        // word-boundary match, case and accent insensitive; flags a missing accent
+    const found = spaced(text, false).includes(spaced(c.fr, false));
+    const exact = spaced(text, true).includes(spaced(c.fr, true));
+    return { found, accentMissing: found && !exact };
   }
-};
-Modules[2] = Placeholder; Modules[3] = Placeholder;
+
+  /* ----- scenario ----- */
+  function loadScenario() {
+    let i; do { i = Math.floor(Math.random() * IMPROV.length); } while (IMPROV.length > 1 && i === lastIdx);
+    lastIdx = i; scenario = IMPROV[i];
+    const a = CONNECTORS[Math.floor(Math.random() * CONNECTORS.length)];
+    let b; do { b = CONNECTORS[Math.floor(Math.random() * CONNECTORS.length)]; } while (b === a || b.type === a.type);
+    conns = [a, b]; seen = [false, false];
+    $('m2prompt').textContent = scenario.text;
+    renderConns(editor.value);
+  }
+  function renderConns(v) {
+    const box = $('m2conns'); box.innerHTML = '';
+    conns.forEach((c, i) => {
+      const d = detect(v, c), chip = document.createElement('span');
+      chip.className = 'chip conn' + (d.found ? ' ok' : '');
+      chip.innerHTML = `<span class="tick">${d.found ? '✓' : '○'}</span> <b></b> <small></small>`;
+      chip.querySelector('b').textContent = c.fr; chip.querySelector('small').textContent = '· ' + c[lang];
+      box.appendChild(chip);
+    });
+  }
+  function setLabels() {
+    $('m2notesLabel').textContent = t(phase === 'plan' || phase === 'ready' ? 'm2notesLabel' : 'm2notesLocked');
+    $('m2skipBtn').hidden = phase !== 'plan'; $('m2finishBtn').hidden = phase !== 'write';
+    $('m2restartBtn').hidden = phase === 'done';
+    $('m2ph1').classList.toggle('on', phase === 'plan'); $('m2ph2').classList.toggle('on', phase === 'write'); $('m2ph3').classList.toggle('on', phase === 'done');
+    coach.label(t(phase === 'write' ? 'm2phaseWriteShort' : phase === 'done' ? 'm2phaseDone' : 'm2phasePlanShort'));
+    notes.placeholder = t('m2notesPh'); editor.placeholder = t('m2editorPh');
+    $('m2count').textContent = `${countWords(editor.value)} / ${scenario ? scenario.goal : 0}`;
+    $('m2count').classList.toggle('ok', !!scenario && countWords(editor.value) >= scenario.goal);
+  }
+
+  /* ----- clock (Timers) ----- */
+  function stopTimer() { if (timerId !== null) { Timers.stop(timerId); timerId = null; } }
+  function tick() {
+    if (phase !== 'plan' && phase !== 'write') { stopTimer(); return; }
+    const rem = dur - fin((performance.now() - phaseT0) / 1000);
+    coach.clock(rem); coach.bar(rem / dur);
+    const sec = Math.ceil(rem);
+    if (sec !== lastSec) {
+      lastSec = sec;
+      if (sec <= CRITICAL && sec > 0) {
+        Sound.tick(sec % 2);
+        if (coach.state !== 'critical') { coach.mime('critical'); coach.critical(true); coach.say('critical', true); }
+      }
+    }
+    if (rem <= 0) { if (phase === 'plan') toWrite('time'); else finish('time'); }
+  }
+
+  /* ----- lifecycle ----- */
+  function reset() {
+    stopTimer();
+    phase = 'ready'; firstKeyAt = null; lastRes = null; seen = [false, false]; lastSec = PLAN;
+    notes.value = ''; editor.value = ''; notes.readOnly = false; editor.readOnly = false;
+    $('m2pre').hidden = false; $('m2body').hidden = true; $('m2results').hidden = true; $('m2writeBox').hidden = true;
+    coach.critical(false); coach.mime('calm'); coach.say('ready'); coach.clock(PLAN); coach.bar(1);
+    accents.setDisabled(true); renderConns(''); setLabels();
+  }
+  function start() {
+    Sound.unlock(); Sound.ding();
+    phase = 'plan'; dur = PLAN; phaseT0 = performance.now(); lastSec = PLAN + 1;
+    $('m2pre').hidden = true; $('m2body').hidden = false;
+    accents.setDisabled(false); coach.mime('typing'); coach.say('plan'); setLabels();
+    timerId = Timers.every(tick, 150);
+    notes.focus({ preventScroll: true });
+  }
+  function toWrite(reason) {
+    if (phase !== 'plan') return;
+    stopTimer();
+    phase = 'write'; dur = WRITE; phaseT0 = performance.now(); lastSec = WRITE + 1; firstKeyAt = null;
+    notes.readOnly = true; $('m2writeBox').hidden = false;
+    Sound.ding();
+    coach.critical(false); coach.mime('typing'); coach.say(reason === 'time' ? 'locked' : 'write');
+    coach.clock(WRITE); coach.bar(1); setLabels();
+    timerId = Timers.every(tick, 150);
+    editor.focus({ preventScroll: true });
+    editor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  function finish(reason) {
+    if (phase !== 'write') return;
+    stopTimer();
+    const now = performance.now(), v = editor.value;
+    phase = 'done'; editor.readOnly = true; notes.readOnly = true; editor.blur(); accents.setDisabled(true);
+    coach.critical(false);
+    if (reason === 'time') { coach.clock(0); coach.bar(0); Sound.alarm(); } else Sound.ding();
+    const words = countWords(v), det = conns.map(c => detect(v, c));
+    lastRes = { words, goal: scenario.goal, det, conns: conns.slice(), reason,
+                react: firstKeyAt === null ? null : Math.max(0, (firstKeyAt - phaseT0) / 1000),
+                secs: Math.min(WRITE, Math.max(0, fin((now - phaseT0) / 1000))) };
+    const win = words >= scenario.goal && det.every(d => d.found);
+    if (words === 0) { coach.mime('calm'); coach.say('empty'); }
+    else if (win) { coach.mime('victory'); coach.say('win'); }
+    else { coach.mime('calm'); coach.say(reason === 'time' ? 'timeup' : 'close'); }
+    $('m2results').hidden = false; setLabels(); renderResults();
+    Timers.after(() => $('m2results').scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+  }
+  function renderResults() {
+    const r = lastRes; if (!r) return;
+    $('m2rWords').innerHTML = `${r.words}<small> / ${r.goal}</small>`;
+    $('m2rConn').textContent = `${r.det.filter(d => d.found).length}/2`;
+    $('m2rReact').innerHTML = r.react === null ? '—' : `${r.react.toFixed(1)}<small> s</small>`;
+    const list = $('m2rList'); list.innerHTML = '';
+    r.conns.forEach((c, i) => {
+      const d = r.det[i], chip = document.createElement('span');
+      chip.className = 'chip conn ' + (d.found ? 'ok' : 'miss');
+      chip.textContent = `${d.found ? '✓' : '✗'} ${c.fr} · ${t(d.found ? 'm2used' : 'm2missing')}${d.accentMissing ? ' (' + t('m2noAccent') + ')' : ''}`;
+      list.appendChild(chip);
+    });
+    const used = Math.round(r.secs);
+    $('m2rNote').textContent = `${t('m2resTime')}: ${fmtClock(used).replace(/^(\d+):(\d+)$/, '$1 min $2 s')} · ${r.words >= r.goal ? t('m2goalMet') : t('m2goalShort')(r.goal - r.words)}`;
+  }
+
+  /* ----- input ----- */
+  function blockPaste(e) { e.preventDefault(); coach.say('paste', true); }
+  [notes, editor].forEach(f => {
+    f.addEventListener('paste', blockPaste); f.addEventListener('drop', blockPaste); f.addEventListener('dragover', (e) => e.preventDefault());
+    f.addEventListener('cut', (e) => e.preventDefault());
+    f.addEventListener('beforeinput', (e) => {
+      if (f.readOnly) { e.preventDefault(); return; }
+      const it = e.inputType || '';
+      if (it === 'insertFromPaste' || it === 'insertFromDrop' || it === 'insertFromYank' || it === 'insertFromPasteAsQuotation') blockPaste(e);
+    });
+  });
+  editor.addEventListener('input', () => {
+    if (phase !== 'write') return;
+    const v = editor.value;
+    if (firstKeyAt === null && v.length) firstKeyAt = performance.now();
+    renderConns(v); setLabels();
+    conns.forEach((c, i) => { const f = detect(v, c).found; if (f && !seen[i]) { seen[i] = true; if (coach.state !== 'critical') coach.say('found'); } if (!f) seen[i] = false; });
+  });
+  editor.addEventListener('focus', () => { if (window.matchMedia('(pointer: coarse)').matches) Timers.after(() => editor.scrollIntoView({ block: 'center', behavior: 'smooth' }), 320); });
+
+  $('m2startBtn').addEventListener('click', start);
+  $('m2skipBtn').addEventListener('click', () => toWrite('skip'));
+  $('m2finishBtn').addEventListener('click', () => finish('manual'));
+  $('m2restartBtn').addEventListener('click', reset);
+  $('m2againBtn').addEventListener('click', () => { reset(); root.scrollIntoView({ behavior: 'smooth' }); });
+  $('m2nextBtn').addEventListener('click', () => { loadScenario(); reset(); root.scrollIntoView({ behavior: 'smooth' }); });
+
+  loadScenario(); reset();
+  return {
+    mount() { reset(); },
+    unmount() { reset(); },
+    onLang() { coach.refresh(); renderConns(editor.value); setLabels(); renderResults(); }
+  };
+})();
+
+/* =================== MODULE III · SPEED READING (isolated) =================== */
+/* Owns: #mod3, current text/answers, its 3-minute clock, its coach mime. Layout is CSS (.split): side by side on wide
+   screens, stacked on tablets/phones, with a sticky clock so it stays visible while scrolling. */
+Modules[3] = (function Reading() {
+  const DURATION = 180, CRITICAL = 20, LETTERS = ['A', 'B', 'C', 'D'];
+  const root = $('mod3');
+  root.innerHTML = `
+    <div class="eyebrow" data-i18n="m3eyebrow"></div>
+    <h1 class="h-serif" style="font-size:1.55rem;margin:2px 0 0" data-i18n="m3title"></h1>
+    <p class="intro" data-i18n="m3intro"></p>
+    <div class="stickybar">${coachHTML('m3')}
+      <div class="chips mt-3"><span class="chip on" id="m3answered"></span></div></div>
+    <div id="m3pre" class="flex flex-wrap items-center gap-3 mt-4">
+      <button type="button" class="btn quill" id="m3startBtn" data-i18n="m3start"></button>
+      <span class="pre-note" data-i18n="m3preNote"></span></div>
+    <div id="m3body" hidden class="mt-4">
+      <div class="split">
+        <article class="readbox"><div class="source-title" id="m3tag"></div><h2 class="h-serif" id="m3textTitle" style="font-size:1.2rem;margin:2px 0 8px"></h2>
+          <div class="source readtext" id="m3text" lang="fr"></div></article>
+        <div id="m3qs"></div>
+      </div>
+      <div class="flex flex-wrap gap-2 mt-4">
+        <button type="button" class="btn quill" id="m3submitBtn" data-i18n="m3submit"></button>
+        <button type="button" class="btn alt" id="m3restartBtn" data-i18n="restart"></button>
+      </div>
+    </div>
+    <div id="m3results" hidden class="mt-5" style="border-top:1px solid var(--pencil);padding-top:18px;">
+      <div class="eyebrow" data-i18n="resultsTitle"></div>
+      <div class="flex flex-wrap items-end gap-6 mt-2">
+        <div><div class="result-score" id="m3rScore">0/3</div><div class="formula" data-i18n="m3resScore"></div></div>
+        <div class="flex flex-wrap gap-5" style="font-variant-numeric:tabular-nums;">
+          <div><div class="eyebrow" data-i18n="m3resTime"></div><div style="font-size:1.4rem;font-weight:700" id="m3rTime">0:00</div></div>
+          <div><div class="eyebrow" data-i18n="m3resBlank"></div><div style="font-size:1.4rem;font-weight:700" id="m3rBlank">0</div></div>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2 mt-4">
+        <button type="button" class="btn quill" id="m3againBtn" data-i18n="again"></button>
+        <button type="button" class="btn alt" id="m3nextBtn" data-i18n="next"></button>
+      </div>
+    </div>`;
+  const coach = Coach('m3', 'say3', 'mod3');
+  let phase = 'ready';            // ready | running | done
+  let idx = Math.floor(Math.random() * READING.length), item = READING[idx];
+  let answers = [null, null, null], t0 = 0, timerId = null, lastSec = DURATION, lastRes = null;
+
+  function renderItem() {
+    item = READING[idx];
+    $('m3tag').textContent = item.theme; $('m3textTitle').textContent = item.title; $('m3text').textContent = item.text;
+    const box = $('m3qs'); box.innerHTML = '';
+    item.qs.forEach((q, qi) => {
+      const wrap = document.createElement('div'); wrap.className = 'q'; wrap.setAttribute('role', 'radiogroup'); wrap.setAttribute('aria-labelledby', 'm3q' + qi);
+      const h = document.createElement('div'); h.className = 'q-text'; h.id = 'm3q' + qi; h.lang = 'fr'; h.textContent = `${qi + 1}. ${q.q}`; wrap.appendChild(h);
+      q.o.forEach((o, oi) => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', 'false');
+        b.dataset.q = qi; b.dataset.o = oi; b.lang = 'fr';
+        b.innerHTML = '<span class="ltr"></span><span class="otxt"></span>';
+        b.querySelector('.ltr').textContent = LETTERS[oi]; b.querySelector('.otxt').textContent = o;
+        b.addEventListener('click', () => choose(qi, oi)); wrap.appendChild(b);
+      });
+      const why = document.createElement('div'); why.className = 'why'; why.id = 'm3why' + qi; why.hidden = true; wrap.appendChild(why);
+      box.appendChild(wrap);
+    });
+  }
+  function paintAnswers() {
+    document.querySelectorAll('#m3qs .opt').forEach(b => b.setAttribute('aria-checked', String(answers[+b.dataset.q] === +b.dataset.o)));
+    $('m3answered').textContent = t('m3answered')(answers.filter(a => a !== null).length);
+  }
+  function choose(qi, oi) { if (phase !== 'running') return; answers[qi] = oi; paintAnswers(); }
+
+  function stopTimer() { if (timerId !== null) { Timers.stop(timerId); timerId = null; } }
+  function tick() {
+    if (phase !== 'running') { stopTimer(); return; }
+    const rem = DURATION - fin((performance.now() - t0) / 1000);
+    coach.clock(rem); coach.bar(rem / DURATION);
+    const sec = Math.ceil(rem);
+    if (sec !== lastSec) {
+      lastSec = sec;
+      if (sec <= CRITICAL && sec > 0) {
+        Sound.tick(sec % 2);
+        if (coach.state !== 'critical') { coach.mime('critical'); coach.critical(true); coach.say('critical', true); }
+      }
+    }
+    if (rem <= 0) finish('time');
+  }
+  function reset() {
+    stopTimer();
+    phase = 'ready'; answers = [null, null, null]; lastSec = DURATION; lastRes = null;
+    $('m3pre').hidden = false; $('m3body').hidden = true; $('m3results').hidden = true;
+    coach.critical(false); coach.mime('calm'); coach.say('ready'); coach.label(t('time')); coach.clock(DURATION); coach.bar(1);
+    renderItem(); paintAnswers();
+    $('m3submitBtn').hidden = false; $('m3restartBtn').hidden = false;
+  }
+  function start() {
+    Sound.unlock(); Sound.ding();
+    phase = 'running'; t0 = performance.now(); lastSec = DURATION + 1;
+    $('m3pre').hidden = true; $('m3body').hidden = false;
+    coach.mime('typing'); coach.say('read');
+    timerId = Timers.every(tick, 150);
+  }
+  function finish(reason) {
+    if (phase !== 'running') return;
+    stopTimer();
+    const used = Math.min(DURATION, Math.max(0, fin((performance.now() - t0) / 1000)));
+    phase = 'done'; coach.critical(false);
+    if (reason === 'time') { coach.clock(0); coach.bar(0); Sound.alarm(); } else Sound.ding();
+    const score = item.qs.reduce((n, q, i) => n + (answers[i] === q.a ? 1 : 0), 0);
+    lastRes = { score, used, blank: answers.filter(a => a === null).length };
+    document.querySelectorAll('#m3qs .opt').forEach(b => {
+      const q = item.qs[+b.dataset.q], o = +b.dataset.o; b.disabled = true;
+      if (o === q.a) b.classList.add('right');
+      else if (answers[+b.dataset.q] === o) b.classList.add('wrong');
+    });
+    item.qs.forEach((q, i) => { const w = $('m3why' + i); w.hidden = false; w.textContent = `${answers[i] === q.a ? '✓' : '✗'} ${q.why}`; });
+    if (score >= 2) { coach.mime('victory'); coach.say('win'); }
+    else { coach.mime('calm'); coach.say(reason === 'time' ? 'timeup' : 'low'); }
+    $('m3submitBtn').hidden = true; $('m3restartBtn').hidden = true;
+    $('m3results').hidden = false; renderResults();
+    Timers.after(() => $('m3results').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
+  }
+  function renderResults() {
+    if (!lastRes) return;
+    $('m3rScore').textContent = `${lastRes.score}/3`;
+    $('m3rTime').textContent = fmtClock(lastRes.used);
+    $('m3rBlank').textContent = lastRes.blank;
+  }
+
+  $('m3startBtn').addEventListener('click', start);
+  $('m3submitBtn').addEventListener('click', () => finish('manual'));
+  $('m3restartBtn').addEventListener('click', reset);
+  $('m3againBtn').addEventListener('click', () => { reset(); root.scrollIntoView({ behavior: 'smooth' }); });
+  $('m3nextBtn').addEventListener('click', () => { idx = (idx + 1) % READING.length; reset(); root.scrollIntoView({ behavior: 'smooth' }); });
+
+  reset();
+  return {
+    mount() { reset(); },
+    unmount() { reset(); },
+    onLang() { coach.refresh(); coach.label(t('time')); paintAnswers(); renderResults(); }
+  };
+})();
 
 /* =================== TABS =================== */
 function showMod(n) {
@@ -948,11 +1511,10 @@ function showMod(n) {
   Timers.clearAll();                                   // no ghost clocks after a tab change
   currentMod = n;
   document.querySelectorAll('.tab').forEach(tb => tb.setAttribute('aria-selected', String(+tb.dataset.mod === n)));
-  $('mod1').hidden = n !== 1; $('modSoon').hidden = n === 1;
+  [1, 2, 3].forEach(i => { $('mod' + i).hidden = i !== n; });
   safe(() => Modules[n] && Modules[n].mount());
 }
 document.querySelectorAll('.tab').forEach(tb => tb.addEventListener('click', () => showMod(+tb.dataset.mod)));
-$('backBtn').addEventListener('click', () => showMod(1));
 
 /* =================== BOOT =================== */
 applyLang();
