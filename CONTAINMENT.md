@@ -18,7 +18,7 @@ Cinco archivos con orden de carga fijo: `exercises.js` (datos), `audio.js` (soni
 | Módulo III (Speed Reading) | `Modules[3]` (función `Reading`, variables privadas) | Sus respuestas y su reloj de 3 min son propios; se auto-envía en 0:00 |
 | Barra de acentos | `Accents()` (servicio compartido) | Una sola implementación del cursor para el Sprint y el Improv |
 | Mimo junto al reloj (módulos II y III) | `Coach()` (servicio compartido), un mimo por módulo | Cada módulo reacciona solo a su propio reloj |
-| Personaje del encabezado | `#mimeHeader`, se dibuja una vez en calma con `mimeSVG()` | Nadie le cambia el estado; sigue el idioma de práctica, no `pc_lang` |
+| Logo del encabezado | `#brandMark`: el isotipo (`<use href="#pcMark">`), SVG fijo en `index.html` | No hay personaje en el encabezado desde `?v=20261119j`; los personajes viven solo junto a los relojes y siguen el idioma de práctica |
 | Mimo junto al reloj | `#mimeCoach`, `setMime()` dentro de `TypingSprint` | Es el único que reacciona (calma, escribiendo, últimos 20 s, victoria) |
 | Almacenamiento | `store` (con `try/catch`) y `Board` | `localStorage` bloqueado o corrupto: la app sigue sin guardar |
 | Idioma | `applyLang()` (shell) + `onLang()` por módulo | Cada módulo traduce lo suyo |
@@ -214,3 +214,10 @@ Qué revisar en la tablet: tocar EN y ES varias veces en vertical y en horizonta
 - **EN y ES preparados:** tienen `ready: false`, su personaje y sus teclas (ES: á é í ó ú ñ ü ¿ ¡). Solo se usan si `exercises.js` activa ese idioma con su propio banco. El botón de Quebec se oculta en cualquier ficha sin `regionalTypo: 'qc'`.
 - En `index.html`, los textos en francés del Sprint (`#source`, `#lsText`, `#field`) llevan `data-plang`, y al arrancar toman el `lang` de la ficha. En FR no cambia nada.
 - **Sin cambios:** fórmulas, Sprint, devolución de Improvisación, ranking por nivel con piso de 90 %, mezcla y rotación de Lectura, encabezado de 192 px a 360 px, personaje del encabezado en calma, cero `@keyframes`, `#adSlot` oculto con `Results.ads()`, kit "En preparación", IDs estables y claves EN/ES parejas (no se agregó ninguna).
+
+## Isotipo como logo del encabezado (`?v=20261119j`)
+**Archivos modificados:** `index.html` (encabezado y versión), `style.css`, `app.js` y este archivo. No cambian `exercises.js` ni `audio.js`.
+- El mimo del encabezado se reemplaza por el isotipo (tecla con el pulsador del cronómetro y la plumilla), a pedido de Seba. Es un SVG fijo dentro de `#brandMark` que usa el mismo `<symbol id="pcMark">` del favicon y del pie: 44 px en pantallas anchas y 38 px a 600 px o menos, subido 2 px para que la tecla quede centrada ópticamente respecto de "Plume & Chrono" y "by Life and Gently". No tiene estados ni transiciones.
+- `#mimeHeader` y la línea que lo dibujaba en `app.js` se quitaron. La regla anterior "personaje del encabezado fijo en calma" pasa a ser "isotipo fijo en el encabezado".
+- Los personajes (mimo FR, prócer EN, cronista ES) siguen solo junto a los relojes de los 3 módulos, reaccionan como antes y siguen el idioma de práctica. `?char=en` / `?char=es` siguen funcionando.
+- **Medido (Chromium, EN y ES, 360/412/601/800/1280 px):** encabezado de 192 px a 360 px y 165 px desde 601 px, Audio y Ranking sin moverse, 3 personajes (uno por reloj) y sin errores de página.
