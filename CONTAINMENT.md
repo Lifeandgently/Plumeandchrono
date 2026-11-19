@@ -18,7 +18,7 @@ Cinco archivos con orden de carga fijo: `exercises.js` (datos), `audio.js` (soni
 | Módulo III (Speed Reading) | `Modules[3]` (función `Reading`, variables privadas) | Sus respuestas y su reloj de 3 min son propios; se auto-envía en 0:00 |
 | Barra de acentos | `Accents()` (servicio compartido) | Una sola implementación del cursor para el Sprint y el Improv |
 | Mimo junto al reloj (módulos II y III) | `Coach()` (servicio compartido), un mimo por módulo | Cada módulo reacciona solo a su propio reloj |
-| Mimo del encabezado | `#mimeHeader`, se dibuja una vez en calma | Nadie le cambia el estado |
+| Personaje del encabezado | `#mimeHeader`, se dibuja una vez en calma con `mimeSVG()` | Nadie le cambia el estado; sigue el idioma de práctica, no `pc_lang` |
 | Mimo junto al reloj | `#mimeCoach`, `setMime()` dentro de `TypingSprint` | Es el único que reacciona (calma, escribiendo, últimos 20 s, victoria) |
 | Almacenamiento | `store` (con `try/catch`) y `Board` | `localStorage` bloqueado o corrupto: la app sigue sin guardar |
 | Idioma | `applyLang()` (shell) + `onLang()` por módulo | Cada módulo traduce lo suyo |
@@ -146,3 +146,24 @@ Qué probar en la tablet:
 - **Posiciones fijas:** el encabezado no es fijo. En Lectura (≥ 900 px), la columna del texto se pega debajo de la barra del reloj usando su altura real (`--m3-sticky`, que mide un ResizeObserver al arrancar), en lugar de 150 px fijos.
 - **`#adSlot`:** mientras `SITE.ads` esté vacío, `#adWrap` lleva `hidden` y `.ads-off` y no ocupa altura. `#adSlot` sigue en el DOM y `Results.ads()` no cambia: al completar `client` y `slot`, el bloque vuelve a aparecer con el `<ins class="adsbygoogle">`.
 - **Plume Writing Kit:** reemplaza al "French Exam Survival PDF Kit". Es un kit de escritura: ordenar ideas, conectar frases con sentido y desarrollar un tema, útil para el trabajo y para un examen, sin prometer calificaciones oficiales. Tras Improvisación aparece la tarjeta completa antes de los botones, con una línea que la conecta con lo que se acaba de escribir. Tras Sprint y Lectura aparece una versión compacta después de los botones. Sin enlace muestra "In preparation / En preparación", en lugar de un botón gris. Las claves EN y ES son las mismas (`kitPrep`, `kitPrepNote`, `kitShort` y `kitLead`; `kitSoon` se quitó).
+
+## Identidad visual: isotipo de teclas y personajes por idioma de práctica
+**Archivos modificados:** `index.html`, `style.css`, `app.js` y este archivo. No cambian `exercises.js` ni `audio.js`.
+**Versión:** `?v=20261119c` en las 4 líneas de `index.html` (antes `20261119b`). En la próxima subida, cámbiala de nuevo (por ejemplo `20261120a`).
+
+| Responsabilidad | Dueño en el código | Qué previene |
+|---|---|---|
+| Isotipo | `<symbol id="pcMark">` al inicio del `<body>` de `index.html` (grilla de 32 × 32, una sola tinta con `currentColor`) y la misma figura como favicon SVG en `<head>` | Una sola fuente del dibujo: tecla redondeada con la corona de un cronómetro arriba y una plumilla en el centro. Sin `keyframes` ni transiciones |
+| Dónde se ve el isotipo | Favicon y firma del pie (`.colo-brand`, 32 px) | El encabezado no cambia de altura: a 360 px sigue en 192 px. El personaje calmo sigue siendo la cara del encabezado |
+| Personaje por idioma de práctica | `practiceChar()` en `app.js` lee `PC_BANK.active` (hoy `fr`). `charSVG(uid, who)` dibuja `fr` (mimo), `en` (prócer con peluca empolvada) o `es` (cronista con cuaderno en el bolsillo de la chaqueta) | El personaje sigue al idioma que se practica, nunca a `pc_lang`: cambiar EN/ES en la interfaz no lo redibuja |
+| Estructura común | `CHAR_PARTS` (solo capas de vestuario: `ch-back`, `ch-collar`, `ch-top`, `ch-marks`) | Los tres comparten `viewBox="0 0 64 64"`, `stroke="currentColor"`, `.ring`, la cara, la nariz y las capas `.st-calm`, `.st-typing`, `.st-critical`, `.st-victory`. El CSS y `Coach()` no distinguen personajes |
+| Un solo punto de entrada | `mimeSVG(uid)` = `charSVG(uid, practiceChar())` | Encabezado, Sprint, Improvisación y Lectura muestran siempre el mismo personaje |
+| Contención | Sin cambios en `Timers.clearAll()`, en los IDs ni en `#adSlot` (oculto, sigue en el DOM) ni en el Plume Writing Kit | El personaje del encabezado no tiene transición de opacidad (`#mimeHeader .mime .st { transition: none }`). En crítico, el aro de los relojes solo cambia de color; nada tiembla. `prefers-reduced-motion` sigue anulando las transiciones |
+
+**Vista previa sin tocar el banco:** agrega `?char=en` o `?char=es` a la dirección para ver ese personaje (solo cambia el dibujo; los ejercicios siguen en francés). Para activar inglés o español de verdad, se llena `langs.en` o `langs.es` en `exercises.js` y se cambia `PC_BANK.active`; el personaje cambia solo.
+
+Qué revisar en la tablet:
+- **360 px (vertical):** el encabezado mide lo mismo que antes; el personaje del encabezado (40 px) está en calma y no cambia al escribir. El de junto al reloj sí cambia (escribiendo, últimos 20 s con aro ámbar sin temblor, victoria). Al pie, el isotipo de 32 px se lee como tecla con corona y plumilla.
+- **800 px:** prueba `?char=en` y `?char=es`: el personaje cambia en el encabezado y junto a los tres relojes, y no cambia al tocar EN/ES.
+- **1280 px:** Lectura en dos columnas sin cambios; la pestaña del navegador muestra el isotipo como favicon.
+- Cambiar de pestaña con el reloj corriendo sigue reiniciando el módulo, sin relojes fantasma.

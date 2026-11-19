@@ -10,7 +10,7 @@
    - Accent keys .. Accents() shared key bar (selectionStart/End, input event, focus kept, paste blocked)
    - Score ........ TypingSprint.compute (every division guarded, NaN/Infinity -> 0)
    - Storage ...... store (try/catch) + Board (personal top 10) + LB (weekly Top 20, anti-cheat, LocalStore / SupabaseStore)
-   - Mimes ........ header mime: static calm; coach mimes next to each clock react (Coach())
+   - Characters ... one per PRACTICE language (fr mime, en statesman, es chronicler), charSVG(); header one static calm; coach ones next to each clock react (Coach())
    - Tabs ......... showMod(): unmount() the old module, Timers.clearAll(), mount() the new one
    - Module II ... Modules[2] (Improv): own phases, clock, coach mime, scenario + 2 connectors of the scenario's level
    - Module III .. Modules[3] (Reading): own text/answers, 3-minute clock, coach mime, correction
@@ -425,28 +425,79 @@ function Coach(p, sayKey, cardId) {
   return api;
 }
 
-/* =================== MIME (pure SVG, ink strokes) =================== */
-function mimeSVG(uid) {
+/* =================== CHARACTERS (pure SVG, ink strokes) ===================
+   One character per PRACTICE language (PC_BANK.active), never per interface language (pc_lang):
+   fr = the mime, en = a powdered-wig statesman, es = a quiet chronicler with a notebook in the jacket pocket.
+   All three share the same skeleton: viewBox 0 0 64 64, stroke currentColor, the same .ring, the same face and the
+   same state layers (.st-calm, .st-typing, .st-critical, .st-victory). Only the costume layers change.
+   Preview without changing the bank: add ?char=en or ?char=es to the address (it changes the drawing only). */
+const CHAR_IDS = ['fr', 'en', 'es'];
+function practiceChar() {
+  let q = null;
+  try { q = new URLSearchParams(location.search).get('char'); } catch (e) { q = null; }
+  if (CHAR_IDS.includes(q)) return q;
+  const a = (window.PC_BANK && window.PC_BANK.active) || 'fr';
+  return CHAR_IDS.includes(a) ? a : 'fr';
+}
+const PAPER_FILL = '#FFFDF9';
+const CHAR_PARTS = {
+  fr: {
+    label: 'Mime',
+    back: '',
+    collar: `<path d="M18 60 q4 -6 8 -3 q3 -4 6 -1 q3 -3 6 1 q4 -3 8 3" stroke-width="1"/>`,
+    top: `<g transform="rotate(-16 31 21)">
+      <path d="M16.5 23.4 C15.8 15.6 25 12.4 33 12.6 C41.4 12.8 47.4 16.6 46.6 21.4 C42 24.2 24 25.2 16.5 23.4 Z" fill="currentColor" stroke-width="1"/>
+      <path d="M31.6 12.7 l.6 -3.1" stroke-width="1.4"/>
+      <path d="M18.4 23.9 C26 25.4 39 24.7 45.4 22.2" stroke="${PAPER_FILL}" stroke-width=".6" stroke-dasharray="1 1.4"/>
+    </g>`,
+    marks: `<path d="M26.6 39.6 v2.4 M37.4 39.6 v2.4" stroke-width=".9"/>
+    <circle cx="39.6" cy="45.2" r=".55" fill="currentColor" stroke="none"/>`
+  },
+  en: {
+    label: 'Statesman',
+    back: `<path d="M17.6 40 C14.6 27 18.4 13.4 32 13.4 C45.6 13.4 49.4 27 46.4 40" fill="${PAPER_FILL}" stroke-width="1.1"/>
+    <path d="M46.4 40 q2.6 3.4 .4 6.8 M47.2 46.8 l2.4 1.6 M47.2 46.8 l1 2.6" stroke-width=".9"/>`,
+    collar: `<path d="M17 62 L25.4 54 M47 62 L38.6 54" stroke-width="1"/>
+    <path d="M27.6 54.6 q4.4 2.6 8.8 0" stroke-width="1"/>
+    <path d="M32 56 q-2.6 1.8 0 3.4 q2.6 1.6 0 3.4 M32 56 q2.6 1.8 0 3.4" stroke-width=".8"/>`,
+    top: `<path d="M19.6 30 C18.8 19.4 24.4 14.4 32 14.4 C39.6 14.4 45.2 19.4 44.4 30 C42.6 24.8 37.8 22.4 32 23.2 C26.2 22.4 21.4 24.8 19.6 30 Z" fill="${PAPER_FILL}" stroke-width="1.15"/>
+    <path d="M24.6 18.6 q1.8 -1.4 3.6 0 q1.9 -1.4 3.8 0 q1.9 -1.4 3.8 0 q1.8 -1.4 3.6 0" stroke-width=".7"/>
+    <ellipse cx="17.6" cy="31.2" rx="3.1" ry="2.1" fill="${PAPER_FILL}" stroke-width="1"/>
+    <ellipse cx="17.6" cy="36.4" rx="3.1" ry="2.1" fill="${PAPER_FILL}" stroke-width="1"/>
+    <ellipse cx="46.4" cy="31.2" rx="3.1" ry="2.1" fill="${PAPER_FILL}" stroke-width="1"/>
+    <ellipse cx="46.4" cy="36.4" rx="3.1" ry="2.1" fill="${PAPER_FILL}" stroke-width="1"/>`,
+    marks: ''
+  },
+  es: {
+    label: 'Chronicler',
+    back: '',
+    collar: `<path d="M16 62 L24.4 53.4 L29 58.4 M48 62 L39.6 53.4 L35 58.4" stroke-width="1"/>
+    <path d="M27.6 53.2 L32 57.4 L36.4 53.2" stroke-width=".9"/>
+    <rect x="37.8" y="56" width="5.2" height="5" rx=".6" stroke-width=".9"/>
+    <path d="M37.8 57.6 h5.2" stroke-width=".7"/>`,
+    top: `<path d="M19.4 31 C18.4 19.6 24.6 14.8 32.4 14.9 C40.2 15 45.6 19.8 44.6 31 C43.8 26.4 41.6 23.2 38 21.6 C33.6 24.2 26.4 24.4 21.8 25.6 C20.6 27.2 19.8 29 19.4 31 Z" fill="currentColor" stroke-width="1"/>
+    <path d="M38 21.6 C36.4 19.2 34.2 17 31.4 15.6" stroke="${PAPER_FILL}" stroke-width=".6"/>`,
+    marks: ''
+  }
+};
+
+function charSVG(uid, who) {
+  const c = CHAR_PARTS[who] || CHAR_PARTS.fr;
+  const id = CHAR_PARTS[who] ? who : 'fr';
   return `
-<svg class="mime" data-state="calm" viewBox="0 0 64 64" width="100%" height="100%" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Mime">
+<svg class="mime" data-char="${id}" data-state="calm" viewBox="0 0 64 64" width="100%" height="100%" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="${c.label}">
   <clipPath id="clip-${uid}"><circle cx="32" cy="32" r="28.6"/></clipPath>
   <circle class="ring" cx="32" cy="32" r="30.6" stroke-width="1.3"/>
   <circle cx="32" cy="32" r="28.6" stroke-width=".5" stroke-dasharray=".6 1.6"/>
   <g clip-path="url(#clip-${uid})">
-    <!-- collar ruff hint -->
-    <path d="M18 60 q4 -6 8 -3 q3 -4 6 -1 q3 -3 6 1 q4 -3 8 3" stroke-width="1"/>
-    <!-- face -->
-    <path d="M19.5 33 C19.5 22.5 25 18.6 32 18.6 C39 18.6 44.5 22.5 44.5 33 C44.5 44 38.6 52.4 32 52.4 C25.4 52.4 19.5 44 19.5 33 Z" stroke-width="1.3" fill="#FFFDF9"/>
-    <!-- beret, tilted -->
-    <g transform="rotate(-16 31 21)">
-      <path d="M16.5 23.4 C15.8 15.6 25 12.4 33 12.6 C41.4 12.8 47.4 16.6 46.6 21.4 C42 24.2 24 25.2 16.5 23.4 Z" fill="currentColor" stroke-width="1"/>
-      <path d="M31.6 12.7 l.6 -3.1" stroke-width="1.4"/>
-      <path d="M18.4 23.9 C26 25.4 39 24.7 45.4 22.2" stroke="#FFFDF9" stroke-width=".6" stroke-dasharray="1 1.4"/>
-    </g>
-    <!-- nose + mime marks -->
+    <g class="ch-back">${c.back}</g>
+    <g class="ch-collar">${c.collar}</g>
+    <!-- face (shared) -->
+    <path d="M19.5 33 C19.5 22.5 25 18.6 32 18.6 C39 18.6 44.5 22.5 44.5 33 C44.5 44 38.6 52.4 32 52.4 C25.4 52.4 19.5 44 19.5 33 Z" stroke-width="1.3" fill="${PAPER_FILL}"/>
+    <g class="ch-top">${c.top}</g>
+    <!-- nose (shared) + costume marks -->
     <path d="M32 37.4 q-1.2 2.4 .6 2.8" stroke-width=".9"/>
-    <path d="M26.6 39.6 v2.4 M37.4 39.6 v2.4" stroke-width=".9"/>
-    <circle cx="39.6" cy="45.2" r=".55" fill="currentColor" stroke="none"/>
+    <g class="ch-marks">${c.marks}</g>
 
     <!-- 1 · calm -->
     <g class="st st-calm" stroke-width="1.1">
@@ -480,6 +531,8 @@ function mimeSVG(uid) {
   </g>
 </svg>`;
 }
+/* Every caller (header, Sprint coach, Coach() in II and III) goes through here, so all of them show the same character. */
+function mimeSVG(uid) { return charSVG(uid, practiceChar()); }
 
 /* =================== APP SHELL =================== */
 const $ = (id) => document.getElementById(id);
@@ -492,7 +545,8 @@ const DOUBLE_PUNCT = '?!:;';
 let lang = (() => { const v = store.get('pc_lang', null); return v === 'es' || v === 'en' ? v : 'en'; })();   // English by default; Spanish only when chosen
 const t = (k) => I18N[lang][k];
 
-/* Header mime: STATIC. It is drawn once in the calm state and nothing ever changes its data-state. */
+/* Header character: STATIC. It is drawn once in the calm state and nothing ever changes its data-state.
+   It follows the practice language (practiceChar()), not the interface language, so EN|ES never redraws it. */
 $('mimeHeader').innerHTML = mimeSVG('h');
 
 /* Module registry. A module is { mount(), unmount(), onLang() } and owns its own state and DOM ids.

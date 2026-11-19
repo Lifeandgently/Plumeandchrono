@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="description" content="Plume & Chrono: daily typing and accent practice for computer-based French exams.">
 <title>Plume &amp; Chrono</title>
+<!-- Brand mark (isotipo): key + stopwatch crown + pen nib, one ink. Same drawing as #pcMark below; 32 x 32 grid. -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='%232C2A29' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.6 2.2 h4.8 M16 2.2 v3.6' stroke-width='1.8'/%3E %3Crect x='3.4' y='5.8' width='25.2' height='23.6' rx='5.2' stroke-width='1.9'/%3E %3Crect x='7.4' y='8.6' width='17.2' height='15.6' rx='3' stroke-width='1.3'/%3E %3Cpath d='M16 22.2 L12.3 15.6 L13.6 11.4 H18.4 L19.7 15.6 Z' stroke-width='1.3'/%3E %3Cpath d='M16 21.4 V17.4' stroke-width='1.1'/%3E %3Ccircle cx='16' cy='16.3' r='.9' fill='%232C2A29' stroke='none'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap">
@@ -20,9 +22,23 @@
   };
 </script>
 <!-- ASSET VERSION: when you upload new files, change v= on these 4 lines (same value everywhere) so tablets do not mix old and new files. -->
-<link rel="stylesheet" href="style.css?v=20261119b">
+<link rel="stylesheet" href="style.css?v=20261119c">
 </head>
 <body>
+<!-- ============ BRAND MARK (isotipo) ============ -->
+<!-- One ink (currentColor), 32 x 32 grid, legible at 48 and 32 px, no animation. Use: <svg class="pc-mark"><use href="#pcMark"/></svg> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="pcMark" viewBox="0 0 32 32">
+    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M13.6 2.2 h4.8 M16 2.2 v3.6" stroke-width="1.8"/>
+      <rect x="3.4" y="5.8" width="25.2" height="23.6" rx="5.2" stroke-width="1.9"/>
+      <rect x="7.4" y="8.6" width="17.2" height="15.6" rx="3" stroke-width="1.3"/>
+      <path d="M16 22.2 L12.3 15.6 L13.6 11.4 H18.4 L19.7 15.6 Z" stroke-width="1.3"/>
+      <path d="M16 21.4 V17.4" stroke-width="1.1"/>
+      <circle cx="16" cy="16.3" r=".9" fill="currentColor" stroke="none"/>
+    </g>
+  </symbol>
+</svg>
 <!-- ============ HEADER ============ -->
 <header class="masthead">
   <div class="wrap" style="padding-block: 12px 0;">
@@ -142,6 +158,7 @@
 
 <footer class="colophon">
   <div class="wrap" style="padding-block: 16px 24px;">
+    <div class="colo-brand"><svg class="pc-mark" width="32" height="32" role="img" aria-label="Plume &amp; Chrono"><use href="#pcMark"/></svg><span><b>Plume &amp; Chrono</b> · by Life and Gently</span></div>
     <p style="margin:0 0 6px;max-width:80ch" data-i18n="legal">Plume &amp; Chrono is not affiliated with any official body.</p>
     <p style="margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:8px">
       <span data-i18n="contact">Contact:</span>
@@ -194,8 +211,8 @@
 </div>
 
 <!-- Load order matters: data first, then audio, then the app (all relative paths, no build step). -->
-<script src="exercises.js?v=20261119b"></script>
-<script src="audio.js?v=20261119b"></script>
-<script src="app.js?v=20261119b"></script>
+<script src="exercises.js?v=20261119c"></script>
+<script src="audio.js?v=20261119c"></script>
+<script src="app.js?v=20261119c"></script>
 </body>
 </html>

@@ -348,3 +348,12 @@ table.board td .tag.ex { border-style: dashed; font-style: normal; }
   .lvl-opts { flex-wrap: nowrap; gap: 4px; }
   .levelbar .lvl { padding: 3px 8px; font-size: .78rem; white-space: nowrap; min-height: 34px; }
 }
+
+/* ===== Brand mark (isotipo) and characters per practice language ===== */
+/* The mark is one ink (currentColor) on a 32 x 32 grid: 32 px in the colophon, favicon in <head>. No keyframes. */
+.pc-mark { display: block; flex: none; color: var(--ink); }
+.colo-brand { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; color: var(--ink); font-size: .85rem; }
+.colo-brand b { font-family: var(--serif); font-weight: 600; }
+/* Characters: same skeleton for fr / en / es (data-char). Only the clock characters change data-state;
+   the header one stays calm. The critical ring only changes colour: no shake, no scale. */
+#mimeHeader .mime .st { transition: none; }
