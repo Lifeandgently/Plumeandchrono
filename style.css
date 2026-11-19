@@ -379,3 +379,21 @@ table.board td .tag.ex { border-style: dashed; font-style: normal; }
 /* Optical centring: the key body sits a little below the middle of the 32 x 32 grid (the crown is thin), so the mark
    is lifted 2 px to centre the key on the two brand lines ("Plume & Chrono" + "by Life and Gently"). */
 .brand-mark .pc-mark { width: 100%; height: 100%; }
+
+/* ===== Practice-language selector (FR · EN · ES): a slim row under the header, never inside it ===== */
+/* Practice-language round buttons (FR · EN · ES), first item of the level bar, a thin divider before "Level". */
+.plang { display: flex; align-items: center; flex: none; padding-right: 10px; margin-right: 2px; border-right: 1px solid var(--pencil); }
+.plang[hidden] { display: none !important; }
+.plang-btns { display: flex; align-items: center; gap: 4px; }
+.plang-btn { width: 36px; height: 36px; padding: 0; border-radius: 50%; border: 1px solid var(--pencil); background: var(--card); color: var(--ink-soft); font: 600 .74rem/1 var(--sans, Inter, system-ui, sans-serif); letter-spacing: .02em; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.plang-btn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--card); }
+.plang-btn[hidden] { display: none !important; }
+.plang-btn:disabled { opacity: .55; }
+/* Phones (600 px or less): the three round buttons would push B1, B2 and Advanced out of the line, so they take their own line above the levels. */
+@media (max-width: 600px) {
+  .levelbar { flex-wrap: wrap; overflow: visible; row-gap: 6px; }
+  .plang { flex: 0 0 100%; border-right: 0; padding-right: 0; margin-right: 0; }
+  .plang-btn { width: 32px; height: 32px; font-size: .7rem; }
+  .lvl-opts { overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+  .lvl-opts::-webkit-scrollbar { display: none; }
+}

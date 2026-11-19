@@ -22,7 +22,7 @@
   };
 </script>
 <!-- ASSET VERSION: when you upload new files, change v= on these 4 lines (same value everywhere) so tablets do not mix old and new files. -->
-<link rel="stylesheet" href="style.css?v=20261119j">
+<link rel="stylesheet" href="style.css?v=20261120b">
 </head>
 <body>
 <!-- ============ BRAND MARK (isotipo) ============ -->
@@ -67,6 +67,8 @@
       <button type="button" class="tab" role="tab" id="tab3" aria-selected="false" data-mod="3"><span class="num">III</span><span class="lbl-long" data-i18n="tab3">Speed Reading</span><span class="lbl-short" data-i18n="tab3s">Reading</span></button>
     </nav>
     <div class="levelbar" id="levelBar" role="group" aria-labelledby="lvlLabel">
+      <!-- Practice language (what you practise: FR · EN · ES): round buttons before the level selector. Not the interface language (EN | ES, top right). -->
+      <div class="plang" id="plangBar" role="group" aria-labelledby="plangLbl" hidden><span class="sr-only" id="plangLbl" data-i18n="plangLabel">Practice</span><div class="plang-btns" id="plangGroup" role="group" aria-label="Practice language"><button type="button" class="plang-btn" data-pcode="fr" aria-pressed="true" aria-label="French">FR</button><button type="button" class="plang-btn" data-pcode="en" aria-pressed="false" aria-label="English">EN</button><button type="button" class="plang-btn" data-pcode="es" aria-pressed="false" aria-label="Español">ES</button></div></div>
       <span class="eyebrow" id="lvlLabel" data-i18n="lvlLabel">Level</span>
       <div class="lvl-opts">
         <button type="button" class="lvl on" data-level="all" aria-pressed="true" data-i18n="lvlAll">All</button>
@@ -131,7 +133,7 @@
       <div class="ls-text" id="lsText" lang="fr" data-plang></div>
       <div class="ls-clock" id="lsClock">2:00</div>
     </div>
-    <div class="flex items-center justify-between gap-2 mt-4 mb-2">
+    <div class="flex items-center justify-between gap-2 mt-4 mb-2" data-keyrow>
       <div class="eyebrow" data-i18n="keysLabel">French keys</div>
       <div class="eyebrow" style="text-transform:none;letter-spacing:0;font-weight:500" data-i18n="keysHint">Inserts at the cursor</div>
     </div>
@@ -211,8 +213,8 @@
 </div>
 
 <!-- Load order matters: data first, then audio, then the app (all relative paths, no build step). -->
-<script src="exercises.js?v=20261119j"></script>
-<script src="audio.js?v=20261119j"></script>
-<script src="app.js?v=20261119j"></script>
+<script src="exercises.js?v=20261120b"></script>
+<script src="audio.js?v=20261120b"></script>
+<script src="app.js?v=20261120b"></script>
 </body>
 </html>

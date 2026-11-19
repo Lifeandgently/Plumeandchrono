@@ -45,6 +45,7 @@ const I18N = {
     backSprint: 'Back to the Typing Sprint', close: 'Close', copy: 'Copy', copied: 'Copied',
     contact: 'Contact:',
     lvlLabel: 'Level', lvlAll: 'All', lvlC1: 'Advanced', rvLevel: 'Level',
+    plangLabel: 'Practice', plangAria: 'Practice language', plangBusy: 'Finish or restart the current run to change the practice language.',
     lvlFallback: (l) => `There are no ${l} exercises in this mode yet. Showing all levels for now.`,
     lvlNoBank: 'No exercises are loaded for this mode yet. Please try another mode or come back soon.',
     lvlBusy: 'Finish or restart the current run to change level.',
@@ -198,6 +199,7 @@ const I18N = {
     backSprint: 'Volver al Sprint de tipeo', close: 'Cerrar', copy: 'Copiar', copied: 'Copiado',
     contact: 'Contacto:',
     lvlLabel: 'Nivel', lvlAll: 'Todos', lvlC1: 'Avanzado', rvLevel: 'Nivel',
+    plangLabel: 'Practicar', plangAria: 'Idioma de práctica', plangBusy: 'Termina o reinicia la prueba actual para cambiar el idioma de práctica.',
     lvlFallback: (l) => `Todavía no hay ejercicios de nivel ${l} en este modo. Mientras tanto, te mostramos todos los niveles.`,
     lvlNoBank: 'Todavía no hay ejercicios cargados para este modo. Prueba otro modo o vuelve pronto.',
     lvlBusy: 'Termina o reinicia la prueba actual para cambiar de nivel.',
@@ -382,6 +384,10 @@ const PRACTICE_SHEETS = {
             'É':'E','È':'E','Ê':'E','À':'A','Â':'A','Ç':'C','Ô':'O','Î':'I','Û':'U','Ù':'U','Œ':'O' },   // Sprint: "missing accent" = typed the base letter
     doublePunct: '?!:;',                   // Sprint: the space before these is a typography notice
     regionalTypo: 'qc',                    // Sprint: Quebec typography toggle (space before ? ! : ; optional)
+    apos: false,                           // Sprint: true = ' and ’ count as the same character (fr keeps the strict comparison)
+    andWords: ['et'],                      // Improv: « et » + ambiguous connector still counts as a connector position
+    noQue: ['alors', 'ainsi'],             // Improv: « alors que » / « ainsi que » is never the connector
+    srcAria: 'Texte à recopier',
     ambiguous: ['aussi', 'puis', 'alors', 'ainsi', 'enfin'],   // Improv: connectors that count only in a connector position
     accentWords: { etre: 'être', tres: 'très', deja: 'déjà', apres: 'après', voila: 'voilà', ete: 'été', meme: 'même', memes: 'mêmes',
                                          probleme: 'problème', problemes: 'problèmes', premiere: 'première', derniere: 'dernière', interessant: 'intéressant', interessante: 'intéressante',
@@ -399,15 +405,57 @@ const PRACTICE_SHEETS = {
                                          electrique: 'électrique', tele: 'télé', television: 'télévision', desole: 'désolé', desolee: 'désolée', peut_etre: 'peut-être', voisinage: null }                   // Improv feedback: frequent words written without their accent
   },
   en: {
-    ready: false, htmlLang: 'en-CA', char: 'en', name: { en: 'English', es: 'Inglés' },
-    keys: [], upper: {}, base: {}, doublePunct: '', regionalTypo: null, ambiguous: [], accentWords: {}
+    ready: true, htmlLang: 'en-CA', char: 'en', name: { en: 'English', es: 'Inglés' },   // Canadian English
+    keys: [], upper: {}, base: {},                    // no special-key bar: the English text has no accents
+    doublePunct: '', regionalTypo: null,              // no French spacing before ? ! : ; and no Quebec toggle
+    apos: true,                                       // ' and ’ are the same apostrophe
+    andWords: ['and'], noQue: [],
+    srcAria: 'Text to copy',
+    ambiguous: ['also', 'then', 'so', 'still', 'yet', 'thus'],   // only count as connectors at the start of a sentence, after , ; : or after « and »
+    accentWords: {},
+    ui: {                                             // only wording that names the practice language (existing keys only)
+      en: { m1intro: 'Copy the English text exactly as written: capitals and punctuation count, and a curly ’ or a straight \' is the same apostrophe. The clock starts with your first letter. Paste is disabled.',
+            m3intro: 'Read the English text and answer three multiple-choice questions before the clock runs out. Text and questions appear when you start.',
+            keysLabel: 'Special keys',
+            soonText2: '60 seconds to plan three ideas, then 4 minutes to write an introduction using two English connectors drawn at random.',
+            soonText3: 'An English text beside three multiple-choice questions, against a strict 3-minute clock.' },
+      es: { m1intro: 'Copia el texto en inglés tal cual: cuentan las mayúsculas y la puntuación, y el apóstrofo curvo ’ y el recto \' se consideran el mismo. El reloj empieza con tu primera letra. La función de pegar está desactivada.',
+            m3intro: 'Lee el texto en inglés y responde tres preguntas de opción múltiple antes de que termine el reloj. El texto y las preguntas aparecen al empezar.',
+            keysLabel: 'Teclas especiales',
+            soonText2: '60 segundos para planear tres ideas y luego 4 minutos para escribir una introducción con dos conectores en inglés sorteados.',
+            soonText3: 'Un texto en inglés junto a tres preguntas de opción múltiple, con un reloj estricto de 3 minutos.' }
+    }
   },
   es: {
-    ready: false, htmlLang: 'es', char: 'es', name: { en: 'Spanish', es: 'Español' },
-    keys: ['á','é','í','ó','ú','ñ','ü','¿','¡'],
-    upper: { 'á':'Á','é':'É','í':'Í','ó':'Ó','ú':'Ú','ñ':'Ñ','ü':'Ü' },
-    base: { 'á':'a','é':'e','í':'i','ó':'o','ú':'u','ñ':'n','ü':'u','Á':'A','É':'E','Í':'I','Ó':'O','Ú':'U','Ñ':'N','Ü':'U' },
-    doublePunct: '', regionalTypo: null, ambiguous: [], accentWords: {}
+    ready: true, htmlLang: 'es', char: 'es', name: { en: 'Spanish', es: 'Español' },   // neutral Spanish
+    keys: ['á','é','í','ó','ú','ü','ñ','¿','¡'],
+    upper: { 'á':'Á','é':'É','í':'Í','ó':'Ó','ú':'Ú','ü':'Ü','ñ':'Ñ' },
+    base: { 'á':'a','é':'e','í':'i','ó':'o','ú':'u','ü':'u','ñ':'n','Á':'A','É':'E','Í':'I','Ó':'O','Ú':'U','Ü':'U','Ñ':'N' },
+    doublePunct: '', regionalTypo: null,              // no space before ? ! : ; in Spanish
+    apos: false, andWords: ['y', 'e'], noQue: [],
+    srcAria: 'Texto para copiar',
+    ambiguous: ['así', 'entonces', 'luego', 'pues', 'también'],
+    accentWords: { tambien: 'también', ademas: 'además', aqui: 'aquí', alli: 'allí', ahi: 'ahí', asi: 'así', despues: 'después', proximo: 'próximo', proxima: 'próxima',
+                   telefono: 'teléfono', musica: 'música', tecnico: 'técnico', facil: 'fácil', dificil: 'difícil', util: 'útil', rapido: 'rápido', pais: 'país', paises: 'países',
+                   dia: 'día', dias: 'días', cafe: 'café', informacion: 'información', educacion: 'educación', situacion: 'situación', comunicacion: 'comunicación',
+                   decision: 'decisión', opinion: 'opinión', razon: 'razón', corazon: 'corazón', solucion: 'solución', atencion: 'atención', direccion: 'dirección',
+                   relacion: 'relación', organizacion: 'organización', economia: 'economía', energia: 'energía', tecnologia: 'tecnología', biologia: 'biología',
+                   ingles: 'inglés', frances: 'francés', sabado: 'sábado', miercoles: 'miércoles', quizas: 'quizás', jamas: 'jamás', adios: 'adiós', detras: 'detrás',
+                   exito: 'éxito', rapidamente: 'rápidamente', facilmente: 'fácilmente' },   // only words whose unaccented spelling is not itself a Spanish word
+    ui: {
+      en: { m1intro: 'Copy the Spanish text exactly as written: accents (á é í ó ú ü ñ) and capitals count, and ¿ ¡ are part of the text. The clock starts with your first letter. Paste is disabled.',
+            m3intro: 'Read the Spanish text and answer three multiple-choice questions before the clock runs out. Text and questions appear when you start.',
+            keysLabel: 'Spanish keys',
+            soonText2: '60 seconds to plan three ideas, then 4 minutes to write an introduction using two Spanish connectors drawn at random.',
+            soonText3: 'A Spanish text beside three multiple-choice questions, against a strict 3-minute clock.',
+            say: { accent: 'An accent is missing there. Try the Spanish keys below.' } },
+      es: { m1intro: 'Copia el texto en español tal cual: cuentan las tildes (á é í ó ú ü ñ) y las mayúsculas, y ¿ ¡ forman parte del texto. El reloj empieza con tu primera letra. La función de pegar está desactivada.',
+            m3intro: 'Lee el texto en español y responde tres preguntas de opción múltiple antes de que termine el reloj. El texto y las preguntas aparecen al empezar.',
+            keysLabel: 'Teclas del español',
+            soonText2: '60 segundos para planear tres ideas y luego 4 minutos para escribir una introducción con dos conectores en español sorteados.',
+            soonText3: 'Un texto en español junto a tres preguntas de opción múltiple, con un reloj estricto de 3 minutos.',
+            say: { accent: 'Ahí falta una tilde. Usa las teclas del español de abajo.' } }
+    }
   }
 };
 const PRACTICE_ALIASES = { fra: 'fr', fre: 'fr', french: 'fr', francais: 'fr', 'français': 'fr', eng: 'en', english: 'en', ingles: 'en', 'inglés': 'en', spa: 'es', spanish: 'es', espanol: 'es', 'español': 'es' };
@@ -432,16 +480,43 @@ function practiceSheet(v) {
     doublePunct: pick('doublePunct', (x) => typeof x === 'string', ''),
     regionalTypo: pick('regionalTypo', (x) => x === null || typeof x === 'string', null),
     ambiguous: pick('ambiguous', (x) => Array.isArray(x), []),
-    accentWords: pick('accentWords', isObj, {})
+    accentWords: pick('accentWords', isObj, {}),
+    apos: pick('apos', (x) => typeof x === 'boolean', false),
+    andWords: pick('andWords', (x) => Array.isArray(x) && x.every(w => typeof w === 'string'), []),
+    noQue: pick('noQue', (x) => Array.isArray(x) && x.every(w => typeof w === 'string'), []),
+    srcAria: pick('srcAria', (x) => typeof x === 'string', ''),
+    ui: pick('ui', isObj, {})
   });
 }
+/* Practice language chosen with the FR · EN · ES selector (pc_plang, independent of pc_lang). It is read once, here, before
+   anything else needs the sheet: a sheet that is ready AND has a sprint bank wins, anything else keeps the bank's own `active`. */
+const practiceReady = (c) => { const s = PRACTICE_SHEETS[c], b = window.PC_BANK && window.PC_BANK.langs && window.PC_BANK.langs[c]; return !!(s && s.ready === true && b && Array.isArray(b.sprint) && b.sprint.length > 0); };
+(function () {
+  const saved = store.get('pc_plang', null);
+  if (window.PC_BANK && typeof window.PC_BANK === 'object' && typeof saved === 'string') { const c = practiceCode(saved); if (practiceReady(c)) window.PC_BANK.active = c; }
+})();
 const PRACTICE = practiceSheet(window.PC_BANK && window.PC_BANK.active);
+/* Wording that names the practice language (copy intro, key bar label, hints) overrides EXISTING interface texts only, so EN/ES keys stay in parity. fr has no overrides. */
+(function () {
+  ['en', 'es'].forEach(l => {
+    const o = PRACTICE.ui[l]; if (!o || typeof o !== 'object') return;
+    Object.keys(o).forEach(k => {
+      if (!(k in I18N[l])) return;
+      if (k === 'say') { if (o.say && typeof o.say === 'object') Object.assign(I18N[l].say, o.say); } else I18N[l][k] = o[k];
+    });
+  });
+})();
 
 /* Accents(): the French key bar. Inserts at the real cursor of whichever field getField() returns,
    keeps the tablet keyboard open (buttons cancel pointerdown/touchstart), respects maxLength. */
 function Accents(box, getField, canInsert) {
   let shiftOn = false;
   const UPPER = PRACTICE.upper, KEYS = PRACTICE.keys;   // from the practice-language sheet
+  if (!KEYS.length) {                                   // this language has no special keys (English): hide the bar and its label row
+    box.innerHTML = ''; box.hidden = true; box.style.display = 'none';
+    const row = box.previousElementSibling; if (row && row.hasAttribute('data-keyrow')) { row.hidden = true; row.style.display = 'none'; }
+    return { setDisabled() {} };
+  }
   const guard = (btn) => {
     ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => btn.addEventListener(ev, (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false }));
     btn.addEventListener('touchend', (e) => { if (e.cancelable) { e.preventDefault(); btn.click(); } }, { passive: false });
@@ -800,6 +875,7 @@ function setBusy(b) {
   busy = !!b; const btn = $('boardBtn');
   btn.disabled = busy; btn.title = busy ? t('boardBusy') : '';
   document.querySelectorAll('#levelBar .lvl').forEach(b => { b.disabled = busy; b.title = busy ? t('lvlBusy') : ''; });
+  document.querySelectorAll('#plangBar [data-pcode]').forEach(b => { b.disabled = busy; b.title = busy ? t('plangBusy') : ''; });
 }
 function lbTable(rows, limit, mine) {
   const body = rows.slice(0, limit).map((r, i) => `<tr class="${mine.has(r.id) ? 'mine' : ''}${i >= LB.PRIZE && LB.prizes() ? ' rest' : ''}${r.sample ? ' sample' : ''}"><td>${i + 1}</td><td>${esc(r.nick)}${r.lvl ? ` <span class="tag lvl">${esc(r.lvl)}</span>` : ''}${r.sample ? ` <span class="tag ex">${esc(t('lbSample'))}</span>` : ''}${mine.has(r.id) ? ` <span class="tag you">${esc(t('lbYou'))}</span>` : ''}</td><td class="r">${Math.round(r.score)}</td><td class="r">${r.wpm}</td><td class="r">${r.acc}%</td></tr>`).join('');
@@ -830,11 +906,11 @@ const ConnMatch = (() => {
   function ctxOk(text, s, e, c) {
     if (!ambiguous(c)) return true;
     const word = String(c.fr).trim().toLowerCase(), next = text.slice(e).replace(/^\s+/, '').toLowerCase();
-    if ((word === 'alors' || word === 'ainsi') && /^qu(e\b|'|’)/.test(next)) return false;
+    if (PRACTICE.noQue.includes(word) && /^qu(e\b|'|’)/.test(next)) return false;
     let i = s - 1; while (i >= 0 && /[\s«»"“”(\-–—]/.test(text[i])) i--;
     if (i < 0 || /[.!?…:;,]/.test(text[i])) return true;
     const prev = text.slice(Math.max(0, i - 20), i + 1).match(/(\p{L}+)$/u);
-    return !!prev && prev[1].toLowerCase() === 'et';
+    return !!prev && PRACTICE.andWords.includes(prev[1].toLowerCase());
   }
   function find(text, c) {                 // every whole-word occurrence: { s, e, orig, accentMissing, ok }
     text = String(text || ''); const out = [];
@@ -1176,6 +1252,7 @@ function applyLang() {
   $('langES').setAttribute('aria-pressed', lang === 'es');
   quiet(() => { $('langGroup').setAttribute('aria-label', t('langLabel')); $('tabBar').setAttribute('aria-label', t('tabsLabel')); $('boardBtn').setAttribute('aria-label', t('board')); });
   paintAudio();
+  safe(() => PLANG.paint());
   $('rulesList').innerHTML = t('rules').concat(LB.prizes() ? [t('lbPrize1'), t('lbPrize10')] : []).map(r => `<li>${esc(r)}</li>`).join('');
   new Set(Object.values(Modules)).forEach(m => safe(() => m.onLang && m.onLang()));
   Results.onLang();
@@ -1216,7 +1293,7 @@ const isStr = (v) => typeof v === 'string' && v.trim().length > 0;
 const PROBLEMS = {
   sprint: (x) => !x ? 'empty' : !isStr(x.text) ? 'missing text' : !isStr(x.title) ? 'missing title' : '',
   improv: (x) => !x ? 'empty' : !isStr(x.text) ? 'missing text' : !(fin(x.goal) > 0) ? 'goal must be a number above 0' : '',
-  connectors: (x) => !x ? 'empty' : !isStr(x.fr) ? 'missing word (fr)' : !isStr(x.type) ? 'missing type' : '',
+  connectors: (x) => !x ? 'empty' : !(isStr(x.fr) || isStr(x.word)) ? 'missing word (fr / word)' : !isStr(x.type) ? 'missing type' : '',
   reading: (x) => {
     if (!x) return 'empty';
     if (!isStr(x.text)) return 'missing text';
@@ -1243,7 +1320,7 @@ const Bank = {
       const why = quiet(() => (PROBLEMS[mode] ? PROBLEMS[mode](x) : ''), 'unreadable item');
       const tag = `#${n + 1}${x && isStr(x.id) ? ' ' + x.id : ''}`;
       if (why) { bad.push(`${tag} (${why})`); return; }
-      if (mode === 'connectors') { out.push(x); return; }
+      if (mode === 'connectors') { out.push(isStr(x.fr) ? x : Object.assign({}, x, { fr: x.word })); return; }   // `fr` is the internal name of the word, whatever the language
       let id = isStr(x.id) ? x.id.trim() : '';
       if (!id || seen.has(id)) { noId.push(`${tag}${id ? ' (repeated id)' : ' (no id)'}`); id = `${PCB.active || 'xx'}_${mode}_pos${n + 1}`; }
       seen.add(id);
@@ -1316,6 +1393,32 @@ const Levels = {
   }
 };
 
+/* =================== PRACTICE-LANGUAGE SELECTOR (FR · EN · ES), independent of the interface language (pc_lang) ===================
+   Changing it: stops every clock, stores the choice (pc_plang), points PC_BANK.active at the new bank and reloads the page, so the sheet
+   (character, key bar, accent rules, connectors), the bank and every module restart clean from one single source. It is locked while a run is in progress. */
+const PLANG = {
+  codes: ['fr', 'en', 'es'].filter(practiceReady),
+  set(code) {
+    if (busy || PLANG.codes.indexOf(code) === -1 || code === PRACTICE.code) return;
+    Timers.clearAll();
+    store.set('pc_plang', code);
+    quiet(() => { PCB.active = code; });
+    quiet(() => location.reload());
+  },
+  paint() {
+    const bar = $('plangBar'); if (!bar) return;
+    bar.hidden = PLANG.codes.length < 2;
+    bar.querySelectorAll('[data-pcode]').forEach(b => {
+      const c = b.dataset.pcode, s = PRACTICE_SHEETS[c], nm = s && s.name && s.name[lang];
+      b.hidden = PLANG.codes.indexOf(c) === -1;
+      b.setAttribute('aria-pressed', String(c === PRACTICE.code));
+      if (nm) b.setAttribute('aria-label', nm);
+    });
+    const g = $('plangGroup'); if (g) g.setAttribute('aria-label', t('plangAria'));
+  }
+};
+document.querySelectorAll('#plangBar [data-pcode]').forEach(b => b.addEventListener('click', () => PLANG.set(b.dataset.pcode)));
+
 /* =================== MODULE I · TYPING SPRINT (isolated) =================== */
 /* Owns: target text, phase, clock, error map, results, the accent bar, #mod1 DOM.
    Shares only services: Timers, Sound, Board, i18n (t), store. */
@@ -1324,7 +1427,7 @@ Modules[1] = (function TypingSprint() {
   const SP = () => Bank.list('sprint');
   let exIndex = (() => {                                  // saved by stable id; old saves (position only) still work
     const k = Bank.find('sprint', store.get('pc_ex_id', null)); if (k !== -1) return k;
-    const old = store.get('pc_ex', 0); return Number.isInteger(old) && old >= 0 && SP().length ? old % SP().length : 0;
+    const old = PRACTICE.code === 'fr' ? store.get('pc_ex', 0) : 0; return Number.isInteger(old) && old >= 0 && SP().length ? old % SP().length : 0;
   })();
   exIndex = Levels.keep('sprint', exIndex);
   let target = '', spans = [];
@@ -1389,6 +1492,7 @@ Modules[1] = (function TypingSprint() {
      instead of turning red from that point on. Cached per typed value, so stats, colors and the strip share one pass. */
   const BAND = 40;
   let alKey = null, alVal = null;
+  const eqc = PRACTICE.apos ? (a, b) => a === b || (/[’‘ʼ']/.test(a) && /[’‘ʼ']/.test(b)) : (a, b) => a === b;   // english: every apostrophe form is the same character
   function omissionKind(j, T) { return T[j] === ' ' && DOUBLE_PUNCT.includes(T[j + 1] || '') ? 'space' : 'other'; }
   /* Quebec typography (pc_qc): the space before ? ! : ; is optional, so skipping it costs nothing and is never marked.
      Default (France): a missing space there is a typography NOTICE ('space'); it is shown but does not lower accuracy. */
@@ -1398,7 +1502,7 @@ Modules[1] = (function TypingSprint() {
     const m = T.length, st = new Uint8Array(m), edits = []; let correct = 0;
     for (let i = 0; i < V.length; i++) {
       if (i >= m) { edits.push({ ti: m, ins: true, kind: 'other' }); continue; }
-      if (V[i] === T[i]) { st[i] = 1; correct++; } else { st[i] = 2; edits.push({ ti: i, ins: false, kind: classify(i, V[i], T) }); }
+      if (eqc(V[i], T[i])) { st[i] = 1; correct++; } else { st[i] = 2; edits.push({ ti: i, ins: false, kind: classify(i, V[i], T) }); }
     }
     return { end: Math.min(V.length, m), correct, edits, st, ins: new Set() };
   }
@@ -1414,7 +1518,7 @@ Modules[1] = (function TypingSprint() {
         const lo = Math.max(0, i - W), hi = Math.min(m, i + W);
         for (let j = lo; j <= hi; j++) {
           let best = INF, k;
-          if (j > 0 && (k = at(i - 1, j - 1)) >= 0 && D[k] < INF) best = Math.min(best, D[k] + (V[i - 1] === T[j - 1] ? 0 : 1));
+          if (j > 0 && (k = at(i - 1, j - 1)) >= 0 && D[k] < INF) best = Math.min(best, D[k] + (eqc(V[i - 1], T[j - 1]) ? 0 : 1));
           if ((k = at(i - 1, j)) >= 0 && D[k] < INF) best = Math.min(best, D[k] + 1);           // extra typed char
           if (j > 0 && (k = at(i, j - 1)) >= 0 && D[k] < INF) best = Math.min(best, D[k] + (optSpace(j - 1, T) ? 0 : 1));  // skipped model char (optional space: free)
           D[at(i, j)] = best;
@@ -1429,8 +1533,8 @@ Modules[1] = (function TypingSprint() {
         const st = new Uint8Array(m), ins = new Set(), edits = []; let correct = 0, i = n, j = end, guard = n + m + 2, k;
         while ((i > 0 || j > 0) && guard-- > 0) {
           const cur = D[at(i, j)];
-          if (i > 0 && j > 0 && (k = at(i - 1, j - 1)) >= 0 && D[k] + (V[i - 1] === T[j - 1] ? 0 : 1) === cur) {
-            if (V[i - 1] === T[j - 1]) { st[j - 1] = 1; correct++; } else { st[j - 1] = 2; edits.push({ ti: j - 1, ins: false, kind: classify(j - 1, V[i - 1], T) }); }
+          if (i > 0 && j > 0 && (k = at(i - 1, j - 1)) >= 0 && D[k] + (eqc(V[i - 1], T[j - 1]) ? 0 : 1) === cur) {
+            if (eqc(V[i - 1], T[j - 1])) { st[j - 1] = 1; correct++; } else { st[j - 1] = 2; edits.push({ ti: j - 1, ins: false, kind: classify(j - 1, V[i - 1], T) }); }
             i--; j--;
           } else if (i > 0 && (k = at(i - 1, j)) >= 0 && D[k] + 1 === cur) { ins.add(j); edits.push({ ti: j, ins: true, kind: 'other' }); i--; }
           else if (j > 0 && optSpace(j - 1, T) && (k = at(i, j - 1)) >= 0 && D[k] === cur) { st[j - 1] = 3; j--; }   // optional space left out: fine
@@ -1628,6 +1732,7 @@ Modules[1] = (function TypingSprint() {
 
   /* ----- buttons ----- */
   function paintQc() {
+    quiet(() => { const hideA = !Object.keys(BASE).length, hideS = !DOUBLE_PUNCT; [['cAccent', hideA], ['cSpace', hideS]].forEach(([id, h]) => { const c = $(id); if (c) { c.hidden = h; c.style.display = h ? 'none' : ''; } }); });   // chips for marks this language does not have
     const b = $('qcBtn'); if (!b) return;
     if (PRACTICE.regionalTypo !== 'qc') { b.hidden = true; return; }
     b.classList.toggle('on', qc); b.setAttribute('aria-pressed', String(qc));
@@ -1681,7 +1786,7 @@ Modules[2] = (function Improv() {
       <div class="eyebrow mt-4" data-i18n="m2connLabel"></div>
       <div class="chips mt-2" id="m2conns"></div>
       <p class="conn-ex" id="m2connEx" aria-live="polite" hidden></p>
-      <div class="flex items-center justify-between gap-2 mt-4 mb-2"><div class="eyebrow" data-i18n="keysLabel"></div><div class="eyebrow" style="text-transform:none;letter-spacing:0;font-weight:500" data-i18n="keysHint"></div></div>
+      <div class="flex items-center justify-between gap-2 mt-4 mb-2" data-keyrow><div class="eyebrow" data-i18n="keysLabel"></div><div class="eyebrow" style="text-transform:none;letter-spacing:0;font-weight:500" data-i18n="keysHint"></div></div>
       <div class="accents" id="m2accents"></div>
       <div class="eyebrow mt-4" id="m2notesLabel"></div>
       <textarea id="m2notes" class="field mt-2" lang="${PL}" rows="3" maxlength="600" ${NOASSIST}></textarea>
@@ -2114,6 +2219,7 @@ document.querySelectorAll('#levelBar .lvl').forEach(b => b.addEventListener('cli
 
 /* =================== BOOT =================== */
 quiet(() => document.querySelectorAll('[data-plang]').forEach(el => { el.lang = PL; }));   // practice-language texts in index.html
+quiet(() => { if (PRACTICE.srcAria) $('source').setAttribute('aria-label', PRACTICE.srcAria); });
 safe(() => Feedback.init());
 Levels.paint();
 Levels.note({ 1: 'sprint', 2: 'improv', 3: 'reading' }[currentMod]);
