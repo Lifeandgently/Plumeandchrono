@@ -119,7 +119,7 @@ Límites: C1 se muestra como "Avanzado". El ranking mezcla niveles; el nivel es 
 
 | Responsabilidad | Dueño en el código | Qué previene |
 |---|---|---|
-| Caché en la tablet | `index.html`: `style.css`, `exercises.js`, `audio.js` y `app.js` llevan `?v=20261119b` (antes `20261119a`) | Que el navegador mezcle un `app.js` viejo con un marcado nuevo. Al subir archivos nuevos, cambia el mismo valor en las 4 líneas |
+| Caché en la tablet | `index.html`: `style.css`, `exercises.js`, `audio.js` y `app.js` llevan `?v=20261119i` (sube una letra en cada entrega) | Que el navegador mezcle un `app.js` viejo con un marcado nuevo. Al subir archivos nuevos, cambia el mismo valor en las 4 líneas |
 | Ids estables | `exercises.js`: cada ítem de Sprint, Improvisación y Lectura tiene `id` (`fr_sp_b1_01`, `fr_a1_01`, `fr_rd_a2_01`…). `Bank.find()` / `Bank.idAt()` en `app.js` | Agregar o reordenar ítems ya no manda al alumno a otro ejercicio. Un id nunca se reutiliza ni se renombra |
 | Progreso guardado | `pc_ex_id` (Sprint), `pc_imp_last` (última consigna), `pc_rd_last` (última lectura), `exId` en "Mis mejores puntajes" | Se guarda el id, no la posición. Los datos viejos (`pc_ex` por posición) se siguen leyendo como respaldo |
 | Validación visible | `PROBLEMS[mode]` + `Bank.list()` | Un ítem mal formado se descarta y aparece en la consola (`console.warn`) con su posición, id y motivo. Un id ausente o repetido no rompe nada: usa la posición y también avisa |
