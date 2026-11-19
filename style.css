@@ -335,7 +335,7 @@ table.board td .tag.ex { border-style: dashed; font-style: normal; }
   .masthead > .wrap { padding-top: 8px !important; }
   .masthead .lbl-long { display: none; }
   .masthead .lbl-short { display: inline; }
-  .masthead #brandMark { width: 40px !important; height: 40px !important; }
+  .masthead #brandMark { width: 38px !important; height: 38px !important; }
   .mast-tools { flex-wrap: nowrap; gap: 6px; width: 100%; }
   .masthead .ghost-btn { padding: 4px 10px; min-height: 36px; font-size: .78rem; gap: 6px; white-space: nowrap; }
   .masthead .pill-group button { padding: 4px 10px; min-height: 32px; }
@@ -375,5 +375,7 @@ table.board td .tag.ex { border-style: dashed; font-style: normal; }
 }
 
 /* Header logo: the brand mark (isotipo), static, one ink. The characters live only next to the clocks. */
-.brand-mark { flex: none; color: var(--ink); }
+.brand-mark { flex: none; color: var(--ink); align-self: center; position: relative; top: -2px; }
+/* Optical centring: the key body sits a little below the middle of the 32 x 32 grid (the crown is thin), so the mark
+   is lifted 2 px to centre the key on the two brand lines ("Plume & Chrono" + "by Life and Gently"). */
 .brand-mark .pc-mark { width: 100%; height: 100%; }

@@ -217,7 +217,7 @@ Qué revisar en la tablet: tocar EN y ES varias veces en vertical y en horizonta
 
 ## Isotipo como logo del encabezado (`?v=20261119j`)
 **Archivos modificados:** `index.html` (encabezado y versión), `style.css`, `app.js` y este archivo. No cambian `exercises.js` ni `audio.js`.
-- El mimo del encabezado se reemplaza por el isotipo (tecla con el pulsador del cronómetro y la plumilla), a pedido de Seba. Es un SVG fijo dentro de `#brandMark` que usa el mismo `<symbol id="pcMark">` del favicon y del pie: 48 px en pantallas anchas y 40 px a 600 px o menos. No tiene estados ni transiciones.
+- El mimo del encabezado se reemplaza por el isotipo (tecla con el pulsador del cronómetro y la plumilla), a pedido de Seba. Es un SVG fijo dentro de `#brandMark` que usa el mismo `<symbol id="pcMark">` del favicon y del pie: 44 px en pantallas anchas y 38 px a 600 px o menos, subido 2 px para que la tecla quede centrada ópticamente respecto de "Plume & Chrono" y "by Life and Gently". No tiene estados ni transiciones.
 - `#mimeHeader` y la línea que lo dibujaba en `app.js` se quitaron. La regla anterior "personaje del encabezado fijo en calma" pasa a ser "isotipo fijo en el encabezado".
 - Los personajes (mimo FR, prócer EN, cronista ES) siguen solo junto a los relojes de los 3 módulos, reaccionan como antes y siguen el idioma de práctica. `?char=en` / `?char=es` siguen funcionando.
-- **Medido (Chromium, EN y ES, 360/412/601/800/1280 px):** encabezado de 192 px a 360 px y 169 px desde 601 px, Audio y Ranking sin moverse, 3 personajes (uno por reloj) y sin errores de página.
+- **Medido (Chromium, EN y ES, 360/412/601/800/1280 px):** encabezado de 192 px a 360 px y 165 px desde 601 px, Audio y Ranking sin moverse, 3 personajes (uno por reloj) y sin errores de página.
