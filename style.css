@@ -357,3 +357,19 @@ table.board td .tag.ex { border-style: dashed; font-style: normal; }
 /* Characters: same skeleton for fr / en / es (data-char). Only the clock characters change data-state;
    the header one stays calm. The critical ring only changes colour: no shake, no scale. */
 #mimeHeader .mime .st { transition: none; }
+
+/* ===== Header row stays put when switching EN <-> ES =====
+   Audio and Ranking always show their short label (the long one stays in the DOM as aria-label) and have a fixed width,
+   so their size and position never depend on the interface language. The tabs use 3 equal columns for the same reason. */
+.masthead .lbl-long { display: none; }
+.masthead .lbl-short { display: inline; }
+.masthead #audioBtn, .masthead #boardBtn { justify-content: center; white-space: nowrap; flex: none; }
+.masthead #audioBtn { width: 112px; }
+.masthead #boardBtn { width: 104px; }
+.tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 200px)); gap: 0; overflow: visible; }
+.tab { justify-content: center; text-align: center; white-space: normal; line-height: 1.2; }
+@media (max-width: 600px) {
+  .masthead #audioBtn { width: 92px; }
+  .masthead #boardBtn { width: 90px; }
+  .tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

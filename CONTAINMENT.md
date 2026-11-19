@@ -149,7 +149,7 @@ Qué probar en la tablet:
 
 ## Identidad visual: isotipo de teclas y personajes por idioma de práctica
 **Archivos modificados:** `index.html`, `style.css`, `app.js` y este archivo. No cambian `exercises.js` ni `audio.js`.
-**Versión:** `?v=20261119c` en las 4 líneas de `index.html` (antes `20261119b`). En la próxima subida, cámbiala de nuevo (por ejemplo `20261120a`).
+**Versión:** `?v=20261119c` en las 4 líneas de `index.html` (antes `20261119b`; ahora `20261119d`, ver abajo). En la próxima subida, cámbiala de nuevo (por ejemplo `20261120a`).
 
 | Responsabilidad | Dueño en el código | Qué previene |
 |---|---|---|
@@ -167,3 +167,12 @@ Qué revisar en la tablet:
 - **800 px:** prueba `?char=en` y `?char=es`: el personaje cambia en el encabezado y junto a los tres relojes, y no cambia al tocar EN/ES.
 - **1280 px:** Lectura en dos columnas sin cambios; la pestaña del navegador muestra el isotipo como favicon.
 - Cambiar de pestaña con el reloj corriendo sigue reiniciando el módulo, sin relojes fantasma.
+
+## Encabezado fijo al cambiar EN ↔ ES
+**Archivos modificados:** `style.css`, `index.html` (versión) y este archivo. No cambian `app.js`, `exercises.js` ni `audio.js`.
+**Versión:** `?v=20261119d` en las 4 líneas de `index.html`.
+- **Problema:** en pantallas de más de 600 px, "Audio" y "Ranking" mostraban el texto largo ("Exam Audio: ON" / "Audio de examen: activado"). Al pasar a español, el botón de audio crecía unos 70 px, la fila se corría y en algunos anchos bajaba de línea. Las pestañas también cambiaban de ancho.
+- **Arreglo:** "Audio" y "Ranking" muestran siempre la etiqueta corta ("Audio on / Audio: sí", "Ranking") y tienen un ancho fijo (112 y 104 px; 92 y 90 px a 600 px o menos). El texto largo sigue en el DOM como nombre accesible (`aria-label`). Las 3 pestañas usan 3 columnas iguales (hasta 200 px cada una) en todos los anchos.
+- **Medido (Chromium):** a 360, 412, 601, 640, 700, 768, 800 y 1024 px, la posición y el ancho de Audio, Ranking y las pestañas son idénticos en EN y en ES. El encabezado sigue en 192 px a 360 px.
+
+Qué revisar en la tablet: tocar EN y ES varias veces en vertical y en horizontal; nada de la fila superior ni de las pestañas debe moverse ni bajar de línea.
