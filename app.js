@@ -30,9 +30,9 @@ const store = {
 /* =================== I18N =================== */
 const I18N = {
   en: {
-    board: 'Weekly Leaderboard', tab1: 'Typing Sprint', tab2: '60s Improv', tab3: 'Speed Reading', soon: 'Soon',
+    board: 'Weekly Leaderboard', tab1: 'Typing Sprint', tab2: 'Improvisation', tab3: 'Speed Reading', soon: 'Soon',
     audioOn: 'Exam Audio: ON', audioOff: 'Exam Audio: OFF', audioShortOn: 'Audio on', audioShortOff: 'Audio off',
-    boardShort: 'Ranking', tab1s: 'Sprint', tab2s: 'Improv', tab3s: 'Reading', langLabel: 'Interface language', tabsLabel: 'Training modes',
+    boardShort: 'Ranking', tab1s: 'Sprint', tab2s: 'Improvisation', tab3s: 'Reading', langLabel: 'Interface language', tabsLabel: 'Training modes',
     m1eyebrow: 'Module I · 2 minutes', m1title: 'Typing Sprint & Accents',
     m1intro: 'Copy the French text exactly as written: accents and capitals count; a missing space before ? ! : ; is only a typography notice. The clock starts with your first letter. Paste is disabled.',
     time: 'Time', wpm: 'WPM', acc: 'Accuracy', score: 'Score',
@@ -50,7 +50,7 @@ const I18N = {
     lvlBusy: 'Finish or restart the current run to change level.',
     fbOpen: 'Send feedback / suggestion / report a bug', fbIntro: 'Tell us what to improve. Nothing is sent until you press Send.',
     fbType: 'Type', fbTypeSug: 'Suggestion', fbTypeBug: 'Error / Bug', fbTypeOpi: 'Opinion',
-    fbCtx: 'Where', fbCtxGen: 'General', fbCtxM1: 'Typing Sprint', fbCtxM2: '60s Improv', fbCtxM3: 'Speed Reading', fbCtxRes: 'Results',
+    fbCtx: 'Where', fbCtxGen: 'General', fbCtxM1: 'Typing Sprint', fbCtxM2: 'Improvisation', fbCtxM3: 'Speed Reading', fbCtxRes: 'Results',
     fbMsg: 'Message', fbMsgPh: 'What happened, or what would you like to see?', fbAttach: 'Mode, language and device type are attached.',
     fbEmail: 'Email (optional)', fbEmailPh: 'Only if you want a reply', fbEmailNote: 'Used only to answer you. Never required.',
     fbSend: 'Send', fbCopy: 'Copy report', fbClose: 'Close',
@@ -98,7 +98,7 @@ const I18N = {
     kitCta: 'See the Plume Writing Kit', kitPrep: 'In preparation', kitPrepNote: 'The link will appear here when the kit is ready.', kitFine: 'PDF for tablet and print',
     adLabel: 'Advertisement', adReserved: 'Space reserved for Google AdSense',
     boardBusy: 'Finish or stop the exercise to open the ranking.',
-    m2eyebrow: 'Module II · 60 s + 4 min', m2title: '60s Improv',
+    m2eyebrow: 'Module II · 60 s + 4 min', m2title: 'Improvisation',
     m2intro: 'Read the exam situation and jot down three key ideas in 60 seconds. Then your notes lock and you have 4 minutes to write the introduction and first argument, using both required connectors.',
     m2preNote: 'The situation and your two connectors appear when you start.',
     m2start: 'Start planning', m2skip: 'Go to writing now', m2finish: 'Finish',
@@ -177,13 +177,13 @@ const I18N = {
       'For now this is a practice ranking with no prizes. Rows tagged “example” are samples, not real people.',
       'Paste is blocked in every exercise box. Runs above 130 WPM or with a very large single input are discarded.'
     ],
-    soonEyebrow2: 'Module II · coming in Iteration 2', soonTitle2: '60s Improv',
+    soonEyebrow2: 'Module II · coming in Iteration 2', soonTitle2: 'Improvisation',
     soonText2: '60 seconds to plan three ideas, then 4 minutes to write an introduction using two French connectors drawn at random.',
     soonEyebrow3: 'Module III · coming in Iteration 2', soonTitle3: 'Speed Reading',
     soonText3: 'A French text beside three multiple-choice questions, against a strict 3-minute clock.'
   },
   es: {
-    board: 'Ranking semanal', tab1: 'Sprint de tipeo', tab2: 'Improvisación 60s', tab3: 'Lectura exprés', soon: 'Pronto',
+    board: 'Ranking semanal', tab1: 'Sprint de tipeo', tab2: 'Improvisación', tab3: 'Lectura exprés', soon: 'Pronto',
     audioOn: 'Audio de examen: activado', audioOff: 'Audio de examen: desactivado', audioShortOn: 'Audio: sí', audioShortOff: 'Audio: no',
     boardShort: 'Ranking', tab1s: 'Sprint', tab2s: 'Improvisación', tab3s: 'Lectura', langLabel: 'Idioma de la interfaz', tabsLabel: 'Modos de práctica',
     m1eyebrow: 'Módulo I · 2 minutos', m1title: 'Sprint de tipeo y acentos',
@@ -203,7 +203,7 @@ const I18N = {
     lvlBusy: 'Termina o reinicia la prueba actual para cambiar de nivel.',
     fbOpen: 'Enviar comentarios o sugerencias, o reportar un error', fbIntro: 'Cuéntanos qué mejorar. No se envía nada hasta que toques Enviar.',
     fbType: 'Tipo', fbTypeSug: 'Sugerencia', fbTypeBug: 'Error técnico', fbTypeOpi: 'Opinión',
-    fbCtx: 'Dónde', fbCtxGen: 'General', fbCtxM1: 'Sprint de tipeo', fbCtxM2: 'Improvisación 60s', fbCtxM3: 'Lectura exprés', fbCtxRes: 'Resultados',
+    fbCtx: 'Dónde', fbCtxGen: 'General', fbCtxM1: 'Sprint de tipeo', fbCtxM2: 'Improvisación', fbCtxM3: 'Lectura exprés', fbCtxRes: 'Resultados',
     fbMsg: 'Mensaje', fbMsgPh: '¿Qué pasó, o qué te gustaría ver?', fbAttach: 'Se adjuntan modo, idioma y tipo de dispositivo.',
     fbEmail: 'Email (opcional)', fbEmailPh: 'Solo si quieres respuesta', fbEmailNote: 'Se usa solo para responderte. Nunca es obligatorio.',
     fbSend: 'Enviar', fbCopy: 'Copiar reporte', fbClose: 'Cerrar',
@@ -251,7 +251,7 @@ const I18N = {
     kitCta: 'Ver el Plume Writing Kit', kitPrep: 'En preparación', kitPrepNote: 'El enlace aparecerá aquí cuando el kit esté listo.', kitFine: 'PDF para tablet e impresión',
     adLabel: 'Publicidad', adReserved: 'Espacio reservado para Google AdSense',
     boardBusy: 'Termina o detén el ejercicio para abrir el ranking.',
-    m2eyebrow: 'Módulo II · 60 s + 4 min', m2title: 'Improvisación 60s',
+    m2eyebrow: 'Módulo II · 60 s + 4 min', m2title: 'Improvisación',
     m2intro: 'Lee la situación de examen y anota tres ideas clave en 60 segundos. Después las notas se bloquean y tienes 4 minutos para escribir la introducción y el primer argumento con los dos conectores obligatorios.',
     m2preNote: 'La situación y tus dos conectores aparecen cuando empiezas.',
     m2start: 'Empezar planificación', m2skip: 'Pasar a redactar ya', m2finish: 'Terminar',
@@ -330,7 +330,7 @@ const I18N = {
       'Por ahora es un ranking de práctica, sin premios. Las filas marcadas «ejemplo» son de muestra y no son personas reales.',
       'La función de pegar está bloqueada en todos los campos de ejercicio. Se descartan los intentos de más de 130 PPM o con una entrada muy grande de una sola vez.'
     ],
-    soonEyebrow2: 'Módulo II · llega en la Iteración 2', soonTitle2: 'Improvisación 60s',
+    soonEyebrow2: 'Módulo II · llega en la Iteración 2', soonTitle2: 'Improvisación',
     soonText2: '60 segundos para planear tres ideas y luego 4 minutos para escribir una introducción con dos conectores franceses sorteados.',
     soonEyebrow3: 'Módulo III · llega en la Iteración 2', soonTitle3: 'Lectura exprés',
     soonText3: 'Un texto en francés junto a tres preguntas de opción múltiple, con un reloj estricto de 3 minutos.'
@@ -1603,7 +1603,7 @@ Modules[1] = (function TypingSprint() {
   };
 })();
 
-/* =================== MODULE II · 60s IMPROV (isolated) =================== */
+/* =================== MODULE II · IMPROVISATION (isolated) =================== */
 /* Owns: #mod2, scenario + connectors, the two phases, its clock, its coach mime.
    Shares only services: Timers, Sound, Accents, Coach, i18n (t / lang). */
 Modules[2] = (function Improv() {

@@ -22,7 +22,7 @@
   };
 </script>
 <!-- ASSET VERSION: when you upload new files, change v= on these 4 lines (same value everywhere) so tablets do not mix old and new files. -->
-<link rel="stylesheet" href="style.css?v=20261119f">
+<link rel="stylesheet" href="style.css?v=20261119g">
 </head>
 <body>
 <!-- ============ BRAND MARK (isotipo) ============ -->
@@ -63,7 +63,7 @@
     </div>
     <nav class="tabs mt-2" role="tablist" id="tabBar" aria-label="Modes">
       <button type="button" class="tab" role="tab" id="tab1" aria-selected="true" data-mod="1"><span class="num">I</span><span class="lbl-long" data-i18n="tab1">Typing Sprint</span><span class="lbl-short" data-i18n="tab1s">Sprint</span></button>
-      <button type="button" class="tab" role="tab" id="tab2" aria-selected="false" data-mod="2"><span class="num">II</span><span class="lbl-long" data-i18n="tab2">60s Improv</span><span class="lbl-short" data-i18n="tab2s">Improv</span></button>
+      <button type="button" class="tab" role="tab" id="tab2" aria-selected="false" data-mod="2"><span class="num">II</span><span class="lbl-long" data-i18n="tab2">Improvisation</span><span class="lbl-short" data-i18n="tab2s">Improvisation</span></button>
       <button type="button" class="tab" role="tab" id="tab3" aria-selected="false" data-mod="3"><span class="num">III</span><span class="lbl-long" data-i18n="tab3">Speed Reading</span><span class="lbl-short" data-i18n="tab3s">Reading</span></button>
     </nav>
     <div class="levelbar" id="levelBar" role="group" aria-labelledby="lvlLabel">
@@ -172,7 +172,7 @@
         <div class="fb-row"><label class="eyebrow" for="fbType" data-i18n="fbType">Type</label>
           <select class="fb-field" id="fbType"><option value="suggestion" data-i18n="fbTypeSug">Suggestion</option><option value="bug" data-i18n="fbTypeBug">Error / Bug</option><option value="opinion" data-i18n="fbTypeOpi">Opinion</option></select></div>
         <div class="fb-row"><label class="eyebrow" for="fbCtx" data-i18n="fbCtx">Where</label>
-          <select class="fb-field" id="fbCtx"><option value="general" data-i18n="fbCtxGen">General</option><option value="sprint" data-i18n="fbCtxM1">Typing Sprint</option><option value="improv" data-i18n="fbCtxM2">60s Improv</option><option value="reading" data-i18n="fbCtxM3">Speed Reading</option><option value="results" data-i18n="fbCtxRes">Results</option></select></div>
+          <select class="fb-field" id="fbCtx"><option value="general" data-i18n="fbCtxGen">General</option><option value="sprint" data-i18n="fbCtxM1">Typing Sprint</option><option value="improv" data-i18n="fbCtxM2">Improvisation</option><option value="reading" data-i18n="fbCtxM3">Speed Reading</option><option value="results" data-i18n="fbCtxRes">Results</option></select></div>
         <div class="fb-row"><label class="eyebrow" for="fbMsg" data-i18n="fbMsg">Message</label>
           <textarea class="fb-field" id="fbMsg" maxlength="600" rows="4"></textarea>
           <div class="fb-meta"><span data-i18n="fbAttach"></span><span id="fbCount">0/600</span></div></div>
@@ -211,8 +211,8 @@
 </div>
 
 <!-- Load order matters: data first, then audio, then the app (all relative paths, no build step). -->
-<script src="exercises.js?v=20261119f"></script>
-<script src="audio.js?v=20261119f"></script>
-<script src="app.js?v=20261119f"></script>
+<script src="exercises.js?v=20261119g"></script>
+<script src="audio.js?v=20261119g"></script>
+<script src="app.js?v=20261119g"></script>
 </body>
 </html>

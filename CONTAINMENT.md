@@ -189,3 +189,12 @@ Qué revisar en la tablet: tocar EN y ES varias veces en vertical y en horizonta
 - Las pestañas I, II y III vuelven al diseño anterior: juntas a la izquierda, con número romano y nombre largo en pantallas de más de 600 px, y en 3 columnas con nombre corto en el celular. Se quitaron las columnas iguales de 200 px, que las separaban demasiado.
 - La regla que oculta las etiquetas largas ahora solo aplica a la fila de botones (`.mast-tools`), no a las pestañas.
 - Audio (ícono) y Ranking no cambian y siguen sin moverse al pasar de EN a ES. Encabezado: 192 px a 360 px.
+
+## Nombre del modo II: "Improvisación" / "Improvisation" (`?v=20261119g`)
+**Archivos modificados:** `app.js` (textos EN y ES), `index.html` (textos por defecto y versión), `README.md` y este archivo. No cambian `style.css`, `exercises.js` ni `audio.js`.
+- "60s Improv" pasa a **Improvisation** y "Improvisación 60s" pasa a **Improvisación** en la pestaña (larga y corta: `tab2`, `tab2s`), el título del módulo (`m2title`), el selector de comentarios (`fbCtxM2`) y el aviso de módulo próximo (`soonTitle2`).
+- Se mantiene el dato de tiempo donde es información y no nombre: "Módulo II · 60 s + 4 min", "Planificación · 60 s" y la explicación del ejercicio.
+- Paridad de claves: EN y ES tienen las mismas 221 claves, sin faltantes en ninguno de los dos.
+- Las claves internas (`improv` en `exercises.js`, `CTX_BY_MOD`, `Levels.pool('improv')`) y los IDs de ejercicios no cambian.
+- **Pestañas:** se respeta el diseño que Seba eligió. En el celular (≤ 600 px) son 3 columnas iguales; en pantallas más anchas van juntas a la izquierda con número romano, y su ancho depende del texto (cambian unos 9 px entre EN y ES).
+- **Medido (Chromium):** a 360, 412, 601, 800 y 1280 px, en EN y ES, Audio y Ranking no se mueven, el encabezado mide 192 px a 360 px y 169 px desde 601 px, el personaje del encabezado sigue en calma y no hay errores de página.
