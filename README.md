@@ -19,6 +19,8 @@ A single self-contained `index.html` with:
 - Module 2, 60s Improv: 8 exam situations, 60 s planning pad that locks at 0:00 (ding), 4 min editor with accent bar and no paste, 2 random required connectors detected live (case and accent tolerant), results with words vs. goal, connectors used and reaction time
 - Module 3, Speed Reading: 4 French texts with 3 multiple-choice questions each, strict 3-minute clock with progress bar, side by side on wide screens and stacked on tablets and phones, score and corrections at the end
 
-The full results screen, public weekly leaderboard, AdSense/PDF slots and the file split come in Iterations 3 and 4.
+- Iteration 3: shared results screen for all 3 modes (retry / new exercise / switch mode); weekly Top 20 (resets Monday 00:00 Toronto time) with anti-cheat (>130 WPM, <30 s, <60 chars or a single big input are discarded), public nickname with profanity filter and private optional email for Top 10; demo data in `localStorage` with a Supabase hook (`SITE` config + SQL schema comment); PDF Kit card with EN/ES links; AdSense slot on results only; legal footer. Only the Typing Sprint is ranked.
+
+The split into separate files comes in Iteration 4. Real prizes need the live Supabase ranking with server-side checks.
 
 Not affiliated with CCIP, France Éducation international or IRCC. Contact: lifeandgently@gmail.com

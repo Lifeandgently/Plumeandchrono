@@ -1,4 +1,4 @@
-# Mapa de Contención · Plume & Chrono (Iteraciones 1 y 2)
+# Mapa de Contención · Plume & Chrono (Iteraciones 1 a 3)
 
 Un solo archivo (`index.html`), pero con responsabilidades separadas dentro del script. Cuando se divida en archivos (Iteración 4), cada bloque pasa a su archivo sin cambiar de lógica.
 
@@ -31,3 +31,22 @@ Cursor en medio del texto, foco tras tocar una tecla, pegado bloqueado, cambio d
 
 ## Límite conocido
 Algunos teclados de Android ignoran `autocorrect="off"`. Si un teclado inserta una sugerencia de palabra, el texto cuenta como lo que quedó escrito; no se puede bloquear al 100 % desde la web.
+
+## Iteración 3: resultados, ranking, monetización
+
+| Responsabilidad | Dueño en el código | Qué previene |
+|---|---|---|
+| Pantalla de resultados | `Results` (servicio compartido, `#resultsView`) | Cada módulo le entrega un objeto de datos; si falla, `safe()` lo contiene. Oculta el área de trabajo, no el reloj ni el mimo |
+| Anti-trampas | `LB.check()` (máx. 130 PPM, mín. 30 s y 60 caracteres, entrada "sospechosa" de más de 40 caracteres de golpe) | Puntajes inhumanos o pegados: no se clasifican ni se guardan |
+| Semana del ranking | `LB.weekId()` (lunes 00:00 hora de Toronto vía `Intl`, plan B UTC-5) | Reinicio semanal automático; cuenta regresiva en pantalla |
+| Persistencia | `LocalStore` (por defecto, con 14 filas de muestra marcadas) y `SupabaseStore` (solo si `SITE.supabase` está completo) | Cambiar de backend sin tocar la interfaz |
+| Nickname y email | `Profanity`, `nickError`, `emailOk` | Insultos (EN/ES/FR, con variantes leet/tildes); el email va solo a `pc_leads`, nunca a la tabla pública |
+| Kit PDF y AdSense | `SITE.kit`, `SITE.adsense`, bloque `#adSlot` | Enlaces por idioma y anuncio solo en resultados, nunca junto a la escritura |
+| Ranking vs. escritura | `setBusy()` | Mientras corre una prueba, el botón de ranking se desactiva |
+
+Solo el Typing Sprint entra al ranking; los módulos II y III muestran resultados.
+
+## Límites de la Iteración 3
+- Los candados del navegador no frenan a quien manipule el código: para premios reales hacen falta restricciones (CHECK) y RLS en Supabase (esquema en comentario de `SITE`).
+- Los premios se activan cuando se conecte el ranking en vivo; hasta entonces es modo demo.
+- Faltan los enlaces reales del kit y los ids de AdSense en `SITE`.
