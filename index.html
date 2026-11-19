@@ -78,9 +78,11 @@
   .h-serif { font-family: var(--serif); font-weight: 600; text-wrap: balance; }
 
   /* Coach row */
-  .coach { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; }
+  .coach { display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center; }
   .bubble { position: relative; background: var(--paper); border: 1px solid var(--pencil); border-radius: 12px; padding: 10px 14px; font-size: .92rem; min-height: 46px; display: flex; align-items: center; min-width: 0; }
+  .bubble::before { content: ""; position: absolute; left: -7px; top: 50%; width: 12px; height: 12px; background: var(--paper); border-left: 1px solid var(--pencil); border-bottom: 1px solid var(--pencil); transform: translateY(-50%) rotate(45deg); }
   .bubble.warn { border-color: var(--seal); color: var(--seal); }
+  .bubble.warn::before { border-color: var(--seal); }
   .clock { font-family: var(--sans); font-variant-numeric: tabular-nums; font-weight: 700; font-size: 2.3rem; letter-spacing: -.02em; line-height: 1; }
   .clock.critical { color: var(--seal); }
   .clock-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-soft); font-weight: 600; text-align: right; }
@@ -156,7 +158,7 @@
   .select-all { user-select: all; -webkit-user-select: all; font-weight: 600; color: var(--ink); }
 
   @media (max-width: 560px) {
-    .coach { grid-template-columns: 1fr; }
+    .coach { grid-template-columns: auto 1fr; }
     .coach .clock-wrap { grid-column: 1 / -1; display: flex; align-items: baseline; justify-content: space-between; }
     .source { font-size: 1.1rem; }
     .clock { font-size: 2rem; }
@@ -207,8 +209,9 @@
     </div>
     <p style="margin:8px 0 14px;color:var(--ink-soft);font-size:.93rem;max-width:68ch;" data-i18n="m1intro">Copy the French text exactly.</p>
 
-    <!-- Coach: mime message (the mime itself lives in the header) + clock -->
+    <!-- Coach: reactive mime + bubble + clock (the header mime stays calm) -->
     <div class="coach">
+      <div id="mimeCoach" style="width:68px;height:68px;" aria-hidden="true"></div>
       <div class="bubble" id="bubble" aria-live="polite">…</div>
       <div class="clock-wrap">
         <div class="clock-label" data-i18n="time">Time</div>
@@ -279,6 +282,7 @@
   <!-- ============ MODULES 2 & 3 (placeholders) ============ -->
   <section id="modSoon" class="page" hidden style="padding: 22px;">
     <div class="flex items-center gap-4">
+      <div id="mimeSoon" style="width:68px;height:68px;flex:none" aria-hidden="true"></div>
       <div style="min-width:0">
         <div class="eyebrow" id="soonEyebrow"></div>
         <h2 class="h-serif" style="font-size:1.4rem;margin:2px 0 6px" id="soonTitle"></h2>
@@ -564,10 +568,12 @@ let lastSay = 'ready';
 const t = (k) => I18N[lang][k];
 
 /* ---------- mime setup ---------- */
-$('mimeHeader').innerHTML = mimeSVG('h');
+$('mimeHeader').innerHTML = mimeSVG('h');   // static: always calm
+$('mimeCoach').innerHTML = mimeSVG('c');
+$('mimeSoon').innerHTML = mimeSVG('s');
 function setMime(state) {
   mimeState = state;
-  document.querySelectorAll('.mime').forEach(m => m.setAttribute('data-state', state));
+  document.querySelectorAll('#mimeCoach .mime, #mimeSoon .mime').forEach(m => m.setAttribute('data-state', state));
 }
 function say(key, warn) {
   lastSay = key;
