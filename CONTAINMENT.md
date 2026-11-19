@@ -1,6 +1,6 @@
-# Mapa de Contención · Plume & Chrono (Iteraciones 1 a 3)
+# Mapa de Contención · Plume & Chrono (Iteraciones 1 a 4)
 
-Un solo archivo (`index.html`), pero con responsabilidades separadas dentro del script. Cuando se divida en archivos (Iteración 4), cada bloque pasa a su archivo sin cambiar de lógica.
+Cinco archivos con orden de carga fijo: `exercises.js` (datos), `audio.js` (sonido), `app.js` (lógica). Si `exercises.js` o `audio.js` fallan al cargar, la app sigue funcionando (con aviso o en silencio).
 
 ## Dónde vive cada responsabilidad
 
@@ -62,3 +62,17 @@ Solo el Typing Sprint entra al ranking; los módulos II y III muestran resultado
 | Anti-spam | campo señuelo oculto y espera de 8 s entre envíos | Bots y doble toque |
 
 El mensaje adjunta solo modo, idioma y tipo de dispositivo; el email, si se escribe, solo viaja en ese reporte.
+
+## Iteración 4: niveles y división en archivos
+
+| Responsabilidad | Dueño en el código | Qué previene |
+|---|---|---|
+| Bancos de ejercicios | `exercises.js` (`window.PC_BANK`, solo datos) leído por `Bank` en `app.js` | Ítems inválidos se descartan sin lanzar error; agregar `en`/`es` no toca el motor |
+| Filtro de nivel | `Levels` (`pool`, `next`, `keep`, `connectors`) + `#levelBar` | Cada módulo implementa `onLevel()` y reelige su propio ejercicio; el selector se bloquea mientras corre una prueba |
+| Nivel sin ejercicios | `Levels.pool().fallback` + `#lvlNote` | Si un nivel está vacío en un modo, se muestran todos los niveles con un aviso amable; si no hay banco, aviso y botón de inicio deshabilitado |
+| Conectores por nivel | `Levels.connectors(nivel del escenario)` | Un escenario A1 no pide conectores de nivel avanzado |
+| Nivel en resultados y ranking | `Results` (chip) y `LB` (campo `lvl`, columna `level` en Supabase) | Dato informativo; no cambia el puntaje ni las reglas anti-trampas |
+| Sonido | `audio.js` (`window.PCAudio`) y `Sound` en `app.js` con respaldo mudo | Un `audio.js` ausente o roto no frena la app |
+| Reloj | `Timers` sigue siendo el único creador de intervalos | `showMod()` limpia al cambiar de pestaña |
+
+Límites: C1 se muestra como "Avanzado". El ranking mezcla niveles; el nivel es solo informativo.
