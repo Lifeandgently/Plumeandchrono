@@ -114,3 +114,27 @@ Límites: C1 se muestra como "Avanzado". El ranking mezcla niveles; el nivel es 
 - `Levels.connectors(level, kind)` arma el par según el tipo de consigna. Primero va un conector para desarrollar (sumar, explicar, dar una causa o, en las cartas, ordenar) y después uno para girar o cerrar (contrastar, conceder, consecuencia o conclusión; en las cartas también finalidad). Las consignas de opinión nunca reciben un conector de secuencia y las cartas nunca reciben uno de concesión. El par se busca primero en el nivel de la consigna, después en los niveles vecinos y por último en todo el banco. `anyPair` queda como respaldo para bancos viejos.
 - `exercises.js` suma dos campos a cada conector: `ex`, una frase modelo en francés de una línea, y `amb: true` para aussi, puis, alors, ainsi y enfin. Al tocar un chip se muestra la línea `#m2connEx`. El chip no le saca el foco a las notas ni al editor, así que el teclado sigue abierto.
 - `ConnMatch` es un servicio compartido entre los chips en vivo y la devolución. Busca palabras completas sin importar mayúsculas ni tildes. Un conector ambiguo solo cuenta al inicio de una oración, después de `, ; :` o justo después de « et ». « alors que » y « ainsi que » nunca cuentan. Si el conector aparece solo fuera de esa posición, la devolución lo explica en una observación tranquila, dentro del máximo de 3.
+
+## Paso 1-3: versiones, ids estables y banco ampliado
+
+| Responsabilidad | Dueño en el código | Qué previene |
+|---|---|---|
+| Caché en la tablet | `index.html`: `style.css`, `exercises.js`, `audio.js` y `app.js` llevan `?v=20261119a` | Que el navegador mezcle un `app.js` viejo con un marcado nuevo. Al subir archivos nuevos, cambia el mismo valor en las 4 líneas |
+| Ids estables | `exercises.js`: cada ítem de Sprint, Improvisación y Lectura tiene `id` (`fr_sp_b1_01`, `fr_a1_01`, `fr_rd_a2_01`…). `Bank.find()` / `Bank.idAt()` en `app.js` | Agregar o reordenar ítems ya no manda al alumno a otro ejercicio. Un id nunca se reutiliza ni se renombra |
+| Progreso guardado | `pc_ex_id` (Sprint), `pc_imp_last` (última consigna), `pc_rd_last` (última lectura), `exId` en "Mis mejores puntajes" | Se guarda el id, no la posición. Los datos viejos (`pc_ex` por posición) se siguen leyendo como respaldo |
+| Validación visible | `PROBLEMS[mode]` + `Bank.list()` | Un ítem mal formado se descarta y aparece en la consola (`console.warn`) con su posición, id y motivo. Un id ausente o repetido no rompe nada: usa la posición y también avisa |
+| Lectura: opciones mezcladas | `shuffleQ()` en `Modules[3]`, mapa `shown[qi] = { o, a }` | Las opciones se muestran en orden aleatorio; la corrección y el puntaje usan ese mismo mapa, así que la letra correcta nunca se repite por costumbre y la corrección coincide con lo que se vio |
+| Lectura: "Intentar de nuevo" | `Modules[3].retry()` | Pasa al siguiente texto del nivel ("Leer otro texto"). Si el nivel tiene un solo texto, lo repite con las opciones mezcladas y cada respuesta correcta en otra posición. En Lectura ya no se muestra el botón duplicado "Otro ejercicio" |
+
+Banco de francés tras este paso: 12 textos de Sprint, 27 consignas de Improvisación (A1 ×5, A2 ×6, B1 ×5, B2 ×5, C1 ×6; A1 y A2 en palabras simples, sin "Rédigez l'introduction") y 11 lecturas (4 nuevas: `fr_rd_a2_01`, `fr_rd_b1_01`, `fr_rd_b2_01`, `fr_rd_c1_01`). Los pares de conectores siguen saliendo de `Levels.connectors(nivel, tipo)` del Punto 4.
+
+Sin cambios: el Sprint (Punto 1), la devolución de Improvisación (Punto 2), el ranking por nivel con piso de 90 % y `SITE.prizesLive === false` (Punto 3), los conectores, ejemplos y la regla de ambiguos (Punto 4), el encabezado, la tarjeta del kit, `#adSlot`, `Timers.clearAll()`, `audio.js` y el mimo fijo del encabezado.
+
+Archivos modificados: `index.html` (versiones), `exercises.js` (ids, consignas, lecturas), `app.js` (`Bank`, `PROBLEMS`, Sprint/Improv/Lectura por id, mezcla de opciones, textos `m3again` y `m3againSame` en EN y ES) y este archivo.
+
+Qué probar en la tablet:
+- Subir los 5 archivos juntos y abrir la página: en la consola de Chrome no debe aparecer ningún aviso `[P&C] exercises.js`.
+- Sprint: tocar "Otro texto", recargar la página y comprobar que sigue el mismo texto.
+- Nivel A1 y A2 en Improvisación: las consignas usan frases simples; "Otro ejercicio" no repite la misma consigna dos veces seguidas.
+- Lectura: la respuesta correcta cambia de letra; "Leer otro texto" pasa a otro texto; en A1 (un solo texto) el botón dice "Intentar de nuevo (opciones mezcladas)" y las correctas cambian de lugar.
+- Lo de siempre: teclado y franja del Sprint, devolución de Improvisación, ranking por nivel y cambio de pestaña con el reloj corriendo.

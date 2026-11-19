@@ -19,7 +19,8 @@
     } }
   };
 </script>
-<link rel="stylesheet" href="style.css">
+<!-- ASSET VERSION: when you upload new files, change v= on these 4 lines (same value everywhere) so tablets do not mix old and new files. -->
+<link rel="stylesheet" href="style.css?v=20261119a">
 </head>
 <body>
 <!-- ============ HEADER ============ -->
@@ -191,8 +192,8 @@
 </div>
 
 <!-- Load order matters: data first, then audio, then the app (all relative paths, no build step). -->
-<script src="exercises.js"></script>
-<script src="audio.js"></script>
-<script src="app.js"></script>
+<script src="exercises.js?v=20261119a"></script>
+<script src="audio.js?v=20261119a"></script>
+<script src="app.js?v=20261119a"></script>
 </body>
 </html>

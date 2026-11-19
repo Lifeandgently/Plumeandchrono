@@ -134,7 +134,7 @@ const I18N = {
     m3eyebrow: 'Module III · 3 minutes', m3title: 'Speed Reading',
     m3intro: 'Read the French text and answer three multiple-choice questions before the clock runs out. Text and questions appear when you start.',
     m3preNote: '3 questions · strict 3-minute clock',
-    m3start: 'Start reading', m3submit: 'Submit answers', m3answered: (n) => `${n}/3 answered`,
+    m3start: 'Start reading', m3submit: 'Submit answers', m3answered: (n) => `${n}/3 answered`, m3again: 'Read another text', m3againSame: 'Try again (options reshuffled)',
     m3resScore: 'Correct answers', m3resTime: 'Time used', m3resBlank: 'Unanswered',
     say3: {
       ready: 'Take a breath. Text and questions appear when you start.',
@@ -284,7 +284,7 @@ const I18N = {
     m3eyebrow: 'Módulo III · 3 minutos', m3title: 'Lectura exprés',
     m3intro: 'Lee el texto en francés y responde tres preguntas de opción múltiple antes de que termine el reloj. El texto y las preguntas aparecen al empezar.',
     m3preNote: '3 preguntas · reloj estricto de 3 minutos',
-    m3start: 'Empezar a leer', m3submit: 'Enviar respuestas', m3answered: (n) => `${n}/3 respondidas`,
+    m3start: 'Empezar a leer', m3submit: 'Enviar respuestas', m3answered: (n) => `${n}/3 respondidas`, m3again: 'Leer otro texto', m3againSame: 'Intentar de nuevo (opciones mezcladas)',
     m3resScore: 'Respuestas correctas', m3resTime: 'Tiempo usado', m3resBlank: 'Sin responder',
     say3: {
       ready: 'Respira hondo. El texto y las preguntas aparecen al empezar.',
@@ -933,8 +933,8 @@ const Results = {
       <div id="rvBody">${Results.body(n, p)}</div>
       ${n === 1 ? '<div id="rvBoard" class="mt-5"></div>' : ''}
       <div class="rv-actions mt-5">
-        <button type="button" class="btn quill" id="rvAgain">${esc(t('again'))}</button>
-        <button type="button" class="btn alt" id="rvNew">${esc(t('rvNew'))}</button>
+        <button type="button" class="btn quill" id="rvAgain">${esc(n === 3 ? (Levels.pool('reading').list.length > 1 ? t('m3again') : t('m3againSame')) : t('again'))}</button>
+        ${n === 3 ? '' : `<button type="button" class="btn alt" id="rvNew">${esc(t('rvNew'))}</button>`}
         <span class="rv-switch"><span class="eyebrow">${esc(t('rvSwitch'))}</span>${others.map(m => `<button type="button" class="btn alt" data-go="${m}">${esc(t('tab' + m))}</button>`).join('')}</span>
       </div>
       <aside class="kit mt-6">
@@ -947,7 +947,7 @@ const Results = {
       <div class="ad-wrap mt-6"><div class="ad-label">${esc(t('adLabel'))}</div>
         <div class="ad-slot" id="adSlot" data-ad-client="${esc(SITE.ads.client)}" data-ad-slot="${esc(SITE.ads.slot)}"><span>${esc(t('adReserved'))}</span></div></div>`;
     $('rvAgain').onclick = () => { Results.hide(); safe(() => Modules[n].retry()); $('mod' + n).scrollIntoView({ behavior: 'smooth' }); };
-    $('rvNew').onclick = () => { Results.hide(); safe(() => Modules[n].next()); $('mod' + n).scrollIntoView({ behavior: 'smooth' }); };
+    if ($('rvNew')) $('rvNew').onclick = () => { Results.hide(); safe(() => Modules[n].next()); $('mod' + n).scrollIntoView({ behavior: 'smooth' }); };
     view.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { showMod(+b.dataset.go); window.scrollTo({ top: 0, behavior: 'smooth' }); }));
     Results.ads();
     if (n === 1) Results.board(p);
@@ -1075,16 +1075,51 @@ const LEVELS = (Array.isArray(PCB.levels) && PCB.levels.length) ? PCB.levels.sli
 const RAW = (PCB.langs && PCB.langs[PCB.active]) || {};
 const lvlOf = (x) => (x && LEVELS.indexOf(x.level) !== -1) ? x.level : 'B1';
 const isStr = (v) => typeof v === 'string' && v.trim().length > 0;
-const VALID = {
-  sprint: (x) => x && isStr(x.text) && isStr(x.title),
-  improv: (x) => x && isStr(x.text) && fin(x.goal) > 0,
-  connectors: (x) => x && isStr(x.fr) && isStr(x.type),
-  reading: (x) => x && isStr(x.text) && isStr(x.title) && Array.isArray(x.qs) && x.qs.length === 3 &&
-                  x.qs.every(q => q && isStr(q.q) && Array.isArray(q.o) && q.o.length === 4 && q.a >= 0 && q.a < 4)
+/* PROBLEMS[mode](item) -> '' when the item is usable, else a short reason (shown in the console, never on screen). */
+const PROBLEMS = {
+  sprint: (x) => !x ? 'empty' : !isStr(x.text) ? 'missing text' : !isStr(x.title) ? 'missing title' : '',
+  improv: (x) => !x ? 'empty' : !isStr(x.text) ? 'missing text' : !(fin(x.goal) > 0) ? 'goal must be a number above 0' : '',
+  connectors: (x) => !x ? 'empty' : !isStr(x.fr) ? 'missing word (fr)' : !isStr(x.type) ? 'missing type' : '',
+  reading: (x) => {
+    if (!x) return 'empty';
+    if (!isStr(x.text)) return 'missing text';
+    if (!isStr(x.title)) return 'missing title';
+    if (!Array.isArray(x.qs) || x.qs.length !== 3) return 'needs exactly 3 questions';
+    for (let k = 0; k < 3; k++) {
+      const q = x.qs[k];
+      if (!q || !isStr(q.q)) return `question ${k + 1}: missing text`;
+      if (!Array.isArray(q.o) || q.o.length !== 4 || !q.o.every(isStr)) return `question ${k + 1}: needs 4 options`;
+      if (!Number.isInteger(q.a) || q.a < 0 || q.a > 3) return `question ${k + 1}: answer "a" must be 0, 1, 2 or 3`;
+    }
+    return '';
+  }
 };
+/* Bank: each usable item gets a STABLE id (from exercises.js). Saved progress (pc_ex_id, pc_imp_last, pc_rd_last, `exId` in
+   personal bests) points to the id, so adding or reordering items never sends the learner to the wrong exercise.
+   A missing or repeated id still works (position-based id, flagged in the console) so a typo never blanks the screen. */
 const Bank = {
   _c: {},
-  list(mode) { return Bank._c[mode] || (Bank._c[mode] = (Array.isArray(RAW[mode]) ? RAW[mode] : []).filter(x => quiet(() => VALID[mode](x), false))); }
+  list(mode) {
+    if (Bank._c[mode]) return Bank._c[mode];
+    const raw = Array.isArray(RAW[mode]) ? RAW[mode] : [], out = [], bad = [], noId = [], seen = new Set();
+    raw.forEach((x, n) => {
+      const why = quiet(() => (PROBLEMS[mode] ? PROBLEMS[mode](x) : ''), 'unreadable item');
+      const tag = `#${n + 1}${x && isStr(x.id) ? ' ' + x.id : ''}`;
+      if (why) { bad.push(`${tag} (${why})`); return; }
+      if (mode === 'connectors') { out.push(x); return; }
+      let id = isStr(x.id) ? x.id.trim() : '';
+      if (!id || seen.has(id)) { noId.push(`${tag}${id ? ' (repeated id)' : ' (no id)'}`); id = `${PCB.active || 'xx'}_${mode}_pos${n + 1}`; }
+      seen.add(id);
+      out.push(id === x.id ? x : Object.assign({}, x, { id }));
+    });
+    quiet(() => {
+      if (bad.length) console.warn(`[P&C] exercises.js · ${mode}: ${bad.length} item(s) skipped → ${bad.join('; ')}`);
+      if (noId.length) console.warn(`[P&C] exercises.js · ${mode}: ${noId.length} item(s) without a unique id, using their position → ${noId.join('; ')}`);
+    });
+    return (Bank._c[mode] = out);
+  },
+  find(mode, id) { return typeof id === 'string' && id ? Bank.list(mode).findIndex(x => x.id === id) : -1; },   // -1 when unknown
+  idAt(mode, i) { const x = Bank.list(mode)[i]; return x && x.id ? x.id : null; }
 };
 const Levels = {
   cur: (() => { const v = store.get('pc_level', 'all'); return v === 'all' || LEVELS.indexOf(v) !== -1 ? v : 'all'; })(),
@@ -1150,8 +1185,11 @@ const Levels = {
 Modules[1] = (function TypingSprint() {
   const DURATION = 120, CRITICAL = 20, MAX_WPM = 130;
   const SP = () => Bank.list('sprint');
-  let exIndex = store.get('pc_ex', 0); exIndex = Number.isInteger(exIndex) && exIndex >= 0 ? exIndex : 0;
-  exIndex = Levels.keep('sprint', SP().length ? exIndex % SP().length : 0);
+  let exIndex = (() => {                                  // saved by stable id; old saves (position only) still work
+    const k = Bank.find('sprint', store.get('pc_ex_id', null)); if (k !== -1) return k;
+    const old = store.get('pc_ex', 0); return Number.isInteger(old) && old >= 0 && SP().length ? old % SP().length : 0;
+  })();
+  exIndex = Levels.keep('sprint', exIndex);
   let target = '', spans = [];
   let phase = 'ready';           // ready | running | done
   let t0 = 0, timerId = null, lastSec = DURATION;
@@ -1182,7 +1220,7 @@ Modules[1] = (function TypingSprint() {
       target = ''; src.textContent = t('lvlNoBank'); $('srcTitle').textContent = '—'; $('srcMeta').textContent = '';
       reset(); Levels.note('sprint'); return;
     }
-    exIndex = ((i % n) + n) % n; store.set('pc_ex', exIndex);
+    exIndex = ((i % n) + n) % n; store.set('pc_ex_id', Bank.idAt('sprint', exIndex));
     target = SP()[exIndex].text;
     const frag = document.createDocumentFragment();
     for (const ch of target) { const s = document.createElement('span'); s.textContent = ch; s.className = 'p'; frag.appendChild(s); spans.push(s); }
@@ -1381,7 +1419,7 @@ Modules[1] = (function TypingSprint() {
 
     r.flagged = r.wpm > MAX_WPM; r.reason = reason; r.rank = 0; r.suspect = suspect;
     r.why = LB.check({ typed: r.typed, score: r.score, wpm: r.wpm, acc: r.acc, elapsed: r.elapsed, suspect });   // null = rankable
-    if (!r.why || r.why === 'acc') r.rank = Board.save({ score: Math.round(r.score * 10) / 10, wpm: Math.round(r.wpm), acc: Math.round(r.acc), ex: exIndex, lvl: lvlOf(SP()[exIndex]) });
+    if (!r.why || r.why === 'acc') r.rank = Board.save({ score: Math.round(r.score * 10) / 10, wpm: Math.round(r.wpm), acc: Math.round(r.acc), exId: Bank.idAt('sprint', exIndex), lvl: lvlOf(SP()[exIndex]) });
     if (r.flagged) { setMime('calm'); say('flagged', true); }
     else if (r.typed === 0) { setMime('calm'); say('empty'); }
     else if (r.rank === 1) { setMime('victory'); say('record'); }
@@ -1524,7 +1562,7 @@ Modules[2] = (function Improv() {
   const accents = Accents($('m2accents'), () => (phase === 'plan' ? notes : editor), () => phase === 'plan' || phase === 'write');
 
   let phase = 'ready';            // ready | plan | write | done
-  let scenario = null, conns = [], seen = [], lastIdx = -1, exOpen = -1;   // exOpen: chip whose one-line example is shown
+  let scenario = null, conns = [], seen = [], lastId = store.get('pc_imp_last', null), exOpen = -1;   // lastId: stable id of the last scenario (not repeated next)   // exOpen: chip whose one-line example is shown
   let phaseT0 = 0, dur = PLAN, timerId = null, lastSec = PLAN, firstKeyAt = null, lastRes = null;
 
   /* ----- text utilities ----- */
@@ -1538,8 +1576,8 @@ Modules[2] = (function Improv() {
       scenario = null; conns = []; seen = [false, false]; $('m2prompt').textContent = t('lvlNoBank'); $('m2lvl').textContent = '';
       renderConns(''); Levels.note('improv'); return;
     }
-    let k; do { k = Math.floor(Math.random() * P.length); } while (P.length > 1 && P[k].i === lastIdx);
-    lastIdx = P[k].i; scenario = P[k].item;
+    let k, guard = 0; do { k = Math.floor(Math.random() * P.length); } while (P.length > 1 && P[k].item.id === lastId && guard++ < 50);
+    scenario = P[k].item; lastId = scenario.id || null; store.set('pc_imp_last', lastId);
     conns = Levels.connectors(lvlOf(scenario), scenario.kind); seen = [false, false]; exOpen = -1;
     $('m2prompt').textContent = scenario.text; $('m2lvl').textContent = Levels.full(lvlOf(scenario));
     renderConns(editor.value);
@@ -1710,18 +1748,35 @@ Modules[3] = (function Reading() {
   let phase = 'ready';            // ready | running | done
   const RD = () => Bank.list('reading');
   let idx = 0, item = null;
-  { const P0 = Levels.pool('reading').list; idx = P0.length ? P0[Math.floor(Math.random() * P0.length)].i : 0; }
+  {                                               // first text: random inside the level, never the one read last time (stable id)
+    const P0 = Levels.pool('reading').list, last = store.get('pc_rd_last', null), P1 = P0.length > 1 ? P0.filter(x => x.item.id !== last) : P0;
+    idx = P1.length ? P1[Math.floor(Math.random() * P1.length)].i : 0;
+  }
   let answers = [null, null, null], t0 = 0, timerId = null, lastSec = DURATION, lastRes = null;
+  /* Shuffled options: shown[qi] = { o: options in the order shown, a: position of the right one in that order }.
+     The bank keeps its original order and its own `a`; only this map is used to grade and to correct, so A/B/C/D
+     never leak the answer and the correction always matches what the learner saw. */
+  let shown = [], prevRight = null;
+  function shuffleQ(q, avoid) {
+    let order = [0, 1, 2, 3], tries = 0;
+    do {
+      for (let k = order.length - 1; k > 0; k--) { const r = Math.floor(Math.random() * (k + 1)); const tmp = order[k]; order[k] = order[r]; order[r] = tmp; }
+    } while (avoid !== null && avoid !== undefined && order.indexOf(q.a) === avoid && tries++ < 12);   // a repeated text: the right answer moves
+    return { o: order.map(k => q.o[k]), a: order.indexOf(q.a) };
+  }
 
   function renderItem() {
     item = RD()[idx] || null;
     const box = $('m3qs'); box.innerHTML = '';
     if (!item) { $('m3tag').textContent = ''; $('m3textTitle').textContent = ''; $('m3text').textContent = t('lvlNoBank'); return; }   // no bank: notice, start is disabled
     $('m3tag').textContent = `${item.theme || ''} · ${Levels.full(lvlOf(item))}`; $('m3textTitle').textContent = item.title; $('m3text').textContent = item.text;
+    const again = prevRight && prevRight.id === item.id ? prevRight.a : null;
+    shown = item.qs.map((q, qi) => quiet(() => shuffleQ(q, again ? again[qi] : null), { o: q.o.slice(), a: q.a }));
+    prevRight = { id: item.id, a: shown.map(x => x.a) };
     item.qs.forEach((q, qi) => {
       const wrap = document.createElement('div'); wrap.className = 'q'; wrap.setAttribute('role', 'radiogroup'); wrap.setAttribute('aria-labelledby', 'm3q' + qi);
       const h = document.createElement('div'); h.className = 'q-text'; h.id = 'm3q' + qi; h.lang = 'fr'; h.textContent = `${qi + 1}. ${q.q}`; wrap.appendChild(h);
-      q.o.forEach((o, oi) => {
+      shown[qi].o.forEach((o, oi) => {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', 'false');
         b.dataset.q = qi; b.dataset.o = oi; b.lang = 'fr';
         b.innerHTML = '<span class="ltr"></span><span class="otxt"></span>';
@@ -1775,9 +1830,10 @@ Modules[3] = (function Reading() {
     const used = Math.min(DURATION, Math.max(0, fin((performance.now() - t0) / 1000)));
     phase = 'done'; coach.critical(false);
     if (reason === 'time') { coach.clock(0); coach.bar(0); Sound.alarm(); } else Sound.ding();
-    const score = item.qs.reduce((n, q, i) => n + (answers[i] === q.a ? 1 : 0), 0);
+    const score = item.qs.reduce((n, q, i) => n + (answers[i] === shown[i].a ? 1 : 0), 0);
     lastRes = { score, used, blank: answers.filter(a => a === null).length, reason, title: item.title, level: lvlOf(item),
-                items: item.qs.map((q, k) => ({ q: q.q, o: q.o, chosen: answers[k], correct: q.a, why: q.why })) };
+                items: item.qs.map((q, k) => ({ q: q.q, o: shown[k].o, chosen: answers[k], correct: shown[k].a, why: q.why })) };
+    store.set('pc_rd_last', item.id || null);
     if (score >= 2) { coach.mime('victory'); coach.say('win'); }
     else { coach.mime('calm'); coach.say(reason === 'time' ? 'timeup' : 'low'); }
     setBusy(false); Results.show(3, lastRes);
@@ -1790,7 +1846,10 @@ Modules[3] = (function Reading() {
   return {
     mount() { reset(); Levels.note('reading'); },
     unmount() { reset(); },
-    retry() { reset(); },
+    retry() {                                     // "Try again": next text of the level when there is one; same text only if it is the only one (options reshuffled, right answers moved)
+      if (Levels.pool('reading').list.length > 1) idx = Levels.next('reading', idx);
+      reset(); Levels.note('reading');
+    },
     next() { idx = Levels.next('reading', idx); reset(); Levels.note('reading'); },
     onLevel() { idx = Levels.keep('reading', idx); reset(); Levels.note('reading'); },
     onLang() { coach.refresh(); coach.label(t('time')); paintAnswers(); if (item) $('m3tag').textContent = `${item.theme || ''} · ${Levels.full(lvlOf(item))}`; else $('m3text').textContent = t('lvlNoBank'); }

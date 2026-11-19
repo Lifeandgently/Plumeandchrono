@@ -4,6 +4,7 @@
 `index.html`, `style.css`, `exercises.js`, `audio.js`, `app.js`
 
 ## Subida
+0. En `index.html`, cambia el valor de `?v=` en las 4 líneas (el mismo en todas) cada vez que subas archivos nuevos. Así la tablet no mezcla archivos viejos y nuevos.
 1. hPanel > Administrador de archivos > `public_html` (o la subcarpeta elegida).
 2. Subí los cinco archivos juntos, sin renombrar y sin carpetas intermedias. Las rutas son relativas.
 3. Abrí `https://tudominio.com/` (o la subcarpeta) en la tablet.
