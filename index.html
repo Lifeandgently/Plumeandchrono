@@ -22,7 +22,7 @@
   };
 </script>
 <!-- ASSET VERSION: when you upload new files, change v= on these 4 lines (same value everywhere) so tablets do not mix old and new files. -->
-<link rel="stylesheet" href="style.css?v=20261119h">
+<link rel="stylesheet" href="style.css?v=20261119i">
 </head>
 <body>
 <!-- ============ BRAND MARK (isotipo) ============ -->
@@ -123,12 +123,12 @@
       <div class="source-title" id="srcTitle">—</div>
       <div class="eyebrow" id="srcMeta"></div>
     </div>
-    <div class="source" id="source" lang="fr" aria-label="Texte à recopier"></div>
+    <div class="source" id="source" lang="fr" data-plang aria-label="Texte à recopier"></div>
 
     <!-- Accent bar -->
     <!-- Compact live strip: current segment of the model text + time, pinned at the top while typing (tablet/phone) -->
     <div class="live-strip mt-4" id="liveStrip" aria-hidden="true">
-      <div class="ls-text" id="lsText" lang="fr"></div>
+      <div class="ls-text" id="lsText" lang="fr" data-plang></div>
       <div class="ls-clock" id="lsClock">2:00</div>
     </div>
     <div class="flex items-center justify-between gap-2 mt-4 mb-2">
@@ -139,7 +139,7 @@
 
     <!-- Writing field -->
     <label for="field" class="sr-only" data-i18n="fieldLabel">Your copy</label>
-    <textarea id="field" class="field mt-3" lang="fr" rows="3" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" writingsuggestions="false" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" placeholder="Tap here and type…"></textarea>
+    <textarea id="field" class="field mt-3" lang="fr" data-plang rows="3" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" writingsuggestions="false" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" placeholder="Tap here and type…"></textarea>
 
     <div class="flex flex-wrap gap-2 mt-3">
       <button type="button" class="btn quill" id="startBtn" data-i18n="start">Start</button>
@@ -211,8 +211,8 @@
 </div>
 
 <!-- Load order matters: data first, then audio, then the app (all relative paths, no build step). -->
-<script src="exercises.js?v=20261119h"></script>
-<script src="audio.js?v=20261119h"></script>
-<script src="app.js?v=20261119h"></script>
+<script src="exercises.js?v=20261119i"></script>
+<script src="audio.js?v=20261119i"></script>
+<script src="app.js?v=20261119i"></script>
 </body>
 </html>

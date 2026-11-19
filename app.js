@@ -363,12 +363,85 @@ const Sound = window.PCAudio || { enabled: false, unlock() {}, ding() {}, tick()
 const NOASSIST = 'autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" writingsuggestions="false" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false"';
 const fmtClock = (sec) => { const s = Math.max(0, Math.ceil(fin(sec))); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 
+/* =================== PRACTICE-LANGUAGE SHEETS (one sheet per language being PRACTISED) ===================
+   Everything that depends on the practice language (PC_BANK.active, today 'fr') lives here, never on the interface
+   language (pc_lang = EN | ES, which only changes UI texts). The fr sheet holds the exact values used before, so scores,
+   accuracy marks, Improv feedback and reading behave identically. en and es are prepared skeletons (ready: false):
+   they only take effect when exercises.js activates them with their own bank.
+   Safety: an unknown or alias code ('fr-CA', 'fra', 'French'…) resolves to its sheet, else to fr; a missing or
+   malformed field falls back to a neutral default of the right type (never throws). */
+const PRACTICE_SHEETS = {
+  fr: {
+    ready: true,
+    htmlLang: 'fr',                        // lang attribute of the French text, prompts, editors and options
+    char: 'fr',                            // character in the header and next to the clocks: the mime
+    name: { en: 'French', es: 'Francés' },
+    keys: ['é','è','ê','ë','à','â','ç','ù','û','ô','î','œ','«','»'],                      // touch key bar
+    upper: { 'é':'É','è':'È','ê':'Ê','ë':'Ë','à':'À','â':'Â','ç':'Ç','ù':'Ù','û':'Û','ô':'Ô','î':'Î','œ':'Œ' },   // shift on the key bar
+    base: { 'é':'e','è':'e','ê':'e','ë':'e','à':'a','â':'a','ç':'c','ù':'u','û':'u','ô':'o','î':'i','ï':'i','œ':'o',
+            'É':'E','È':'E','Ê':'E','À':'A','Â':'A','Ç':'C','Ô':'O','Î':'I','Û':'U','Ù':'U','Œ':'O' },   // Sprint: "missing accent" = typed the base letter
+    doublePunct: '?!:;',                   // Sprint: the space before these is a typography notice
+    regionalTypo: 'qc',                    // Sprint: Quebec typography toggle (space before ? ! : ; optional)
+    ambiguous: ['aussi', 'puis', 'alors', 'ainsi', 'enfin'],   // Improv: connectors that count only in a connector position
+    accentWords: { etre: 'être', tres: 'très', deja: 'déjà', apres: 'après', voila: 'voilà', ete: 'été', meme: 'même', memes: 'mêmes',
+                                         probleme: 'problème', problemes: 'problèmes', premiere: 'première', derniere: 'dernière', interessant: 'intéressant', interessante: 'intéressante',
+                                         ecole: 'école', etudiant: 'étudiant', etudiante: 'étudiante', etudiants: 'étudiants', etudes: 'études', societe: 'société', securite: 'sécurité',
+                                         sante: 'santé', qualite: 'qualité', possibilite: 'possibilité', activite: 'activité', activites: 'activités', verite: 'vérité', liberte: 'liberté',
+                                         necessaire: 'nécessaire', economique: 'économique', ecrire: 'écrire', idee: 'idée', idees: 'idées', telephone: 'téléphone', systeme: 'système',
+                                         reponse: 'réponse', repondre: 'répondre', decision: 'décision', developpement: 'développement', general: 'général', generalement: 'généralement',
+                                         egalement: 'également', evidemment: 'évidemment', reussir: 'réussir', reussite: 'réussite', reflechir: 'réfléchir', francais: 'français',
+                                         francaise: 'française', garcon: 'garçon', lecon: 'leçon', ca: 'ça', plutot: 'plutôt', bientot: 'bientôt', cout: 'coût', gout: 'goût',
+                                         fete: 'fête', tete: 'tête', fenetre: 'fenêtre', hopital: 'hôpital', hotel: 'hôtel', theatre: 'théâtre', cafe: 'café', experience: 'expérience',
+                                         difficulte: 'difficulté', difficultes: 'difficultés', realite: 'réalité', medecin: 'médecin', numero: 'numéro', energie: 'énergie',
+                                         enorme: 'énorme', epoque: 'époque', etat: 'état', etranger: 'étranger', etrangers: 'étrangers', evenement: 'événement', reunion: 'réunion',
+                                         region: 'région', annee: 'année', annees: 'années', journee: 'journée', soiree: 'soirée', mere: 'mère', pere: 'père', frere: 'frère',
+                                         regle: 'règle', regles: 'règles', deuxieme: 'deuxième', troisieme: 'troisième', bibliotheque: 'bibliothèque', ecologique: 'écologique',
+                                         electrique: 'électrique', tele: 'télé', television: 'télévision', desole: 'désolé', desolee: 'désolée', peut_etre: 'peut-être', voisinage: null }                   // Improv feedback: frequent words written without their accent
+  },
+  en: {
+    ready: false, htmlLang: 'en-CA', char: 'en', name: { en: 'English', es: 'Inglés' },
+    keys: [], upper: {}, base: {}, doublePunct: '', regionalTypo: null, ambiguous: [], accentWords: {}
+  },
+  es: {
+    ready: false, htmlLang: 'es', char: 'es', name: { en: 'Spanish', es: 'Español' },
+    keys: ['á','é','í','ó','ú','ñ','ü','¿','¡'],
+    upper: { 'á':'Á','é':'É','í':'Í','ó':'Ó','ú':'Ú','ñ':'Ñ','ü':'Ü' },
+    base: { 'á':'a','é':'e','í':'i','ó':'o','ú':'u','ñ':'n','ü':'u','Á':'A','É':'E','Í':'I','Ó':'O','Ú':'U','Ñ':'N','Ü':'U' },
+    doublePunct: '', regionalTypo: null, ambiguous: [], accentWords: {}
+  }
+};
+const PRACTICE_ALIASES = { fra: 'fr', fre: 'fr', french: 'fr', francais: 'fr', 'français': 'fr', eng: 'en', english: 'en', ingles: 'en', 'inglés': 'en', spa: 'es', spanish: 'es', espanol: 'es', 'español': 'es' };
+function practiceCode(v) {                 // 'fr', 'FR', 'fr-CA', 'fra', 'French' -> 'fr'; anything unknown -> 'fr'
+  const k = String(v == null ? '' : v).trim().toLowerCase();
+  if (PRACTICE_SHEETS[k]) return k;
+  const head = k.split(/[-_]/)[0], a = PRACTICE_SHEETS[head] ? head : (PRACTICE_ALIASES[k] || PRACTICE_ALIASES[head]);
+  return a && PRACTICE_SHEETS[a] ? a : 'fr';
+}
+function practiceSheet(v) {
+  const code = practiceCode(v), s = PRACTICE_SHEETS[code] || {};
+  const isObj = (x) => !!x && typeof x === 'object' && !Array.isArray(x);
+  const pick = (k, ok, d) => { try { return ok(s[k]) ? s[k] : d; } catch (e) { return d; } };
+  return Object.freeze({
+    code, ready: s.ready === true,
+    htmlLang: pick('htmlLang', (x) => typeof x === 'string' && x.length > 0, code),
+    char: pick('char', (x) => typeof x === 'string' && x.length > 0, code),
+    name: pick('name', isObj, {}),
+    keys: pick('keys', (x) => Array.isArray(x) && x.every(c => typeof c === 'string'), []),
+    upper: pick('upper', isObj, {}),
+    base: pick('base', isObj, {}),
+    doublePunct: pick('doublePunct', (x) => typeof x === 'string', ''),
+    regionalTypo: pick('regionalTypo', (x) => x === null || typeof x === 'string', null),
+    ambiguous: pick('ambiguous', (x) => Array.isArray(x), []),
+    accentWords: pick('accentWords', isObj, {})
+  });
+}
+const PRACTICE = practiceSheet(window.PC_BANK && window.PC_BANK.active);
+
 /* Accents(): the French key bar. Inserts at the real cursor of whichever field getField() returns,
    keeps the tablet keyboard open (buttons cancel pointerdown/touchstart), respects maxLength. */
 function Accents(box, getField, canInsert) {
   let shiftOn = false;
-  const UPPER = { 'é':'É','è':'È','ê':'Ê','ë':'Ë','à':'À','â':'Â','ç':'Ç','ù':'Ù','û':'Û','ô':'Ô','î':'Î','œ':'Œ' };
-  const KEYS = ['é','è','ê','ë','à','â','ç','ù','û','ô','î','œ','«','»'];
+  const UPPER = PRACTICE.upper, KEYS = PRACTICE.keys;   // from the practice-language sheet
   const guard = (btn) => {
     ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => btn.addEventListener(ev, (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false }));
     btn.addEventListener('touchend', (e) => { if (e.cancelable) { e.preventDefault(); btn.click(); } }, { passive: false });
@@ -436,8 +509,7 @@ function practiceChar() {
   let q = null;
   try { q = new URLSearchParams(location.search).get('char'); } catch (e) { q = null; }
   if (CHAR_IDS.includes(q)) return q;
-  const a = (window.PC_BANK && window.PC_BANK.active) || 'fr';
-  return CHAR_IDS.includes(a) ? a : 'fr';
+  return CHAR_IDS.includes(PRACTICE.char) ? PRACTICE.char : 'fr';   // from the practice-language sheet
 }
 const PAPER_FILL = '#FFFDF9';
 const CHAR_PARTS = {
@@ -536,11 +608,9 @@ function mimeSVG(uid) { return charSVG(uid, practiceChar()); }
 
 /* =================== APP SHELL =================== */
 const $ = (id) => document.getElementById(id);
-const ACCENT_KEYS = ['é','è','ê','ë','à','â','ç','ù','û','ô','î','œ','«','»'];
-const UPPER = { 'é':'É','è':'È','ê':'Ê','ë':'Ë','à':'À','â':'Â','ç':'Ç','ù':'Ù','û':'Û','ô':'Ô','î':'Î','œ':'Œ' };
-const BASE = { 'é':'e','è':'e','ê':'e','ë':'e','à':'a','â':'a','ç':'c','ù':'u','û':'u','ô':'o','î':'i','ï':'i','œ':'o',
-               'É':'E','È':'E','Ê':'E','À':'A','Â':'A','Ç':'C','Ô':'O','Î':'I','Û':'U','Ù':'U','Œ':'O' };
-const DOUBLE_PUNCT = '?!:;';
+const ACCENT_KEYS = PRACTICE.keys, UPPER = PRACTICE.upper, BASE = PRACTICE.base;   // practice-language sheet
+const DOUBLE_PUNCT = PRACTICE.doublePunct;
+const PL = PRACTICE.htmlLang;               // lang attribute for every practice-language text
 
 let lang = (() => { const v = store.get('pc_lang', null); return v === 'es' || v === 'en' ? v : 'en'; })();   // English by default; Spanish only when chosen
 const t = (k) => I18N[lang][k];
@@ -752,7 +822,7 @@ function boardNotes() {                   // prizes only when the ranking is liv
    or aussi / puis / alors / ainsi / enfin) only count in a connector position: start of the text or of a sentence,
    after , ; : or right after « et ». « alors que » and « ainsi que » are never the connector. */
 const ConnMatch = (() => {
-  const AMB = new Set(['aussi', 'puis', 'alors', 'ainsi', 'enfin']);
+  const AMB = new Set(PRACTICE.ambiguous.map(w => String(w).toLowerCase()));   // practice-language sheet
   const fold = (ch) => (ch === '’' || ch === '‘') ? "'" : /\s/.test(ch) ? ' ' : ((ch.normalize('NFD')[0] || ch).toLowerCase());
   const isL = (ch) => !!ch && /\p{L}/u.test(ch);
   const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -796,20 +866,7 @@ const ConnMatch = (() => {
 const ImprovReview = (function () {
   const MAX_OBS = 3, MAX_MARKS = 3;
   // Unaccented form -> correct form. Only words whose unaccented spelling is NOT itself a French word (no a/à, ou/où, la/là...).
-  const ACC = { etre: 'être', tres: 'très', deja: 'déjà', apres: 'après', voila: 'voilà', ete: 'été', meme: 'même', memes: 'mêmes',
-    probleme: 'problème', problemes: 'problèmes', premiere: 'première', derniere: 'dernière', interessant: 'intéressant', interessante: 'intéressante',
-    ecole: 'école', etudiant: 'étudiant', etudiante: 'étudiante', etudiants: 'étudiants', etudes: 'études', societe: 'société', securite: 'sécurité',
-    sante: 'santé', qualite: 'qualité', possibilite: 'possibilité', activite: 'activité', activites: 'activités', verite: 'vérité', liberte: 'liberté',
-    necessaire: 'nécessaire', economique: 'économique', ecrire: 'écrire', idee: 'idée', idees: 'idées', telephone: 'téléphone', systeme: 'système',
-    reponse: 'réponse', repondre: 'répondre', decision: 'décision', developpement: 'développement', general: 'général', generalement: 'généralement',
-    egalement: 'également', evidemment: 'évidemment', reussir: 'réussir', reussite: 'réussite', reflechir: 'réfléchir', francais: 'français',
-    francaise: 'française', garcon: 'garçon', lecon: 'leçon', ca: 'ça', plutot: 'plutôt', bientot: 'bientôt', cout: 'coût', gout: 'goût',
-    fete: 'fête', tete: 'tête', fenetre: 'fenêtre', hopital: 'hôpital', hotel: 'hôtel', theatre: 'théâtre', cafe: 'café', experience: 'expérience',
-    difficulte: 'difficulté', difficultes: 'difficultés', realite: 'réalité', medecin: 'médecin', numero: 'numéro', energie: 'énergie',
-    enorme: 'énorme', epoque: 'époque', etat: 'état', etranger: 'étranger', etrangers: 'étrangers', evenement: 'événement', reunion: 'réunion',
-    region: 'région', annee: 'année', annees: 'années', journee: 'journée', soiree: 'soirée', mere: 'mère', pere: 'père', frere: 'frère',
-    regle: 'règle', regles: 'règles', deuxieme: 'deuxième', troisieme: 'troisième', bibliotheque: 'bibliothèque', ecologique: 'écologique',
-    electrique: 'électrique', tele: 'télé', television: 'télévision', desole: 'désolé', desolee: 'désolée', peut_etre: 'peut-être', voisinage: null };
+  const ACC = PRACTICE.accentWords;                 // from the practice-language sheet (fr: the exact list used before)
   const strip1 = (ch) => { const d = ch.normalize('NFD'); return (d[0] || ch).toLowerCase(); };
   const isL = (ch) => !!ch && /\p{L}/u.test(ch);
   const q = (s) => (lang === 'es' || lang === 'fr') ? `« ${s} »` : `“${s}”`;
@@ -946,17 +1003,17 @@ const Results = {
         <div class="stat"><div class="k">${esc(t('m3resBlank'))}</div><div class="v">${p.blank}</div></div>
       </div>
       <div class="eyebrow mt-4">${esc(p.title)} · ${esc(t('rvDetail'))}</div>
-      ${p.items.map((it, i) => `<div class="corr ${it.chosen === it.correct ? 'good' : 'bad'}"><div class="q-text" lang="fr">${i + 1}. ${esc(it.q)}</div>
-        <div class="corr-line">${it.chosen === it.correct ? '✓' : '✗'} ${esc(t('rvYours'))}: <span lang="fr">${it.chosen === null ? esc(t('rvNoAns')) : letters[it.chosen] + '. ' + esc(it.o[it.chosen])}</span></div>
-        ${it.chosen === it.correct ? '' : `<div class="corr-line">${esc(t('rvRight'))}: <span lang="fr"><b>${letters[it.correct]}. ${esc(it.o[it.correct])}</b></span></div>`}
-        <div class="why" lang="fr">${esc(it.why)}</div></div>`).join('')}`;
+      ${p.items.map((it, i) => `<div class="corr ${it.chosen === it.correct ? 'good' : 'bad'}"><div class="q-text" lang="${PL}">${i + 1}. ${esc(it.q)}</div>
+        <div class="corr-line">${it.chosen === it.correct ? '✓' : '✗'} ${esc(t('rvYours'))}: <span lang="${PL}">${it.chosen === null ? esc(t('rvNoAns')) : letters[it.chosen] + '. ' + esc(it.o[it.chosen])}</span></div>
+        ${it.chosen === it.correct ? '' : `<div class="corr-line">${esc(t('rvRight'))}: <span lang="${PL}"><b>${letters[it.correct]}. ${esc(it.o[it.correct])}</b></span></div>`}
+        <div class="why" lang="${PL}">${esc(it.why)}</div></div>`).join('')}`;
   },
   draft(p) {                               // Improv only: the learner's own text, softly marked, plus up to 3 remarks
     const text = String(p.text || ''), rv = ImprovReview.analyze(text, p.conns, p.det);
     if (!text.trim()) return `<div class="eyebrow mt-5">${esc(t('m2draftLabel'))}</div><p class="rv-note">${esc(t('m2draftEmpty'))}</p>`;
     return `<div class="flex flex-wrap items-center justify-between gap-2 mt-5"><div class="eyebrow">${esc(t('m2draftLabel'))}</div>
         <button type="button" class="btn alt btn-sm" id="rvCopyDraft">${esc(t('m2copy'))}</button></div>
-      <div class="draft mt-2" id="rvDraft" lang="fr">${rv.html}</div>
+      <div class="draft mt-2" id="rvDraft" lang="${PL}">${rv.html}</div>
       <p class="draft-legend">${esc(t('m2legend'))}</p>
       <p class="draft-status" id="rvCopyStatus" role="status" aria-live="polite"></p>
       <div class="eyebrow mt-4">${esc(t('m2reviewLabel'))}</div>
@@ -1153,7 +1210,7 @@ $('copyMail').addEventListener('click', () => {
    so the module shows a friendly note instead of an empty screen. */
 const PCB = (window.PC_BANK && typeof window.PC_BANK === 'object') ? window.PC_BANK : {};
 const LEVELS = (Array.isArray(PCB.levels) && PCB.levels.length) ? PCB.levels.slice() : ['A1', 'A2', 'B1', 'B2', 'C1'];
-const RAW = (PCB.langs && PCB.langs[PCB.active]) || {};
+const RAW = (PCB.langs && (PCB.langs[PCB.active] || PCB.langs[PRACTICE.code])) || {};   // alias-safe: 'fr-CA' still finds fr
 const lvlOf = (x) => (x && LEVELS.indexOf(x.level) !== -1) ? x.level : 'B1';
 const isStr = (v) => typeof v === 'string' && v.trim().length > 0;
 /* PROBLEMS[mode](item) -> '' when the item is usable, else a short reason (shown in the console, never on screen). */
@@ -1336,7 +1393,7 @@ Modules[1] = (function TypingSprint() {
   function omissionKind(j, T) { return T[j] === ' ' && DOUBLE_PUNCT.includes(T[j + 1] || '') ? 'space' : 'other'; }
   /* Quebec typography (pc_qc): the space before ? ! : ; is optional, so skipping it costs nothing and is never marked.
      Default (France): a missing space there is a typography NOTICE ('space'); it is shown but does not lower accuracy. */
-  let qc = store.get('pc_qc', false) === true;
+  let qc = PRACTICE.regionalTypo === 'qc' && store.get('pc_qc', false) === true;   // toggle exists only where the sheet offers it
   const optSpace = (j, T) => qc && omissionKind(j, T) === 'space';
   function positional(V, T) {                        // fallback, only if the alignment band cannot be used
     const m = T.length, st = new Uint8Array(m), edits = []; let correct = 0;
@@ -1573,6 +1630,7 @@ Modules[1] = (function TypingSprint() {
   /* ----- buttons ----- */
   function paintQc() {
     const b = $('qcBtn'); if (!b) return;
+    if (PRACTICE.regionalTypo !== 'qc') { b.hidden = true; return; }
     b.classList.toggle('on', qc); b.setAttribute('aria-pressed', String(qc));
     b.title = t(qc ? 'qcHint' : 'qcOffHint'); b.disabled = phase === 'running';
     $('qcLabel').textContent = t('qcLabel');
@@ -1620,17 +1678,17 @@ Modules[2] = (function Improv() {
       <span class="pre-note" data-i18n="m2preNote"></span></div>
     <div id="m2body" class="work" hidden>
       <div class="eyebrow mt-4 flex items-center gap-2"><span data-i18n="m2scenarioLabel"></span><span class="chip lvl" id="m2lvl"></span></div>
-      <div class="prompt mt-2" id="m2prompt" lang="fr"></div>
+      <div class="prompt mt-2" id="m2prompt" lang="${PL}"></div>
       <div class="eyebrow mt-4" data-i18n="m2connLabel"></div>
       <div class="chips mt-2" id="m2conns"></div>
       <p class="conn-ex" id="m2connEx" aria-live="polite" hidden></p>
       <div class="flex items-center justify-between gap-2 mt-4 mb-2"><div class="eyebrow" data-i18n="keysLabel"></div><div class="eyebrow" style="text-transform:none;letter-spacing:0;font-weight:500" data-i18n="keysHint"></div></div>
       <div class="accents" id="m2accents"></div>
       <div class="eyebrow mt-4" id="m2notesLabel"></div>
-      <textarea id="m2notes" class="field mt-2" lang="fr" rows="3" maxlength="600" ${NOASSIST}></textarea>
+      <textarea id="m2notes" class="field mt-2" lang="${PL}" rows="3" maxlength="600" ${NOASSIST}></textarea>
       <div id="m2writeBox" hidden>
         <div class="flex items-center justify-between gap-2 mt-4"><div class="eyebrow" data-i18n="m2editorLabel"></div><span class="chip" id="m2count">0</span></div>
-        <textarea id="m2editor" class="field mt-2" lang="fr" rows="8" maxlength="3000" style="min-height:200px" ${NOASSIST}></textarea>
+        <textarea id="m2editor" class="field mt-2" lang="${PL}" rows="8" maxlength="3000" style="min-height:200px" ${NOASSIST}></textarea>
       </div>
       <div class="flex flex-wrap gap-2 mt-3">
         <button type="button" class="btn quill" id="m2skipBtn" data-i18n="m2skip"></button>
@@ -1672,7 +1730,7 @@ Modules[2] = (function Improv() {
       chip.className = 'chip conn' + (d.found ? ' ok' : '') + (exOpen === i ? ' open' : '');
       chip.setAttribute('aria-expanded', String(exOpen === i)); chip.setAttribute('aria-controls', 'm2connEx');
       chip.title = t('m2exHint');
-      chip.innerHTML = `<span class="tick">${d.found ? '✓' : '○'}</span> <b lang="fr"></b> <small></small>`;
+      chip.innerHTML = `<span class="tick">${d.found ? '✓' : '○'}</span> <b lang="${PL}"></b> <small></small>`;
       chip.querySelector('b').textContent = c.fr; chip.querySelector('small').textContent = '· ' + c[lang];
       // keep the tablet keyboard open while writing (same guard as the French keys)
       ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => chip.addEventListener(ev, (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false }));
@@ -1682,7 +1740,7 @@ Modules[2] = (function Improv() {
     });
     const ex = $('m2connEx'), c = conns[exOpen];
     if (c && c.ex) {
-      ex.innerHTML = `<span class="k"></span> <span class="s" lang="fr"></span>`;
+      ex.innerHTML = `<span class="k"></span> <span class="s" lang="${PL}"></span>`;
       ex.querySelector('.k').textContent = `${t('m2exLabel')} · ${c.fr}:`; ex.querySelector('.s').textContent = c.ex;
       ex.hidden = false;
     } else { ex.hidden = true; ex.textContent = ''; }
@@ -1817,7 +1875,7 @@ Modules[3] = (function Reading() {
     <div id="m3body" hidden class="work mt-4">
       <div class="split">
         <article class="readbox"><div class="source-title" id="m3tag"></div><h2 class="h-serif" id="m3textTitle" style="font-size:1.2rem;margin:2px 0 8px"></h2>
-          <div class="source readtext" id="m3text" lang="fr"></div></article>
+          <div class="source readtext" id="m3text" lang="${PL}"></div></article>
         <div id="m3qs"></div>
       </div>
       <div class="flex flex-wrap gap-2 mt-4">
@@ -1856,10 +1914,10 @@ Modules[3] = (function Reading() {
     prevRight = { id: item.id, a: shown.map(x => x.a) };
     item.qs.forEach((q, qi) => {
       const wrap = document.createElement('div'); wrap.className = 'q'; wrap.setAttribute('role', 'radiogroup'); wrap.setAttribute('aria-labelledby', 'm3q' + qi);
-      const h = document.createElement('div'); h.className = 'q-text'; h.id = 'm3q' + qi; h.lang = 'fr'; h.textContent = `${qi + 1}. ${q.q}`; wrap.appendChild(h);
+      const h = document.createElement('div'); h.className = 'q-text'; h.id = 'm3q' + qi; h.lang = PL; h.textContent = `${qi + 1}. ${q.q}`; wrap.appendChild(h);
       shown[qi].o.forEach((o, oi) => {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', 'false');
-        b.dataset.q = qi; b.dataset.o = oi; b.lang = 'fr';
+        b.dataset.q = qi; b.dataset.o = oi; b.lang = PL;
         b.innerHTML = '<span class="ltr"></span><span class="otxt"></span>';
         b.querySelector('.ltr').textContent = LETTERS[oi]; b.querySelector('.otxt').textContent = o;
         b.addEventListener('click', () => choose(qi, oi)); wrap.appendChild(b);
@@ -2056,6 +2114,7 @@ document.querySelectorAll('#levelBar .lvl').forEach(b => b.addEventListener('cli
 }));
 
 /* =================== BOOT =================== */
+quiet(() => document.querySelectorAll('[data-plang]').forEach(el => { el.lang = PL; }));   // practice-language texts in index.html
 safe(() => Feedback.init());
 Levels.paint();
 Levels.note({ 1: 'sprint', 2: 'improv', 3: 'reading' }[currentMod]);
