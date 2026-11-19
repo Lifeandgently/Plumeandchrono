@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="description" content="Plume & Chrono: daily typing and accent practice for computer-based French exams.">
+<title>Plume &amp; Chrono</title>
+<!-- Brand mark (isotipo): key + stopwatch crown + pen nib, one ink. Same drawing as #pcMark below; 32 x 32 grid. -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='%232C2A29' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13.6 2.2 h4.8 M16 2.2 v3.6' stroke-width='1.8'/%3E %3Crect x='3.4' y='5.8' width='25.2' height='23.6' rx='5.2' stroke-width='1.9'/%3E %3Crect x='7.4' y='8.6' width='17.2' height='15.6' rx='3' stroke-width='1.3'/%3E %3Cpath d='M16 22.2 L12.3 15.6 L13.6 11.4 H18.4 L19.7 15.6 Z' stroke-width='1.3'/%3E %3Cpath d='M16 21.4 V17.4' stroke-width='1.1'/%3E %3Ccircle cx='16' cy='16.3' r='.9' fill='%232C2A29' stroke='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap">
+<!-- Tailwind CDN is optional: style.css carries a fallback subset of the utility classes used here. -->
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+  if (window.tailwind) tailwind.config = {
+    corePlugins: { preflight: false },
+    theme: { extend: {
+      colors: { paper:'#F4F1EA', card:'#FAF8F5', pencil:'#DCD6C8', ink:'#2C2A29', quill:'#1E40AF', seal:'#B45309' },
+      fontFamily: { serif:['Lora','Georgia','Times New Roman','serif'], sans:['Inter','system-ui','-apple-system','Segoe UI','Roboto','sans-serif'] }
+    } }
+  };
+</script>
+<!-- ASSET VERSION: when you upload new files, change v= on these 4 lines (same value everywhere) so tablets do not mix old and new files. -->
+<link rel="stylesheet" href="style.css?v=20261119i">
+</head>
+<body>
+<!-- ============ BRAND MARK (isotipo) ============ -->
+<!-- One ink (currentColor), 32 x 32 grid, legible at 48 and 32 px, no animation. Use: <svg class="pc-mark"><use href="#pcMark"/></svg> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="pcMark" viewBox="0 0 32 32">
+    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M13.6 2.2 h4.8 M16 2.2 v3.6" stroke-width="1.8"/>
+      <rect x="3.4" y="5.8" width="25.2" height="23.6" rx="5.2" stroke-width="1.9"/>
+      <rect x="7.4" y="8.6" width="17.2" height="15.6" rx="3" stroke-width="1.3"/>
+      <path d="M16 22.2 L12.3 15.6 L13.6 11.4 H18.4 L19.7 15.6 Z" stroke-width="1.3"/>
+      <path d="M16 21.4 V17.4" stroke-width="1.1"/>
+      <circle cx="16" cy="16.3" r=".9" fill="currentColor" stroke="none"/>
+    </g>
+  </symbol>
+</svg>
+<!-- ============ HEADER ============ -->
+<header class="masthead">
+  <div class="wrap" style="padding-block: 12px 0;">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div id="mimeHeader" style="width:48px;height:48px;" aria-hidden="true"></div>
+        <div>
+          <div class="brand-name">Plume <em>&amp;</em> Chrono</div>
+          <div class="brand-by">by Life and Gently</div>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+      <div class="mast-tools">
+        <div class="pill-group" role="group" id="langGroup" aria-label="Language">
+          <button type="button" id="langEN" data-lang="en">EN</button>
+          <button type="button" id="langES" data-lang="es">ES</button>
+        </div>
+        <button type="button" class="ghost-btn icon-btn" id="audioBtn" aria-pressed="true" aria-label="Exam Audio: ON" title="Exam Audio: ON"><svg class="snd-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 9.5h3.2L12 5.6v12.8l-4.8-3.9H4z" fill="currentColor" stroke-width="1.4"/><path class="snd-on" d="M15.4 9.2a4 4 0 0 1 0 5.6M18 6.8a7.4 7.4 0 0 1 0 10.4"/><path class="snd-off" d="M15.6 9.4l5 5.2M20.6 9.4l-5 5.2"/></svg><span id="audioLabel" hidden>Exam Audio: ON</span><span id="audioShort" hidden>Audio on</span></button>
+        <button type="button" class="ghost-btn" id="boardBtn"><span aria-hidden="true">✒︎</span><span class="lbl-long" data-i18n="board">Weekly Leaderboard</span><span class="lbl-short" aria-hidden="true" data-i18n="boardShort">Ranking</span></button>
+      </div>
+      </div>
+    </div>
+    <nav class="tabs mt-2" role="tablist" id="tabBar" aria-label="Modes">
+      <button type="button" class="tab" role="tab" id="tab1" aria-selected="true" data-mod="1"><span class="num">I</span><span class="lbl-long" data-i18n="tab1">Typing Sprint</span><span class="lbl-short" data-i18n="tab1s">Sprint</span></button>
+      <button type="button" class="tab" role="tab" id="tab2" aria-selected="false" data-mod="2"><span class="num">II</span><span class="lbl-long" data-i18n="tab2">Improvisation</span><span class="lbl-short" data-i18n="tab2s">Improvisation</span></button>
+      <button type="button" class="tab" role="tab" id="tab3" aria-selected="false" data-mod="3"><span class="num">III</span><span class="lbl-long" data-i18n="tab3">Speed Reading</span><span class="lbl-short" data-i18n="tab3s">Reading</span></button>
+    </nav>
+    <div class="levelbar" id="levelBar" role="group" aria-labelledby="lvlLabel">
+      <span class="eyebrow" id="lvlLabel" data-i18n="lvlLabel">Level</span>
+      <div class="lvl-opts">
+        <button type="button" class="lvl on" data-level="all" aria-pressed="true" data-i18n="lvlAll">All</button>
+        <button type="button" class="lvl" data-level="A1" aria-pressed="false">A1</button>
+        <button type="button" class="lvl" data-level="A2" aria-pressed="false">A2</button>
+        <button type="button" class="lvl" data-level="B1" aria-pressed="false">B1</button>
+        <button type="button" class="lvl" data-level="B2" aria-pressed="false">B2</button>
+        <button type="button" class="lvl" data-level="C1" aria-pressed="false" data-i18n="lvlC1">Advanced</button>
+      </div>
+    </div>
+  </div>
+</header>
+<div class="wrap"><p class="lvl-note" id="lvlNote" role="status" aria-live="polite" hidden></p></div>
+
+<main class="wrap" style="padding-block: 20px 28px;">
+
+  <!-- ============ MODULE 1 ============ -->
+  <section id="mod1" class="page" style="padding: 18px;">
+    <div class="flex flex-wrap items-end justify-between gap-2">
+      <div>
+        <div class="eyebrow" data-i18n="m1eyebrow">Module I · 2 minutes</div>
+        <h1 class="h-serif" style="font-size:1.55rem;margin:2px 0 0;" data-i18n="m1title">Typing Sprint &amp; Accents</h1>
+      </div>
+      <div class="formula-box"><div class="formula-note" data-i18n="m1formulaNote">Accuracy weighs more than speed.</div></div>
+    </div>
+    <p class="work" style="margin:8px 0 14px;color:var(--ink-soft);font-size:.93rem;max-width:68ch;" data-i18n="m1intro">Copy the French text exactly.</p>
+
+    <!-- Coach: reactive mime + bubble + clock (the header mime stays calm) -->
+    <div class="coach">
+      <div id="mimeCoach" style="width:68px;height:68px;" aria-hidden="true"></div>
+      <div class="bubble" id="bubble" aria-live="polite">…</div>
+      <div class="clock-wrap">
+        <div class="clock-label" data-i18n="time">Time</div>
+        <div class="clock" id="clock">2:00</div>
+      </div>
+    </div>
+    <div class="timebar mt-3" id="timebar"><i id="timefill"></i></div>
+
+    <div class="work" id="m1work">
+    <div class="stats mt-3">
+      <div class="stat"><div class="k" data-i18n="wpm">WPM</div><div class="v" id="sWpm">0</div></div>
+      <div class="stat"><div class="k" data-i18n="acc">Accuracy</div><div class="v"><span id="sAcc">100</span><small>%</small></div></div>
+      <div class="stat"><div class="k" data-i18n="score">Score</div><div class="v" id="sScore" style="color:var(--quill)">0</div></div>
+    </div>
+    <div class="chips mt-2">
+      <span class="chip" id="cAccent"><span data-i18n="eAccent">Accents</span> · <b id="nAccent">0</b></span>
+      <span class="chip" id="cSpace"><span data-i18n="eSpace">Space before ? ! : ;</span> · <b id="nSpace">0</b></span>
+      <span class="chip" id="cOther"><span data-i18n="eOther">Other</span> · <b id="nOther">0</b></span>
+      <button type="button" class="chip qc-btn" id="qcBtn" aria-pressed="false"><span class="qc-dot" aria-hidden="true"></span><span id="qcLabel">Quebec typography</span></button>
+    </div>
+
+    <!-- Source text -->
+    <div class="flex items-center justify-between gap-2 mt-4 mb-2">
+      <div class="source-title" id="srcTitle">—</div>
+      <div class="eyebrow" id="srcMeta"></div>
+    </div>
+    <div class="source" id="source" lang="fr" data-plang aria-label="Texte à recopier"></div>
+
+    <!-- Accent bar -->
+    <!-- Compact live strip: current segment of the model text + time, pinned at the top while typing (tablet/phone) -->
+    <div class="live-strip mt-4" id="liveStrip" aria-hidden="true">
+      <div class="ls-text" id="lsText" lang="fr" data-plang></div>
+      <div class="ls-clock" id="lsClock">2:00</div>
+    </div>
+    <div class="flex items-center justify-between gap-2 mt-4 mb-2">
+      <div class="eyebrow" data-i18n="keysLabel">French keys</div>
+      <div class="eyebrow" style="text-transform:none;letter-spacing:0;font-weight:500" data-i18n="keysHint">Inserts at the cursor</div>
+    </div>
+    <div class="accents" id="accents"></div>
+
+    <!-- Writing field -->
+    <label for="field" class="sr-only" data-i18n="fieldLabel">Your copy</label>
+    <textarea id="field" class="field mt-3" lang="fr" data-plang rows="3" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" writingsuggestions="false" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" placeholder="Tap here and type…"></textarea>
+
+    <div class="flex flex-wrap gap-2 mt-3">
+      <button type="button" class="btn quill" id="startBtn" data-i18n="start">Start</button>
+      <button type="button" class="btn alt" id="restartBtn" data-i18n="restart">Restart</button>
+      <button type="button" class="btn alt" id="nextBtn" data-i18n="next">New text</button>
+    </div>
+
+    </div>
+  </section>
+
+  <!-- ============ MODULES 2 & 3 (built by their own scripts) ============ -->
+  <section id="mod2" class="page" hidden style="padding: 18px;"></section>
+  <section id="mod3" class="page" hidden style="padding: 18px;"></section>
+  <div id="resultsView" hidden></div>
+</main>
+
+<footer class="colophon">
+  <div class="wrap" style="padding-block: 16px 24px;">
+    <div class="colo-brand"><svg class="pc-mark" width="32" height="32" role="img" aria-label="Plume &amp; Chrono"><use href="#pcMark"/></svg><span><b>Plume &amp; Chrono</b> · by Life and Gently</span></div>
+    <p style="margin:0 0 6px;max-width:80ch" data-i18n="legal">Plume &amp; Chrono is not affiliated with any official body.</p>
+    <p style="margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+      <span data-i18n="contact">Contact:</span>
+      <span class="select-all" id="mail">lifeandgently@gmail.com</span>
+      <button type="button" class="copy-btn" id="copyMail" data-i18n="copy">Copy</button>
+    </p>
+    <section class="fb" id="fbBox" aria-label="Feedback">
+      <button type="button" class="fb-toggle" id="fbToggle" aria-expanded="false" aria-controls="fbForm" data-i18n="fbOpen">Send feedback / suggestion / report a bug</button>
+      <form class="fb-form" id="fbForm" hidden novalidate autocomplete="off">
+        <p class="fb-status" style="color:var(--ink-soft)" data-i18n="fbIntro"></p>
+        <div class="fb-row"><label class="eyebrow" for="fbType" data-i18n="fbType">Type</label>
+          <select class="fb-field" id="fbType"><option value="suggestion" data-i18n="fbTypeSug">Suggestion</option><option value="bug" data-i18n="fbTypeBug">Error / Bug</option><option value="opinion" data-i18n="fbTypeOpi">Opinion</option></select></div>
+        <div class="fb-row"><label class="eyebrow" for="fbCtx" data-i18n="fbCtx">Where</label>
+          <select class="fb-field" id="fbCtx"><option value="general" data-i18n="fbCtxGen">General</option><option value="sprint" data-i18n="fbCtxM1">Typing Sprint</option><option value="improv" data-i18n="fbCtxM2">Improvisation</option><option value="reading" data-i18n="fbCtxM3">Speed Reading</option><option value="results" data-i18n="fbCtxRes">Results</option></select></div>
+        <div class="fb-row"><label class="eyebrow" for="fbMsg" data-i18n="fbMsg">Message</label>
+          <textarea class="fb-field" id="fbMsg" maxlength="600" rows="4"></textarea>
+          <div class="fb-meta"><span data-i18n="fbAttach"></span><span id="fbCount">0/600</span></div></div>
+        <div class="fb-row"><label class="eyebrow" for="fbEmail" data-i18n="fbEmail">Email (optional)</label>
+          <input class="fb-field" id="fbEmail" type="email" inputmode="email" maxlength="120" autocomplete="off">
+          <div class="fb-meta"><span data-i18n="fbEmailNote"></span></div></div>
+        <input class="fb-hp" id="fbWeb" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="fb-actions">
+          <button type="submit" class="btn quill" id="fbSend" data-i18n="fbSend">Send</button>
+          <button type="button" class="btn alt" id="fbCopy" data-i18n="fbCopy">Copy report</button>
+          <button type="button" class="btn alt" id="fbClose" data-i18n="fbClose">Close</button>
+        </div>
+        <textarea class="fb-field" id="fbManual" readonly hidden rows="6" aria-label="Report"></textarea>
+        <p class="fb-status" id="fbStatus" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </div>
+</footer>
+
+<!-- ============ LEADERBOARD SHEET ============ -->
+<div class="scrim" id="boardSheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="boardTitle">
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <div class="eyebrow" data-i18n="boardEyebrow">Weekly Top 20</div>
+        <h2 class="h-serif" id="boardTitle" style="font-size:1.35rem;margin:2px 0 0" data-i18n="board">Weekly Leaderboard</h2>
+      </div>
+      <button type="button" class="copy-btn" id="closeBoard" style="min-height:38px" data-i18n="close">Close</button>
+    </div>
+    <div id="lbBox" class="mt-3"></div>
+    <h3 class="eyebrow mt-4" data-i18n="myBests">My best scores</h3>
+    <div id="boardTable" class="mt-2" style="overflow-x:auto"></div>
+    <h3 class="eyebrow mt-5" data-i18n="rulesTitle">Rules</h3>
+    <ul id="rulesList" style="margin:6px 0 0;padding-left:18px;font-size:.9rem;line-height:1.6"></ul>
+  </div>
+</div>
+
+<!-- Load order matters: data first, then audio, then the app (all relative paths, no build step). -->
+<script src="exercises.js?v=20261119i"></script>
+<script src="audio.js?v=20261119i"></script>
+<script src="app.js?v=20261119i"></script>
+</body>
+</html>
