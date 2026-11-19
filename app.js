@@ -1,6 +1,6 @@
 
 /* =========================================================
-   Plume & Chrono · app.js · Iteration 4
+   Plume & Chrono · app.js · Iteration 4 (+ Sprint tolerant alignment)
    Load order (index.html): exercises.js -> audio.js -> app.js. This file reads window.PC_BANK and window.PCAudio.
    CONTAINMENT MAP (who owns what)
    - Banks ........ exercises.js (data only) read through Bank / Levels; an empty bank or level shows a notice, never a blank screen
@@ -638,6 +638,8 @@ function boardNotes() {
   return `<p class="rv-note">${esc(t('lbPrize1'))}<br>${esc(t('lbPrize10'))}</p>` + (LB.live ? '' : `<p class="rv-note demo">${esc(t('lbDemo'))}</p>`);
 }
 
+/* formula line: one decimal when rounding would hide a small error (99.7 instead of 100), so the shown formula adds up */
+const accShown = (acc) => { const x = fin(acc), r = Math.round(x * 10) / 10; const v = Number.isInteger(r) ? r : r.toFixed(1); return lang === 'es' ? String(v).replace('.', ',') : String(v); };
 const Results = {
   cur: null, tok: 0, submitted: {},
   show(n, payload) {
@@ -656,8 +658,8 @@ const Results = {
   visible() { return !$('resultsView').hidden; },
   body(n, p) {
     if (n === 1) {
-      const w = Math.round(p.wpm), a = Math.round(p.acc), s = Math.round(p.score), prog = p.total ? Math.round((Math.min(p.typed, p.total) / p.total) * 100) : 0;
-      return `<div class="rv-hero"><div class="result-score">${s}</div><div class="formula">${esc(t('rvFormula')(w, a, s))}</div></div>
+      const w = Math.round(p.wpm), a = Math.round(p.acc), s = Math.round(p.score), prog = p.total ? Math.round((Math.min(p.reached != null ? p.reached : p.typed, p.total) / p.total) * 100) : 0;
+      return `<div class="rv-hero"><div class="result-score">${s}</div><div class="formula">${esc(t('rvFormula')(w, accShown(p.acc), s))}</div></div>
         <div class="stats auto mt-4">
           <div class="stat"><div class="k">${esc(t('wpm'))}</div><div class="v">${w}</div></div>
           <div class="stat"><div class="k">${esc(t('acc'))}</div><div class="v">${a}<small>%</small></div></div>
@@ -901,7 +903,8 @@ Modules[1] = (function TypingSprint() {
   let phase = 'ready';           // ready | running | done
   let t0 = 0, timerId = null, lastSec = DURATION;
   let prev = '';
-  let errors = new Map();        // position -> 'accent' | 'space' | 'other'
+  let errors = new Map();        // mistakes: current aligned edits (key: target index * 2, +1 = extra char) + corrected ones ('f'+n) -> 'accent' | 'space' | 'other'
+  let fixed = [], eraseCounted = false;   // kinds of mistakes the learner erased: one per erase streak, like before
   let hintCooldown = 0, mimeState = 'calm', lastSay = 'ready', suspect = false;
   const field = $('field');
 
@@ -942,19 +945,92 @@ Modules[1] = (function TypingSprint() {
     $('srcMeta').textContent = `${target.split(/\s+/).filter(w => /[\p{L}\d]/u.test(w)).length} ${t('words')} · ${lvlOf(ex)} · ${pos + 1}/${P.length}`;
   }
   function renderText(v) {
-    const tchars = [...target], vchars = [...v];
-    for (let i = 0; i < tchars.length; i++) {
-      let cls;
-      if (i < vchars.length) cls = vchars[i] === tchars[i] ? 'o' : 'x';
-      else cls = 'p';
-      if (i === vchars.length && phase !== 'done') cls += ' c';
-      if (spans[i] && spans[i].className !== cls) spans[i].className = cls;
-    }
-    const cur = spans[Math.min(vchars.length, spans.length - 1)];
+    const al = align(v);
+    for (let j = 0; j < spans.length; j++) { const cls = clsFor(j, al); if (spans[j].className !== cls) spans[j].className = cls; }
+    renderStrip(al);
+    const cur = spans[Math.min(al.end, spans.length - 1)];
     if (cur) {
       const src = $('source'), top = cur.offsetTop - src.offsetTop;
       if (top < src.scrollTop + 8 || top > src.scrollTop + src.clientHeight - 48) src.scrollTop = Math.max(0, top - src.clientHeight / 3);
     }
+  }
+
+  /* ----- tolerant alignment -----
+     The typed text is aligned with the model by a banded edit distance (free end: the part not typed yet costs nothing).
+     An omitted, inserted or wrong character is ONE localized edit, so the rest of the text realigns with its real position
+     instead of turning red from that point on. Cached per typed value, so stats, colors and the strip share one pass. */
+  const BAND = 40;
+  let alKey = null, alVal = null;
+  function omissionKind(j, T) { return T[j] === ' ' && DOUBLE_PUNCT.includes(T[j + 1] || '') ? 'space' : 'other'; }
+  function positional(V, T) {                        // fallback, only if the alignment band cannot be used
+    const m = T.length, st = new Uint8Array(m), edits = []; let correct = 0;
+    for (let i = 0; i < V.length; i++) {
+      if (i >= m) { edits.push({ ti: m, ins: true, kind: 'other' }); continue; }
+      if (V[i] === T[i]) { st[i] = 1; correct++; } else { st[i] = 2; edits.push({ ti: i, ins: false, kind: classify(i, V[i], T) }); }
+    }
+    return { end: Math.min(V.length, m), correct, edits, st, ins: new Set() };
+  }
+  function align(v) {
+    if (alVal && alKey === v) return alVal;
+    const T = [...target], V = [...(v || '')], n = V.length, m = T.length, W = BAND, w = 2 * W + 1, INF = 65000;
+    let out = null;
+    try {
+      const D = new Uint16Array((n + 1) * w).fill(INF);
+      const at = (i, j) => { const d = j - i + W; return (j < 0 || j > m || d < 0 || d >= w) ? -1 : i * w + d; };
+      for (let j = 0; j <= Math.min(m, W); j++) D[at(0, j)] = j;
+      for (let i = 1; i <= n; i++) {
+        const lo = Math.max(0, i - W), hi = Math.min(m, i + W);
+        for (let j = lo; j <= hi; j++) {
+          let best = INF, k;
+          if (j > 0 && (k = at(i - 1, j - 1)) >= 0 && D[k] < INF) best = Math.min(best, D[k] + (V[i - 1] === T[j - 1] ? 0 : 1));
+          if ((k = at(i - 1, j)) >= 0 && D[k] < INF) best = Math.min(best, D[k] + 1);           // extra typed char
+          if (j > 0 && (k = at(i, j - 1)) >= 0 && D[k] < INF) best = Math.min(best, D[k] + 1);  // skipped model char
+          D[at(i, j)] = best;
+        }
+      }
+      let end = -1, cost = INF;
+      for (let j = Math.max(0, n - W); j <= Math.min(m, n + W); j++) {
+        const k = at(n, j); if (k < 0) continue;
+        if (D[k] < cost || (D[k] === cost && Math.abs(j - n) <= Math.abs(end - n))) { cost = D[k]; end = j; }
+      }
+      if (end >= 0 && cost < INF) {
+        const st = new Uint8Array(m), ins = new Set(), edits = []; let correct = 0, i = n, j = end, guard = n + m + 2, k;
+        while ((i > 0 || j > 0) && guard-- > 0) {
+          const cur = D[at(i, j)];
+          if (i > 0 && j > 0 && (k = at(i - 1, j - 1)) >= 0 && D[k] + (V[i - 1] === T[j - 1] ? 0 : 1) === cur) {
+            if (V[i - 1] === T[j - 1]) { st[j - 1] = 1; correct++; } else { st[j - 1] = 2; edits.push({ ti: j - 1, ins: false, kind: classify(j - 1, V[i - 1], T) }); }
+            i--; j--;
+          } else if (i > 0 && (k = at(i - 1, j)) >= 0 && D[k] + 1 === cur) { ins.add(j); edits.push({ ti: j, ins: true, kind: 'other' }); i--; }
+          else if (j > 0 && (k = at(i, j - 1)) >= 0 && D[k] + 1 === cur) { st[j - 1] = 2; edits.push({ ti: j - 1, ins: false, kind: omissionKind(j - 1, T) }); j--; }
+          else break;
+        }
+        out = { end, correct, edits, st, ins };
+      }
+    } catch (e) { out = null; }
+    alKey = v; alVal = out || positional(V, T);
+    return alVal;
+  }
+  function clsFor(j, al) {
+    let cls = j < al.end ? (al.st[j] === 1 ? 'o' : 'x') : 'p';
+    if (al.ins.has(j)) cls += ' i';
+    if (j === al.end && phase !== 'done') cls += ' c';
+    return cls;
+  }
+
+  /* ----- compact live strip: the segment around the cursor, pinned while the keyboard is open ----- */
+  const strip = $('liveStrip'), SEG_BEFORE = 14, SEG_LEN = 70;
+  function renderStrip(al) {
+    const box = $('lsText'); if (!box) return;
+    const T = [...target]; box.textContent = '';
+    if (!T.length) return;
+    let a = Math.max(0, al.end - SEG_BEFORE), steps = 0;
+    while (a > 0 && T[a - 1] !== ' ' && steps++ < 16) a--;          // start on a word boundary
+    const b = Math.min(T.length, a + SEG_LEN), frag = document.createDocumentFragment();
+    const add = (txt, cls) => { const s = document.createElement('span'); s.textContent = txt; s.className = cls; frag.appendChild(s); };
+    if (a > 0) add('… ', 'gap');
+    for (let j = a; j < b; j++) add(T[j], clsFor(j, al));
+    if (b < T.length) add(' …', 'gap');
+    box.appendChild(frag);
   }
 
   /* ----- scoring (all divisions guarded) ----- */
@@ -965,9 +1041,8 @@ Modules[1] = (function TypingSprint() {
     return 'other';
   }
   function compute(v) {
-    const tchars = [...target], vchars = [...(v || '')];
-    let correct = 0;
-    for (let i = 0; i < vchars.length && i < tchars.length; i++) if (vchars[i] === tchars[i]) correct++;
+    const tchars = [...target], vchars = [...(v || '')], al = align(v || '');
+    const correct = fin(al.correct);                                   // aligned matches: one slip no longer cascades
     const elapsed = phase === 'ready' ? 0 : Math.min(DURATION, Math.max(0, fin((performance.now() - t0) / 1000)));
     const minutes = Math.max(elapsed, 1) / 60;                       // never divides by 0
     const wpm = fin(elapsed < 2 ? 0 : (correct / 5) / minutes);      // too little time -> 0, not Infinity
@@ -975,7 +1050,7 @@ Modules[1] = (function TypingSprint() {
     const acc = denom === 0 ? 100 : Math.min(100, Math.max(0, fin((correct / denom) * 100)));   // nothing typed -> 100
     const score = fin(wpm * Math.pow(acc / 100, 2));
     let a = 0, s = 0, o = 0; errors.forEach(k => { if (k === 'accent') a++; else if (k === 'space') s++; else o++; });
-    return { wpm, acc, score, correct, typed: vchars.length, total: tchars.length, elapsed, nAccent: a, nSpace: s, nOther: o };
+    return { wpm, acc, score, correct, typed: vchars.length, reached: Math.min(al.end, tchars.length), total: tchars.length, elapsed, nAccent: a, nSpace: s, nOther: o };
   }
   function paintStats(r) {
     $('sWpm').textContent = Math.round(r.wpm);
@@ -989,14 +1064,14 @@ Modules[1] = (function TypingSprint() {
   /* ----- clock (driven by Timers) ----- */
   const fmt = (sec) => { const s = Math.max(0, Math.ceil(fin(sec))); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
   function setCritical(on) {
-    $('clock').classList.toggle('critical', on);
+    $('clock').classList.toggle('critical', on); $('lsClock').classList.toggle('critical', on);
     $('timebar').classList.toggle('critical', on);
     $('mod1').classList.toggle('critical', on);
   }
   function tick() {
     if (phase !== 'running') { if (timerId !== null) { Timers.stop(timerId); timerId = null; } return; }
     const rem = DURATION - fin((performance.now() - t0) / 1000);
-    $('clock').textContent = fmt(rem);
+    $('clock').textContent = fmt(rem); $('lsClock').textContent = fmt(rem);
     $('timefill').style.transform = `scaleX(${Math.min(1, Math.max(0, rem / DURATION))})`;
     const sec = Math.ceil(rem);
     if (sec !== lastSec) {
@@ -1013,7 +1088,9 @@ Modules[1] = (function TypingSprint() {
   /* ----- lifecycle ----- */
   function reset() {
     if (timerId !== null) { Timers.stop(timerId); timerId = null; }
-    phase = 'ready'; prev = ''; errors = new Map(); lastSec = DURATION; suspect = false; setBusy(false);
+    phase = 'ready'; prev = ''; errors = new Map(); fixed = []; eraseCounted = false; lastSec = DURATION; suspect = false; setBusy(false);
+    alKey = null; alVal = null; $('lsClock').textContent = fmt(DURATION); $('lsClock').classList.remove('critical');
+    strip.classList.remove('active'); $('mod1').classList.remove('kb');
     field.value = ''; field.readOnly = false; field.disabled = false;
     field.maxLength = [...target].length + 15;
     if (!target) { field.readOnly = true; field.placeholder = ''; }
@@ -1038,8 +1115,9 @@ Modules[1] = (function TypingSprint() {
     field.readOnly = true; field.blur();
     accents.setDisabled(true);
     setCritical(false);
-    if (reason === 'time') { $('clock').textContent = '0:00'; $('timefill').style.transform = 'scaleX(0)'; Sound.alarm(); }
+    if (reason === 'time') { $('clock').textContent = '0:00'; $('lsClock').textContent = '0:00'; $('timefill').style.transform = 'scaleX(0)'; Sound.alarm(); }
     else Sound.ding();
+    strip.classList.remove('active'); $('mod1').classList.remove('kb');
     renderText(prev); paintStats(r);
 
     r.flagged = r.wpm > MAX_WPM; r.reason = reason; r.rank = 0; r.suspect = suspect;
@@ -1073,22 +1151,18 @@ Modules[1] = (function TypingSprint() {
     const v = norm(field.value);
     if (phase === 'ready') { if (!v.length) return; begin(); }
     const tchars = [...target], vchars = [...v], pchars = [...prev];
-    let p = 0; while (p < pchars.length && p < vchars.length && pchars[p] === vchars[p]) p++;
-    // Erased text: one slip that shifted everything after it counts as one error, not a cascade.
+    const keyOf = (e) => e.ti * 2 + (e.ins ? 1 : 0);
+    const before = align(prev), had = new Map(before.edits.map(e => [keyOf(e), e.kind]));
+    const al = align(v), cur = new Map(al.edits.map(e => [keyOf(e), e.kind]));
+    // Erasing a mistake still counts it once (one per erase streak, same leniency as before); typing forward never double-counts.
     if (vchars.length < pchars.length) {
-      let first = -1;
-      errors.forEach((_, k) => { if (k >= p && (first === -1 || k < first)) first = k; });
-      if (first !== -1) [...errors.keys()].forEach(k => { if (k >= p && k !== first) errors.delete(k); });
-    }
+      const gone = [...had.keys()].filter(k => !cur.has(k)).sort((x, y) => x - y);
+      if (gone.length && !eraseCounted) { fixed.push(had.get(gone[0])); eraseCounted = true; }
+    } else if (vchars.length > pchars.length) eraseCounted = false;
+    // Each wrong, skipped or extra character is one error at its real place in the model text; the rest realigns.
+    errors = new Map(cur); fixed.forEach((kind, n) => errors.set('f' + n, kind));
     let hint = null;
-    for (let i = p; i < vchars.length; i++) {
-      if (i >= tchars.length) { if (!errors.has(i)) errors.set(i, 'other'); continue; }
-      if (vchars[i] !== tchars[i] && !errors.has(i)) {
-        const kind = classify(i, vchars[i], tchars);
-        errors.set(i, kind);
-        if (kind !== 'other') hint = kind;
-      }
-    }
+    cur.forEach((kind, k) => { if (!had.has(k) && kind !== 'other') hint = kind; });
     if (vchars.length - pchars.length > 40) suspect = true;     // one input event adding a whole sentence = not typing
     prev = v;
     renderText(v);
@@ -1096,12 +1170,24 @@ Modules[1] = (function TypingSprint() {
     const now = performance.now();
     if (hint && mimeState !== 'critical' && now > hintCooldown) { say(hint, true); hintCooldown = now + 2500; }
     else if (!hint && mimeState === 'typing' && $('bubble').classList.contains('warn') && now > hintCooldown) say('typing');
-    if (v === target) finish('complete');
+    // Done when the text is exact, or when the last model character has been reached with a match (even after a slip earlier).
+    if (v === target || (tchars.length && al.end === tchars.length && al.st[tchars.length - 1] === 1)) finish('complete');
   }
   field.addEventListener('input', onInput);
+  const kbMode = () => quiet(() => window.matchMedia('(pointer: coarse), (max-width: 820px)').matches, false);
   field.addEventListener('focus', () => {
+    if (phase !== 'done') { strip.classList.add('active'); $('mod1').classList.toggle('kb', kbMode()); }
     if (window.matchMedia('(pointer: coarse)').matches) Timers.after(() => field.scrollIntoView({ block: 'center', behavior: 'smooth' }), 320);
   });
+  // No layout change on blur (a tap below the field must not move under the finger); the strip and compact text
+  // are cleared on reset / finish instead.
+  // Virtual keyboard opening/closing resizes the visual viewport: keep the field in view (the strip stays pinned on top).
+  let vvTimer = null;
+  quiet(() => window.visualViewport && window.visualViewport.addEventListener('resize', () => {
+    if (document.activeElement !== field || phase === 'done' || $('mod1').hidden) return;
+    if (vvTimer !== null) Timers.stop(vvTimer);
+    vvTimer = Timers.after(() => { vvTimer = null; quiet(() => field.scrollIntoView({ block: 'center', behavior: 'auto' })); }, 120);
+  }));
 
   /* ----- French accent bar (shared service) ----- */
   const accents = Accents($('accents'), () => field, () => phase !== 'done');

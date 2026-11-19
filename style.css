@@ -263,3 +263,23 @@
   .chip.lvl { min-height: 0; padding: 1px 9px; font-size: .72rem; font-weight: 600; color: var(--quill); border-color: var(--quill); background: transparent; text-transform: none; letter-spacing: 0; }
   table.board td .tag.lvl { margin-left: 2px; border-color: var(--quill); color: var(--quill); }
   @media (max-width: 560px) { .levelbar { gap: 4px; } .lvl { padding: 3px 10px; } }
+
+  /* ===== Sprint: compact live strip (visible with the virtual keyboard open) ===== */
+  .live-strip { display: none; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; margin: 0 -18px; padding: 8px 18px;
+    background: var(--card); border-top: 1px solid var(--pencil); border-bottom: 1px solid var(--pencil);
+    grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+  .live-strip.active { display: grid; }
+  @media (pointer: coarse), (max-width: 820px) { .live-strip { display: grid; } }
+  .ls-text { min-width: 0; font-family: var(--serif); font-size: 1.06rem; line-height: 1.5; max-height: 3em; overflow: hidden; overflow-wrap: anywhere; color: var(--ink); }
+  .ls-text span { border-radius: 2px; }
+  .ls-text .p { color: var(--ink-soft); }
+  .ls-text .o { color: var(--ok); }
+  .ls-text .x { color: var(--seal); background: var(--seal-wash); text-decoration: underline; text-underline-offset: 3px; }
+  .ls-text .c { box-shadow: inset 2px 0 0 var(--quill); background: var(--quill-wash); color: var(--ink); }
+  .ls-text .gap { color: var(--pending); }
+  .ls-clock { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1.1rem; color: var(--ink); }
+  .ls-clock.critical { color: var(--seal); }
+  /* an extra character typed before this one (insertion): thin red mark on its left */
+  .source .i, .ls-text .i { box-shadow: inset 2px 0 0 var(--seal); }
+  /* with the keyboard open on touch/narrow screens, the full text gets shorter so the field stays in view */
+  #mod1.kb .source { max-height: 18vh; }

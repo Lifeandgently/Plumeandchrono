@@ -76,3 +76,13 @@ El mensaje adjunta solo modo, idioma y tipo de dispositivo; el email, si se escr
 | Reloj | `Timers` sigue siendo el único creador de intervalos | `showMod()` limpia al cambiar de pestaña |
 
 Límites: C1 se muestra como "Avanzado". El ranking mezcla niveles; el nivel es solo informativo.
+
+## Sprint: alineación tolerante y franja compacta
+
+| Responsabilidad | Dueño en el código | Qué previene |
+|---|---|---|
+| Comparación texto/tipeo | `align()` dentro de `Modules[1]` (distancia de edición en banda de ±40, final libre, caché por valor) | Una letra omitida o de más ya no pinta de rojo todo lo que sigue: es un error localizado y el resto se realinea |
+| Conteo de errores | errores actuales de la alineación + corregidos (`fixed`, uno por tanda de borrado) | Escribir hacia adelante no cuenta dos veces el mismo error; un error borrado sigue contando una vez, como antes |
+| Fin del texto | exacto, o al llegar al último carácter alineado | Un texto con una omisión ya no queda "trabado" hasta 0:00 |
+| Franja compacta | `#liveStrip` (sticky arriba), `renderStrip()`, `#lsClock` | Con el teclado abierto se ve el tramo actual del modelo y el tiempo; `visualViewport` mantiene el campo a la vista |
+| Plan B | `positional()` si la alineación no se puede usar | Nunca se rompe la pantalla ni aparece NaN |
