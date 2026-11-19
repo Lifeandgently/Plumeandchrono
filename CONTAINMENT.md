@@ -50,3 +50,15 @@ Solo el Typing Sprint entra al ranking; los módulos II y III muestran resultado
 - Los candados del navegador no frenan a quien manipule el código: para premios reales hacen falta restricciones (CHECK) y RLS en Supabase (esquema en comentario de `SITE`).
 - Los premios se activan cuando se conecte el ranking en vivo; hasta entonces es modo demo.
 - Faltan los enlaces reales del kit y los ids de AdSense en `SITE`.
+
+## Feedback (sugerencias, opiniones y errores)
+
+| Responsabilidad | Dueño en el código | Qué previene |
+|---|---|---|
+| Formulario de feedback | `Feedback` (módulo aislado) + bloque `#fbBox` en el pie de página | Nace colapsado; no se abre solo, no es modal, no usa `Timers` ni toca relojes, `Accents()`, `Coach()` ni `Results` |
+| Contexto | `detectCtx()` lee `currentMod` y `Results.visible()` | El usuario no adivina dónde estaba; puede cambiarlo |
+| Envío | `SITE.feedbackEndpoint` (POST JSON, 8 s de límite) o, si está vacío, `mailto:` a `SITE.feedbackEmail`; siempre hay "Copiar reporte" | Endpoint caído, lento o sin configurar: mensaje claro y el texto no se pierde. Si el portapapeles falla, se muestra el texto para copiarlo a mano |
+| Validación | mensaje de 5 a 600 caracteres, email opcional validado con `emailOk`, caracteres de control eliminados | Vacíos, textos enormes, emails mal escritos |
+| Anti-spam | campo señuelo oculto y espera de 8 s entre envíos | Bots y doble toque |
+
+El mensaje adjunta solo modo, idioma y tipo de dispositivo; el email, si se escribe, solo viaja en ese reporte.
