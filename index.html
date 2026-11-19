@@ -247,7 +247,7 @@
 
     <!-- Writing field -->
     <label for="field" class="sr-only" data-i18n="fieldLabel">Your copy</label>
-    <textarea id="field" class="field mt-3" lang="fr" rows="3" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-gramm="false" placeholder="Tap here and type…"></textarea>
+    <textarea id="field" class="field mt-3" lang="fr" rows="3" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" inputmode="text" writingsuggestions="false" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" placeholder="Tap here and type…"></textarea>
 
     <div class="flex flex-wrap gap-2 mt-3">
       <button type="button" class="btn quill" id="startBtn" data-i18n="start">Start</button>
@@ -325,8 +325,16 @@
 <script>
 /* =========================================================
    Plume & Chrono · Iteration 1 · single-file prototype
-   Sections: I18N · EXERCISES · AUDIO · MIME · APP
+   CONTAINMENT MAP (who owns what)
+   - Clock ........ Timers (only creator of intervals/timeouts) + Modules[n] state (TypingSprint.tick)
+   - Audio ........ Sound (all calls inside safe(); unlock() on pointerdown/touchend/click/keydown)
+   - Accent keys .. TypingSprint.insertChar (selectionStart/End, input event, focus kept, paste blocked)
+   - Score ........ TypingSprint.compute (every division guarded, NaN/Infinity -> 0)
+   - Storage ...... store (try/catch) + Board (personal top 10, Supabase-ready rows)
+   - Mimes ........ header mime: static calm; coach mime (#mimeCoach): reacts, owned by TypingSprint
+   - Tabs ......... showMod(): unmount() the old module, Timers.clearAll(), mount() the new one
    ========================================================= */
+
 (function () {
 'use strict';
 
@@ -454,40 +462,63 @@ const EXERCISES = [
     text: "Monsieur le Directeur, je souhaite vous présenter ma candidature au poste d'adjoint administratif publié sur votre site. Titulaire d'un diplôme en gestion, j'ai travaillé quatre ans dans une entreprise de logistique où j'étais responsable de la facturation et de l'accueil des clients. Je parle couramment français et anglais. Pourquoi votre entreprise ? Parce que vos valeurs, l'innovation et le respect, correspondent aux miennes. Je serais ravi de vous rencontrer lors d'un entretien. Veuillez agréer, Monsieur le Directeur, mes salutations distinguées." }
 ];
 
+/* =================== SERVICES (shared, module-agnostic) =================== */
+/* safe(): run anything that must never take the page down (audio, timers, module hooks). */
+const safe = (fn, fallback) => { try { return fn(); } catch (e) { try { console.error('[P&C]', e); } catch (_) {} return fallback; } };
+/* quiet(): same, but silent. Audio failures are expected on some tablets and must not spam the console. */
+const quiet = (fn, fallback) => { try { return fn(); } catch (e) { return fallback; } };
+const fin = (x) => (typeof x === 'number' && isFinite(x) ? x : 0);   // NaN / Infinity -> 0
+
+/* Timers: the ONLY place that creates intervals/timeouts. Each module registers through here,
+   and a tab change or a finished test calls clearAll()/stop(), so no ghost clocks survive. */
+const Timers = {
+  _i: new Set(), _t: new Set(),
+  every(fn, ms) { const id = setInterval(() => safe(fn), ms); this._i.add(id); return id; },
+  after(fn, ms) { const id = setTimeout(() => { this._t.delete(id); safe(fn); }, ms); this._t.add(id); return id; },
+  stop(id) { clearInterval(id); clearTimeout(id); this._i.delete(id); this._t.delete(id); },
+  clearAll() { this._i.forEach(clearInterval); this._t.forEach(clearTimeout); this._i.clear(); this._t.clear(); },
+  get active() { return this._i.size + this._t.size; }
+};
+
 /* =================== AUDIO (Web Audio API, no files) =================== */
+/* Every public method is wrapped in safe(): a blocked AudioContext, silent device or missing API
+   can never throw into the timer or the UI. unlock() runs on real user gestures only. */
 const Sound = {
   ctx: null,
   enabled: store.get('pc_audio', true),
   ensure() {
-    try {
+    return quiet(() => {
       if (!this.ctx) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null; this.ctx = new AC(); }
-      if (this.ctx.state === 'suspended') this.ctx.resume();
       return this.ctx;
-    } catch (e) { return null; }
+    }, null);
+  },
+  unlock() {           // call from pointerdown / touchend / click / keydown
+    if (!this.ensure()) return;
+    quiet(() => {
+      if (this.ctx.state !== 'running') { const p = this.ctx.resume(); if (p && typeof p.catch === 'function') p.catch(() => {}); }
+    });
   },
   tone(freq, at, dur, type, peak) {
-    const c = this.ctx; if (!c) return;
-    const o = c.createOscillator(), g = c.createGain();
-    o.type = type; o.frequency.setValueAtTime(freq, at);
-    g.gain.setValueAtTime(0.0001, at);
-    g.gain.exponentialRampToValueAtTime(peak, at + 0.008);
-    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
-    o.connect(g).connect(c.destination);
-    o.start(at); o.stop(at + dur + 0.02);
+    quiet(() => {
+      const c = this.ctx; if (!c) return;
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, at);
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.exponentialRampToValueAtTime(peak, at + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(at); o.stop(at + dur + 0.02);
+    });
   },
-  ding() { // soft bell: fundamental + bright partial
-    if (!this.enabled || !this.ensure()) return; const t = this.ctx.currentTime + 0.01;
-    this.tone(880, t, 1.3, 'sine', 0.22); this.tone(1760, t, 0.7, 'sine', 0.07); this.tone(2640, t, 0.35, 'sine', 0.03);
-  },
-  tick(alt) { // clock tic / tac
-    if (!this.enabled || !this.ensure()) return; const t = this.ctx.currentTime + 0.005;
-    this.tone(alt ? 1500 : 1900, t, 0.045, 'square', 0.035);
-  },
-  alarm() { // clean triple alarm
-    if (!this.enabled || !this.ensure()) return; const t = this.ctx.currentTime + 0.01;
-    for (let i = 0; i < 3; i++) { this.tone(988, t + i * 0.32, 0.16, 'triangle', 0.25); this.tone(740, t + i * 0.32 + 0.16, 0.14, 'triangle', 0.2); }
-  }
+  _play(fn) { if (!this.enabled) return; quiet(() => { if (!this.ensure()) return; this.unlock(); fn(this.ctx.currentTime); }); },
+  ding() { this._play((now) => { const t = now + 0.01;
+    this.tone(880, t, 1.3, 'sine', 0.22); this.tone(1760, t, 0.7, 'sine', 0.07); this.tone(2640, t, 0.35, 'sine', 0.03); }); },
+  tick(alt) { this._play((now) => this.tone(alt ? 1500 : 1900, now + 0.005, 0.045, 'square', 0.035)); },
+  alarm() { this._play((now) => { const t = now + 0.01;
+    for (let i = 0; i < 3; i++) { this.tone(988, t + i * 0.32, 0.16, 'triangle', 0.25); this.tone(740, t + i * 0.32 + 0.16, 0.14, 'triangle', 0.2); } }); }
 };
+['pointerdown', 'touchend', 'click', 'keydown'].forEach(ev =>
+  window.addEventListener(ev, () => { if (Sound.enabled) Sound.unlock(); }, { capture: true, passive: true }));
 
 /* =================== MIME (pure SVG, ink strokes) =================== */
 function mimeSVG(uid) {
@@ -545,361 +576,385 @@ function mimeSVG(uid) {
 </svg>`;
 }
 
-/* =================== APP =================== */
+/* =================== APP SHELL =================== */
 const $ = (id) => document.getElementById(id);
-const DURATION = 120, CRITICAL = 20, MAX_WPM = 130;
 const ACCENT_KEYS = ['é','è','ê','ë','à','â','ç','ù','û','ô','î','œ','«','»'];
+const UPPER = { 'é':'É','è':'È','ê':'Ê','ë':'Ë','à':'À','â':'Â','ç':'Ç','ù':'Ù','û':'Û','ô':'Ô','î':'Î','œ':'Œ' };
 const BASE = { 'é':'e','è':'e','ê':'e','ë':'e','à':'a','â':'a','ç':'c','ù':'u','û':'u','ô':'o','î':'i','ï':'i','œ':'o',
                'É':'E','È':'E','Ê':'E','À':'A','Â':'A','Ç':'C','Ô':'O','Î':'I','Û':'U','Ù':'U','Œ':'O' };
 const DOUBLE_PUNCT = '?!:;';
 
 let lang = store.get('pc_lang', null) || ((navigator.language || 'en').toLowerCase().startsWith('es') ? 'es' : 'en');
-let exIndex = store.get('pc_ex', 0) % EXERCISES.length;
-let target = '';
-let phase = 'ready';           // ready | running | done
-let t0 = 0, timerId = null, lastSec = DURATION;
-let prev = '';
-let errors = new Map();        // position -> 'accent' | 'space' | 'other'
-let shiftOn = false;
-let hintCooldown = 0;
-let mimeState = 'calm';
-let lastSay = 'ready';
-
 const t = (k) => I18N[lang][k];
 
-/* ---------- mime setup ---------- */
-$('mimeHeader').innerHTML = mimeSVG('h');   // static: always calm
-$('mimeCoach').innerHTML = mimeSVG('c');
+/* Header mime: STATIC. It is drawn once in the calm state and nothing ever changes its data-state. */
+$('mimeHeader').innerHTML = mimeSVG('h');
 $('mimeSoon').innerHTML = mimeSVG('s');
-function setMime(state) {
-  mimeState = state;
-  document.querySelectorAll('#mimeCoach .mime, #mimeSoon .mime').forEach(m => m.setAttribute('data-state', state));
-}
-function say(key, warn) {
-  lastSay = key;
-  const b = $('bubble');
-  b.textContent = I18N[lang].say[key];
-  b.classList.toggle('warn', !!warn);
-}
 
-/* ---------- i18n apply ---------- */
+/* Module registry. A module is { mount(), unmount(), onLang() } and owns its own state and DOM ids.
+   The shell never reads a module's variables; it only calls these three hooks, wrapped in safe(). */
+const Modules = {};
+let currentMod = 1;
+
+/* Leaderboard storage (shared service; shape is ready for a Supabase table later) */
+const Board = {
+  lastAt: null,
+  load() { const r = store.get('pc_runs', []); return Array.isArray(r) ? r : []; },
+  save(run) {                                   // returns rank 1..10, or 0 if outside the personal top 10
+    const row = Object.assign({ mod: 'sprint', at: new Date().toISOString() }, run);
+    const runs = Board.load(); runs.push(row);
+    runs.sort((x, y) => fin(y.score) - fin(x.score));
+    const top = runs.slice(0, 10); store.set('pc_runs', top);
+    const idx = top.indexOf(row); Board.lastAt = idx === -1 ? null : row.at;
+    return idx === -1 ? 0 : idx + 1;
+  },
+  render() {
+    const runs = Board.load(), box = $('boardTable');
+    if (!runs.length) { box.innerHTML = `<p style="color:var(--ink-soft);font-size:.9rem;margin:4px 0">${t('emptyBoard')}</p>`; return; }
+    const loc = lang === 'es' ? 'es' : 'en';
+    box.innerHTML = `<table class="board"><thead><tr><th>${t('thRank')}</th><th class="r">${t('thScore')}</th><th class="r">${t('thWpm')}</th><th class="r">${t('thAcc')}</th><th>${t('thDate')}</th></tr></thead><tbody>` +
+      runs.map((r, i) => `<tr class="${Board.lastAt && r.at === Board.lastAt ? 'mine' : ''}"><td>${i + 1}</td><td class="r">${Math.round(fin(r.score))}</td><td class="r">${fin(r.wpm)}</td><td class="r">${fin(r.acc)}%</td><td>${new Date(r.at).toLocaleDateString(loc, { day: 'numeric', month: 'short' })}</td></tr>`).join('') +
+      `</tbody></table>`;
+  },
+  open() { Board.render(); $('boardSheet').hidden = false; $('closeBoard').focus(); }
+};
+$('boardBtn').addEventListener('click', Board.open);
+$('closeBoard').addEventListener('click', () => { $('boardSheet').hidden = true; });
+$('boardSheet').addEventListener('click', (e) => { if (e.target.id === 'boardSheet') $('boardSheet').hidden = true; });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('boardSheet').hidden = true; });
+
+/* i18n: shell texts here, module texts through each module's onLang() */
 function applyLang() {
   document.documentElement.lang = lang;
   document.querySelectorAll('[data-i18n]').forEach(el => { const v = t(el.dataset.i18n); if (typeof v === 'string') el.textContent = v; });
-  $('field').placeholder = t('placeholder');
   $('langEN').setAttribute('aria-pressed', lang === 'en');
   $('langES').setAttribute('aria-pressed', lang === 'es');
   $('audioLabel').textContent = Sound.enabled ? t('audioOn') : t('audioOff');
   $('rulesList').innerHTML = t('rules').map(r => `<li>${r}</li>`).join('');
-  say(lastSay, $('bubble').classList.contains('warn'));
-  renderMeta();
-  renderSoon();
-  if (!$('results').hidden && lastResult) renderResult(lastResult);
-  if (!$('boardSheet').hidden) renderBoard();
+  new Set(Object.values(Modules)).forEach(m => safe(() => m.onLang && m.onLang()));
+  if (!$('boardSheet').hidden) Board.render();
 }
 function setLang(l) { lang = l; store.set('pc_lang', l); applyLang(); }
 $('langEN').addEventListener('click', () => setLang('en'));
 $('langES').addEventListener('click', () => setLang('es'));
 
-/* ---------- audio toggle ---------- */
+$('audioBtn').setAttribute('aria-pressed', Sound.enabled);
 $('audioBtn').addEventListener('click', () => {
   Sound.enabled = !Sound.enabled; store.set('pc_audio', Sound.enabled);
   $('audioBtn').setAttribute('aria-pressed', Sound.enabled);
   $('audioLabel').textContent = Sound.enabled ? t('audioOn') : t('audioOff');
-  if (Sound.enabled) Sound.ding();
-});
-$('audioBtn').setAttribute('aria-pressed', Sound.enabled);
-// unlock audio context on first gesture (mobile browsers need it)
-['pointerdown', 'keydown'].forEach(ev => window.addEventListener(ev, () => { if (Sound.enabled) Sound.ensure(); }, { once: true, capture: true }));
-
-/* ---------- text rendering ---------- */
-const norm = (s) => s.replace(/[’‘ʼ]/g, "'").replace(/[   ]/g, ' ').replace(/\n/g, ' ');
-let spans = [];
-function loadExercise(i) {
-  exIndex = (i + EXERCISES.length) % EXERCISES.length; store.set('pc_ex', exIndex);
-  target = EXERCISES[exIndex].text;
-  const src = $('source'); src.innerHTML = ''; spans = [];
-  const frag = document.createDocumentFragment();
-  for (const ch of target) { const s = document.createElement('span'); s.textContent = ch; s.className = 'p'; frag.appendChild(s); spans.push(s); }
-  src.appendChild(frag); src.scrollTop = 0;
-  renderMeta();
-  reset();
-}
-function renderMeta() {
-  if (!target) return;
-  const ex = EXERCISES[exIndex];
-  $('srcTitle').textContent = `${ex.theme} · ${ex.title}`;
-  $('srcMeta').textContent = `${target.split(/\s+/).filter(w => /[\p{L}\d]/u.test(w)).length} ${t('words')} · ${exIndex + 1}/${EXERCISES.length}`;
-}
-// target uses a single Unicode code point per char; build spans by code points to stay aligned
-function renderText(v) {
-  const tchars = [...target];
-  const vchars = [...v];
-  for (let i = 0; i < tchars.length; i++) {
-    let cls;
-    if (i < vchars.length) cls = vchars[i] === tchars[i] ? 'o' : 'x';
-    else cls = 'p';
-    if (i === vchars.length && phase !== 'done') cls += ' c';
-    if (spans[i].className !== cls) spans[i].className = cls;
-  }
-  const cur = spans[Math.min(vchars.length, spans.length - 1)];
-  if (cur) {
-    const src = $('source');
-    const top = cur.offsetTop - src.offsetTop;
-    if (top < src.scrollTop + 8 || top > src.scrollTop + src.clientHeight - 48) src.scrollTop = Math.max(0, top - src.clientHeight / 3);
-  }
-}
-
-/* ---------- scoring ---------- */
-function classify(i, typed, tchars) {
-  const want = tchars[i];
-  if (BASE[want] && BASE[want] === typed) return 'accent';
-  if (want === ' ' && DOUBLE_PUNCT.includes(tchars[i + 1] || '') && typed === tchars[i + 1]) return 'space';
-  return 'other';
-}
-function compute(v) {
-  const tchars = [...target], vchars = [...v];
-  let correct = 0;
-  for (let i = 0; i < vchars.length && i < tchars.length; i++) if (vchars[i] === tchars[i]) correct++;
-  const elapsed = phase === 'ready' ? 0 : Math.min(DURATION, (performance.now() - t0) / 1000);
-  const minutes = Math.max(elapsed, 1) / 60;
-  const wpm = elapsed < 2 ? 0 : (correct / 5) / minutes;
-  const denom = correct + errors.size;
-  const acc = denom === 0 ? 100 : (correct / denom) * 100;
-  const score = wpm * Math.pow(acc / 100, 2);
-  let a = 0, s = 0, o = 0; errors.forEach(k => { if (k === 'accent') a++; else if (k === 'space') s++; else o++; });
-  return { wpm, acc, score, correct, typed: vchars.length, total: tchars.length, elapsed, nAccent: a, nSpace: s, nOther: o };
-}
-function paintStats(r) {
-  $('sWpm').textContent = Math.round(r.wpm);
-  $('sAcc').textContent = Math.round(r.acc);
-  $('sScore').textContent = Math.round(r.score);
-  $('nAccent').textContent = r.nAccent; $('nSpace').textContent = r.nSpace; $('nOther').textContent = r.nOther;
-  $('cAccent').classList.toggle('hot', r.nAccent > 0);
-  $('cSpace').classList.toggle('hot', r.nSpace > 0);
-}
-
-/* ---------- timer ---------- */
-function fmt(sec) { const s = Math.max(0, Math.ceil(sec)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; }
-function setCritical(on) {
-  $('clock').classList.toggle('critical', on);
-  $('timebar').classList.toggle('critical', on);
-  $('mod1').classList.toggle('critical', on);
-}
-function tick() {
-  const rem = DURATION - (performance.now() - t0) / 1000;
-  $('clock').textContent = fmt(rem);
-  $('timefill').style.transform = `scaleX(${Math.max(0, rem) / DURATION})`;
-  const sec = Math.ceil(rem);
-  if (sec !== lastSec) {
-    lastSec = sec;
-    if (sec <= CRITICAL && sec > 0) {
-      Sound.tick(sec % 2);
-      if (mimeState !== 'critical') { setMime('critical'); setCritical(true); say('critical', true); }
-    }
-    paintStats(compute(prev));
-  }
-  if (rem <= 0) finish('time');
-}
-
-/* ---------- lifecycle ---------- */
-function reset() {
-  clearInterval(timerId); timerId = null;
-  phase = 'ready'; prev = ''; errors = new Map(); lastSec = DURATION;
-  const f = $('field'); f.value = ''; f.readOnly = false; f.disabled = false;
-  f.maxLength = [...target].length + 15;
-  $('clock').textContent = fmt(DURATION); $('timefill').style.transform = 'scaleX(1)';
-  setCritical(false); setMime('calm'); say('ready');
-  $('results').hidden = true;
-  document.querySelectorAll('#accents .key').forEach(k => k.disabled = false);
-  $('startBtn').hidden = false;
-  renderText(''); paintStats(compute(''));
-}
-function begin() {
-  phase = 'running'; t0 = performance.now(); lastSec = DURATION + 1;
-  setMime('typing'); say('typing');
-  Sound.ding();
-  $('startBtn').hidden = true;
-  timerId = setInterval(tick, 150);
-}
-let lastResult = null;
-function finish(reason) {
-  if (phase !== 'running') return;
-  clearInterval(timerId); timerId = null;
-  const r = compute(prev);
-  phase = 'done';
-  const f = $('field'); f.readOnly = true; f.blur();
-  document.querySelectorAll('#accents .key').forEach(k => k.disabled = true);
-  setCritical(false);
-  if (reason === 'time') { $('clock').textContent = '0:00'; $('timefill').style.transform = 'scaleX(0)'; Sound.alarm(); }
-  else Sound.ding();
-  renderText(prev);
-  paintStats(r);
-
-  r.flagged = r.wpm > MAX_WPM;
-  r.reason = reason;
-  r.rank = 0;
-  if (!r.flagged && r.typed > 0 && r.score > 0) r.rank = saveRun(r);
-  lastResult = r;
-  if (r.flagged) { setMime('calm'); say('flagged', true); }
-  else if (r.typed === 0) { setMime('calm'); say('empty'); }
-  else if (r.rank === 1) { setMime('victory'); say('record'); }
-  else if (r.rank > 0) { setMime('victory'); say('victory'); }
-  else { setMime('calm'); say(reason === 'time' ? 'plain' : 'done'); }
-  renderResult(r);
-  $('results').hidden = false;
-  setTimeout(() => $('results').scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
-}
-function renderResult(r) {
-  const w = Math.round(r.wpm), a = Math.round(r.acc);
-  $('rScore').textContent = Math.round(r.score);
-  $('rFormula').textContent = t('formula')(w, a);
-  $('rWpm').textContent = w;
-  $('rAcc').textContent = a + '%';
-  $('rProg').textContent = Math.round((Math.min(r.typed, r.total) / r.total) * 100) + '%';
-  $('rFlag').hidden = !r.flagged; $('rFlag').textContent = t('flagMsg');
-  $('rNote').textContent = r.flagged || r.typed === 0 ? '' : (r.rank > 0 ? t('noteTop')(r.rank) : t('noteOut'));
-}
-
-/* ---------- personal bests (localStorage; Supabase-ready shape) ---------- */
-function saveRun(r) {
-  const runs = store.get('pc_runs', []);
-  const row = { score: Math.round(r.score * 10) / 10, wpm: Math.round(r.wpm), acc: Math.round(r.acc), ex: exIndex, at: new Date().toISOString() };
-  runs.push(row);
-  runs.sort((x, y) => y.score - x.score);
-  const top = runs.slice(0, 10);
-  store.set('pc_runs', top);
-  const idx = top.indexOf(row);
-  return idx === -1 ? 0 : idx + 1;
-}
-function renderBoard() {
-  const runs = store.get('pc_runs', []);
-  const box = $('boardTable');
-  if (!runs.length) { box.innerHTML = `<p style="color:var(--ink-soft);font-size:.9rem;margin:4px 0">${t('emptyBoard')}</p>`; return; }
-  const loc = lang === 'es' ? 'es' : 'en';
-  box.innerHTML = `<table class="board"><thead><tr><th>${t('thRank')}</th><th class="r">${t('thScore')}</th><th class="r">${t('thWpm')}</th><th class="r">${t('thAcc')}</th><th>${t('thDate')}</th></tr></thead><tbody>` +
-    runs.map((r, i) => `<tr class="${lastResult && lastResult.rank === i + 1 ? 'mine' : ''}"><td>${i + 1}</td><td class="r">${Math.round(r.score)}</td><td class="r">${r.wpm}</td><td class="r">${r.acc}%</td><td>${new Date(r.at).toLocaleDateString(loc, { day: 'numeric', month: 'short' })}</td></tr>`).join('') +
-    `</tbody></table>`;
-}
-function openBoard() { renderBoard(); $('boardSheet').hidden = false; $('closeBoard').focus(); }
-$('boardBtn').addEventListener('click', openBoard);
-$('board2Btn').addEventListener('click', openBoard);
-$('closeBoard').addEventListener('click', () => { $('boardSheet').hidden = true; });
-$('boardSheet').addEventListener('click', (e) => { if (e.target.id === 'boardSheet') $('boardSheet').hidden = true; });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape') $('boardSheet').hidden = true; });
-
-/* ---------- input handling ---------- */
-const field = $('field');
-function blockPaste(e) { e.preventDefault(); say('paste', true); }
-field.addEventListener('paste', blockPaste);
-field.addEventListener('drop', blockPaste);
-field.addEventListener('cut', (e) => e.preventDefault());
-field.addEventListener('beforeinput', (e) => {
-  if (phase === 'done') { e.preventDefault(); return; }
-  const it = e.inputType || '';
-  if (it === 'insertFromPaste' || it === 'insertFromDrop' || it === 'insertFromYank' || it === 'insertFromPasteAsQuotation') { blockPaste(e); return; }
-  if (it === 'insertLineBreak' || it === 'insertParagraph') e.preventDefault();
-});
-field.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
-
-function onInput() {
-  if (phase === 'done') return;
-  const v = norm(field.value);
-  if (phase === 'ready') { if (!v.length) return; begin(); }
-  const tchars = [...target], vchars = [...v], pchars = [...prev];
-  let p = 0; while (p < pchars.length && p < vchars.length && pchars[p] === vchars[p]) p++;
-  // Erased text: one slip that shifted everything after it counts as one error, not a cascade.
-  if (vchars.length < pchars.length) {
-    let first = -1;
-    errors.forEach((_, k) => { if (k >= p && (first === -1 || k < first)) first = k; });
-    if (first !== -1) [...errors.keys()].forEach(k => { if (k >= p && k !== first) errors.delete(k); });
-  }
-  let hint = null;
-  for (let i = p; i < vchars.length; i++) {
-    if (i >= tchars.length) { if (!errors.has(i)) errors.set(i, 'other'); continue; }
-    if (vchars[i] !== tchars[i] && !errors.has(i)) {
-      const kind = classify(i, vchars[i], tchars);
-      errors.set(i, kind);
-      if (kind !== 'other') hint = kind;
-    }
-  }
-  prev = v;
-  renderText(v);
-  paintStats(compute(v));
-  const now = performance.now();
-  if (hint && mimeState !== 'critical' && now > hintCooldown) { say(hint, true); hintCooldown = now + 2500; }
-  else if (!hint && mimeState === 'typing' && $('bubble').classList.contains('warn') && now > hintCooldown) say('typing');
-  if (v === target) finish('complete');
-}
-field.addEventListener('input', onInput);
-field.addEventListener('focus', () => {
-  if (window.matchMedia('(pointer: coarse)').matches) setTimeout(() => field.scrollIntoView({ block: 'center', behavior: 'smooth' }), 320);
+  if (Sound.enabled) { Sound.unlock(); Sound.ding(); }
 });
 
-/* ---------- French accent bar ---------- */
-const UPPER = { 'é':'É','è':'È','ê':'Ê','ë':'Ë','à':'À','â':'Â','ç':'Ç','ù':'Ù','û':'Û','ô':'Ô','î':'Î','œ':'Œ' };
-function buildKeys() {
-  const box = $('accents'); box.innerHTML = '';
-  const sh = document.createElement('button');
-  sh.type = 'button'; sh.className = 'key shift'; sh.tabIndex = -1; sh.textContent = '⇧ Aa'; sh.setAttribute('aria-pressed', 'false');
-  sh.setAttribute('aria-label', 'Shift');
-  guard(sh); sh.addEventListener('click', () => { shiftOn = !shiftOn; sh.setAttribute('aria-pressed', shiftOn); paintKeys(); });
-  box.appendChild(sh);
-  ACCENT_KEYS.forEach(ch => {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'key'; b.tabIndex = -1; b.dataset.ch = ch; b.textContent = ch;
-    guard(b); b.addEventListener('click', () => insertChar(shiftOn && UPPER[ch] ? UPPER[ch] : ch));
-    box.appendChild(b);
-  });
-}
-function paintKeys() { document.querySelectorAll('#accents .key[data-ch]').forEach(b => { const ch = b.dataset.ch; b.textContent = shiftOn && UPPER[ch] ? UPPER[ch] : ch; }); }
-// keep focus (and the tablet keyboard) inside the text field
-function guard(btn) { ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => btn.addEventListener(ev, (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false }));
-  btn.addEventListener('touchend', (e) => { if (e.cancelable) { e.preventDefault(); btn.click(); } }, { passive: false }); }
-function insertChar(ch) {
-  if (phase === 'done' || field.readOnly) return;
-  if (document.activeElement !== field) field.focus({ preventScroll: true });
-  const s = field.selectionStart ?? field.value.length, e = field.selectionEnd ?? s;
-  field.setRangeText(ch, s, e, 'end');
-  field.dispatchEvent(new Event('input', { bubbles: true }));
-  if (shiftOn) { shiftOn = false; document.querySelector('#accents .shift').setAttribute('aria-pressed', 'false'); paintKeys(); }
-}
-
-/* ---------- buttons ---------- */
-$('startBtn').addEventListener('click', () => { Sound.ensure(); field.focus(); });
-$('restartBtn').addEventListener('click', () => { reset(); field.focus(); });
-$('nextBtn').addEventListener('click', () => { loadExercise(exIndex + 1); });
-$('next2Btn').addEventListener('click', () => { loadExercise(exIndex + 1); $('mod1').scrollIntoView({ behavior: 'smooth' }); });
-$('againBtn').addEventListener('click', () => { reset(); $('mod1').scrollIntoView({ behavior: 'smooth' }); setTimeout(() => field.focus({ preventScroll: true }), 300); });
-
-/* ---------- tabs ---------- */
-let currentMod = 1;
-function renderSoon() {
-  if (currentMod === 1) return;
-  $('soonEyebrow').textContent = t('soonEyebrow' + currentMod);
-  $('soonTitle').textContent = t('soonTitle' + currentMod);
-  $('soonText').textContent = t('soonText' + currentMod);
-}
-function showMod(n) {
-  currentMod = n;
-  document.querySelectorAll('.tab').forEach(tb => tb.setAttribute('aria-selected', String(+tb.dataset.mod === n)));
-  $('mod1').hidden = n !== 1; $('modSoon').hidden = n === 1;
-  if (n !== 1) { if (phase === 'running') { /* leave the sprint running in the background is confusing: pause by reset */ reset(); } renderSoon(); }
-}
-document.querySelectorAll('.tab').forEach(tb => tb.addEventListener('click', () => showMod(+tb.dataset.mod)));
-$('backBtn').addEventListener('click', () => showMod(1));
-
-/* ---------- footer copy ---------- */
 $('copyMail').addEventListener('click', () => {
   const txt = $('mail').textContent, btn = $('copyMail');
-  const ok = () => { btn.textContent = t('copied'); setTimeout(() => btn.textContent = t('copy'), 1600); };
+  const ok = () => { btn.textContent = t('copied'); Timers.after(() => { btn.textContent = t('copy'); }, 1600); };
   const fallback = () => { const r = document.createRange(); r.selectNodeContents($('mail')); const s = getSelection(); s.removeAllRanges(); s.addRange(r); };
   try { navigator.clipboard.writeText(txt).then(ok, fallback); } catch (e) { fallback(); }
 });
 
-/* ---------- boot ---------- */
-buildKeys();
-loadExercise(exIndex);
+/* =================== MODULE I · TYPING SPRINT (isolated) =================== */
+/* Owns: target text, phase, clock, error map, results, the accent bar, #mod1 DOM.
+   Shares only services: Timers, Sound, Board, i18n (t), store. */
+Modules[1] = (function TypingSprint() {
+  const DURATION = 120, CRITICAL = 20, MAX_WPM = 130;
+  let exIndex = store.get('pc_ex', 0); exIndex = (Number.isInteger(exIndex) ? exIndex : 0) % EXERCISES.length;
+  let target = '', spans = [];
+  let phase = 'ready';           // ready | running | done
+  let t0 = 0, timerId = null, lastSec = DURATION;
+  let prev = '';
+  let errors = new Map();        // position -> 'accent' | 'space' | 'other'
+  let shiftOn = false, hintCooldown = 0, mimeState = 'calm', lastSay = 'ready', lastResult = null;
+  const field = $('field');
+
+  /* ----- coach mime (the only mime that reacts) ----- */
+  $('mimeCoach').innerHTML = mimeSVG('c');
+  function setMime(state) {
+    mimeState = state;
+    const m = document.querySelector('#mimeCoach .mime'); if (m) m.setAttribute('data-state', state);
+  }
+  function say(key, warn) {
+    lastSay = key;
+    const b = $('bubble');
+    b.textContent = I18N[lang].say[key] || '';
+    b.classList.toggle('warn', !!warn);
+  }
+
+  /* ----- text ----- */
+  const norm = (s) => String(s == null ? '' : s).replace(/[’‘ʼ]/g, "'").replace(/[   ]/g, ' ').replace(/\n/g, ' ');
+  function loadExercise(i) {
+    exIndex = (i + EXERCISES.length) % EXERCISES.length; store.set('pc_ex', exIndex);
+    target = EXERCISES[exIndex].text;
+    const src = $('source'); src.innerHTML = ''; spans = [];
+    const frag = document.createDocumentFragment();
+    for (const ch of target) { const s = document.createElement('span'); s.textContent = ch; s.className = 'p'; frag.appendChild(s); spans.push(s); }
+    src.appendChild(frag); src.scrollTop = 0;
+    renderMeta();
+    reset();
+  }
+  function renderMeta() {
+    if (!target) return;
+    const ex = EXERCISES[exIndex];
+    $('srcTitle').textContent = `${ex.theme} · ${ex.title}`;
+    $('srcMeta').textContent = `${target.split(/\s+/).filter(w => /[\p{L}\d]/u.test(w)).length} ${t('words')} · ${exIndex + 1}/${EXERCISES.length}`;
+  }
+  function renderText(v) {
+    const tchars = [...target], vchars = [...v];
+    for (let i = 0; i < tchars.length; i++) {
+      let cls;
+      if (i < vchars.length) cls = vchars[i] === tchars[i] ? 'o' : 'x';
+      else cls = 'p';
+      if (i === vchars.length && phase !== 'done') cls += ' c';
+      if (spans[i] && spans[i].className !== cls) spans[i].className = cls;
+    }
+    const cur = spans[Math.min(vchars.length, spans.length - 1)];
+    if (cur) {
+      const src = $('source'), top = cur.offsetTop - src.offsetTop;
+      if (top < src.scrollTop + 8 || top > src.scrollTop + src.clientHeight - 48) src.scrollTop = Math.max(0, top - src.clientHeight / 3);
+    }
+  }
+
+  /* ----- scoring (all divisions guarded) ----- */
+  function classify(i, typed, tchars) {
+    const want = tchars[i];
+    if (BASE[want] && BASE[want] === typed) return 'accent';
+    if (want === ' ' && DOUBLE_PUNCT.includes(tchars[i + 1] || '') && typed === tchars[i + 1]) return 'space';
+    return 'other';
+  }
+  function compute(v) {
+    const tchars = [...target], vchars = [...(v || '')];
+    let correct = 0;
+    for (let i = 0; i < vchars.length && i < tchars.length; i++) if (vchars[i] === tchars[i]) correct++;
+    const elapsed = phase === 'ready' ? 0 : Math.min(DURATION, Math.max(0, fin((performance.now() - t0) / 1000)));
+    const minutes = Math.max(elapsed, 1) / 60;                       // never divides by 0
+    const wpm = fin(elapsed < 2 ? 0 : (correct / 5) / minutes);      // too little time -> 0, not Infinity
+    const denom = correct + errors.size;
+    const acc = denom === 0 ? 100 : Math.min(100, Math.max(0, fin((correct / denom) * 100)));   // nothing typed -> 100
+    const score = fin(wpm * Math.pow(acc / 100, 2));
+    let a = 0, s = 0, o = 0; errors.forEach(k => { if (k === 'accent') a++; else if (k === 'space') s++; else o++; });
+    return { wpm, acc, score, correct, typed: vchars.length, total: tchars.length, elapsed, nAccent: a, nSpace: s, nOther: o };
+  }
+  function paintStats(r) {
+    $('sWpm').textContent = Math.round(r.wpm);
+    $('sAcc').textContent = Math.round(r.acc);
+    $('sScore').textContent = Math.round(r.score);
+    $('nAccent').textContent = r.nAccent; $('nSpace').textContent = r.nSpace; $('nOther').textContent = r.nOther;
+    $('cAccent').classList.toggle('hot', r.nAccent > 0);
+    $('cSpace').classList.toggle('hot', r.nSpace > 0);
+  }
+
+  /* ----- clock (driven by Timers) ----- */
+  const fmt = (sec) => { const s = Math.max(0, Math.ceil(fin(sec))); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+  function setCritical(on) {
+    $('clock').classList.toggle('critical', on);
+    $('timebar').classList.toggle('critical', on);
+    $('mod1').classList.toggle('critical', on);
+  }
+  function tick() {
+    if (phase !== 'running') { if (timerId !== null) { Timers.stop(timerId); timerId = null; } return; }
+    const rem = DURATION - fin((performance.now() - t0) / 1000);
+    $('clock').textContent = fmt(rem);
+    $('timefill').style.transform = `scaleX(${Math.min(1, Math.max(0, rem / DURATION))})`;
+    const sec = Math.ceil(rem);
+    if (sec !== lastSec) {
+      lastSec = sec;
+      if (sec <= CRITICAL && sec > 0) {
+        Sound.tick(sec % 2);
+        if (mimeState !== 'critical') { setMime('critical'); setCritical(true); say('critical', true); }
+      }
+      paintStats(compute(prev));
+    }
+    if (rem <= 0) finish('time');
+  }
+
+  /* ----- lifecycle ----- */
+  function reset() {
+    if (timerId !== null) { Timers.stop(timerId); timerId = null; }
+    phase = 'ready'; prev = ''; errors = new Map(); lastSec = DURATION; lastResult = null;
+    field.value = ''; field.readOnly = false; field.disabled = false;
+    field.maxLength = [...target].length + 15;
+    $('clock').textContent = fmt(DURATION); $('timefill').style.transform = 'scaleX(1)';
+    setCritical(false); setMime('calm'); say('ready');
+    $('results').hidden = true;
+    document.querySelectorAll('#accents .key').forEach(k => { k.disabled = false; });
+    $('startBtn').hidden = false;
+    renderText(''); paintStats(compute(''));
+  }
+  function begin() {
+    phase = 'running'; t0 = performance.now(); lastSec = DURATION + 1;
+    setMime('typing'); say('typing');
+    Sound.ding();
+    $('startBtn').hidden = true;
+    timerId = Timers.every(tick, 150);
+  }
+  function finish(reason) {
+    if (phase !== 'running') return;
+    if (timerId !== null) { Timers.stop(timerId); timerId = null; }
+    const r = compute(prev);
+    phase = 'done';
+    field.readOnly = true; field.blur();
+    document.querySelectorAll('#accents .key').forEach(k => { k.disabled = true; });
+    setCritical(false);
+    if (reason === 'time') { $('clock').textContent = '0:00'; $('timefill').style.transform = 'scaleX(0)'; Sound.alarm(); }
+    else Sound.ding();
+    renderText(prev); paintStats(r);
+
+    r.flagged = r.wpm > MAX_WPM; r.reason = reason; r.rank = 0;
+    if (!r.flagged && r.typed > 0 && r.score > 0)
+      r.rank = Board.save({ score: Math.round(r.score * 10) / 10, wpm: Math.round(r.wpm), acc: Math.round(r.acc), ex: exIndex });
+    lastResult = r;
+    if (r.flagged) { setMime('calm'); say('flagged', true); }
+    else if (r.typed === 0) { setMime('calm'); say('empty'); }
+    else if (r.rank === 1) { setMime('victory'); say('record'); }
+    else if (r.rank > 0) { setMime('victory'); say('victory'); }
+    else { setMime('calm'); say(reason === 'time' ? 'plain' : 'done'); }
+    renderResult(r);
+    $('results').hidden = false;
+    Timers.after(() => $('results').scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+  }
+  function renderResult(r) {
+    const w = Math.round(r.wpm), a = Math.round(r.acc);
+    $('rScore').textContent = Math.round(r.score);
+    $('rFormula').textContent = t('formula')(w, a);
+    $('rWpm').textContent = w;
+    $('rAcc').textContent = a + '%';
+    $('rProg').textContent = (r.total ? Math.round((Math.min(r.typed, r.total) / r.total) * 100) : 0) + '%';
+    $('rFlag').hidden = !r.flagged; $('rFlag').textContent = t('flagMsg');
+    $('rNote').textContent = r.flagged || r.typed === 0 ? '' : (r.rank > 0 ? t('noteTop')(r.rank) : t('noteOut'));
+  }
+
+  /* ----- input (paste blocked, typing tracked) ----- */
+  function blockPaste(e) { e.preventDefault(); say('paste', true); }
+  field.addEventListener('paste', blockPaste);
+  field.addEventListener('drop', blockPaste);
+  field.addEventListener('dragover', (e) => e.preventDefault());
+  field.addEventListener('cut', (e) => e.preventDefault());
+  field.addEventListener('beforeinput', (e) => {
+    if (phase === 'done') { e.preventDefault(); return; }
+    const it = e.inputType || '';
+    if (it === 'insertFromPaste' || it === 'insertFromDrop' || it === 'insertFromYank' || it === 'insertFromPasteAsQuotation') { blockPaste(e); return; }
+    if (it === 'insertLineBreak' || it === 'insertParagraph') e.preventDefault();
+  });
+  field.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
+
+  function onInput() {
+    if (phase === 'done') return;
+    const v = norm(field.value);
+    if (phase === 'ready') { if (!v.length) return; begin(); }
+    const tchars = [...target], vchars = [...v], pchars = [...prev];
+    let p = 0; while (p < pchars.length && p < vchars.length && pchars[p] === vchars[p]) p++;
+    // Erased text: one slip that shifted everything after it counts as one error, not a cascade.
+    if (vchars.length < pchars.length) {
+      let first = -1;
+      errors.forEach((_, k) => { if (k >= p && (first === -1 || k < first)) first = k; });
+      if (first !== -1) [...errors.keys()].forEach(k => { if (k >= p && k !== first) errors.delete(k); });
+    }
+    let hint = null;
+    for (let i = p; i < vchars.length; i++) {
+      if (i >= tchars.length) { if (!errors.has(i)) errors.set(i, 'other'); continue; }
+      if (vchars[i] !== tchars[i] && !errors.has(i)) {
+        const kind = classify(i, vchars[i], tchars);
+        errors.set(i, kind);
+        if (kind !== 'other') hint = kind;
+      }
+    }
+    prev = v;
+    renderText(v);
+    paintStats(compute(v));
+    const now = performance.now();
+    if (hint && mimeState !== 'critical' && now > hintCooldown) { say(hint, true); hintCooldown = now + 2500; }
+    else if (!hint && mimeState === 'typing' && $('bubble').classList.contains('warn') && now > hintCooldown) say('typing');
+    if (v === target) finish('complete');
+  }
+  field.addEventListener('input', onInput);
+  field.addEventListener('focus', () => {
+    if (window.matchMedia('(pointer: coarse)').matches) Timers.after(() => field.scrollIntoView({ block: 'center', behavior: 'smooth' }), 320);
+  });
+
+  /* ----- French accent bar: inserts at the real cursor, keeps focus, never opens a paste path ----- */
+  function guard(btn) {
+    ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => btn.addEventListener(ev, (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false }));
+    btn.addEventListener('touchend', (e) => { if (e.cancelable) { e.preventDefault(); btn.click(); } }, { passive: false });
+  }
+  function paintKeys() { document.querySelectorAll('#accents .key[data-ch]').forEach(b => { const ch = b.dataset.ch; b.textContent = shiftOn && UPPER[ch] ? UPPER[ch] : ch; }); }
+  function buildKeys() {
+    const box = $('accents'); box.innerHTML = '';
+    const sh = document.createElement('button');
+    sh.type = 'button'; sh.className = 'key shift'; sh.tabIndex = -1; sh.textContent = '⇧ Aa'; sh.setAttribute('aria-pressed', 'false'); sh.setAttribute('aria-label', 'Shift');
+    guard(sh); sh.addEventListener('click', () => { shiftOn = !shiftOn; sh.setAttribute('aria-pressed', shiftOn); paintKeys(); });
+    box.appendChild(sh);
+    ACCENT_KEYS.forEach(ch => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'key'; b.tabIndex = -1; b.dataset.ch = ch; b.textContent = ch;
+      guard(b); b.addEventListener('click', () => insertChar(shiftOn && UPPER[ch] ? UPPER[ch] : ch));
+      box.appendChild(b);
+    });
+  }
+  function insertChar(ch) {
+    if (phase === 'done' || field.readOnly || field.disabled) return;
+    if (document.activeElement !== field) field.focus({ preventScroll: true });
+    const val = field.value;
+    if (val.length + ch.length > (field.maxLength > 0 ? field.maxLength : Infinity)) return;
+    let s = field.selectionStart, e = field.selectionEnd;
+    if (typeof s !== 'number' || typeof e !== 'number') { s = e = val.length; }
+    if (s > e) { const x = s; s = e; e = x; }
+    try { field.setRangeText(ch, s, e, 'end'); }
+    catch (err) { field.value = val.slice(0, s) + ch + val.slice(e); const pos = s + ch.length; safe(() => field.setSelectionRange(pos, pos)); }
+    field.dispatchEvent(new Event('input', { bubbles: true }));
+    if (shiftOn) { shiftOn = false; const sh = document.querySelector('#accents .shift'); if (sh) sh.setAttribute('aria-pressed', 'false'); paintKeys(); }
+  }
+
+  /* ----- buttons ----- */
+  $('startBtn').addEventListener('click', () => { Sound.unlock(); field.focus(); });
+  $('restartBtn').addEventListener('click', () => { reset(); field.focus(); });
+  $('nextBtn').addEventListener('click', () => loadExercise(exIndex + 1));
+  $('next2Btn').addEventListener('click', () => { loadExercise(exIndex + 1); $('mod1').scrollIntoView({ behavior: 'smooth' }); });
+  $('againBtn').addEventListener('click', () => { reset(); $('mod1').scrollIntoView({ behavior: 'smooth' }); Timers.after(() => field.focus({ preventScroll: true }), 300); });
+  $('board2Btn').addEventListener('click', Board.open);
+
+  buildKeys();
+  loadExercise(exIndex);
+
+  return {
+    mount() { reset(); },
+    unmount() { reset(); },                          // stops the clock and clears the run
+    onLang() {
+      field.placeholder = t('placeholder');
+      say(lastSay, $('bubble').classList.contains('warn'));
+      renderMeta();
+      if (!$('results').hidden && lastResult) renderResult(lastResult);
+    }
+  };
+})();
+
+/* =================== MODULES II & III · placeholders (isolated) =================== */
+const Placeholder = {
+  mount() { this.onLang(); },
+  unmount() {},
+  onLang() {
+    if (currentMod === 1) return;
+    $('soonEyebrow').textContent = t('soonEyebrow' + currentMod);
+    $('soonTitle').textContent = t('soonTitle' + currentMod);
+    $('soonText').textContent = t('soonText' + currentMod);
+  }
+};
+Modules[2] = Placeholder; Modules[3] = Placeholder;
+
+/* =================== TABS =================== */
+function showMod(n) {
+  if (n === currentMod) return;
+  const leaving = Modules[currentMod];
+  safe(() => leaving && leaving.unmount());
+  Timers.clearAll();                                   // no ghost clocks after a tab change
+  currentMod = n;
+  document.querySelectorAll('.tab').forEach(tb => tb.setAttribute('aria-selected', String(+tb.dataset.mod === n)));
+  $('mod1').hidden = n !== 1; $('modSoon').hidden = n === 1;
+  safe(() => Modules[n] && Modules[n].mount());
+}
+document.querySelectorAll('.tab').forEach(tb => tb.addEventListener('click', () => showMod(+tb.dataset.mod)));
+$('backBtn').addEventListener('click', () => showMod(1));
+
+/* =================== BOOT =================== */
 applyLang();
 })();
 </script>
