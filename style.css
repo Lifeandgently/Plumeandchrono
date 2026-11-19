@@ -316,3 +316,10 @@
 table.board tr.sample td { color: var(--ink-soft); font-style: italic; }
 table.board td .tag.ex { border-style: dashed; font-style: normal; }
 
+/* ===== Point 4: connector chips open a one-line model sentence ===== */
+#m2conns .chip.conn { cursor: pointer; font: inherit; font-family: var(--serif); font-size: 1rem; color: inherit; -webkit-tap-highlight-color: transparent; }
+#m2conns .chip.conn.open { border-color: var(--quill); box-shadow: 0 0 0 1px var(--quill) inset; }
+.conn-ex { margin: 8px 0 0; font-size: .9rem; color: var(--ink-soft); border-left: 2px solid var(--pencil); padding: 2px 0 2px 10px; max-width: 70ch; }
+.conn-ex .k { font-size: .76rem; letter-spacing: .02em; }
+.conn-ex .s { font-family: var(--serif); font-style: italic; color: var(--ink); }
+

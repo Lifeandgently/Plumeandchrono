@@ -115,6 +115,8 @@ const I18N = {
     m2obsConnOk: (list) => `Good use of ${list} in your text.`,
     m2obsAccent: (pairs) => `Common words missing their accent: ${pairs}.`,
     m2obsCap: (pairs) => `A new sentence starts with a capital letter: ${pairs}.`,
+    m2obsCtx: (list) => `${list} counts as a connector only at the start of a sentence, after a comma or right after “et”.`,
+    m2exLabel: 'Example', m2exHint: 'Tap to see a one-line example',
     m2reactNote: (s) => `Time to first key: ${s} s. Just for reference: thinking first beats starting fast.`,
     say2: {
       ready: 'Pick your moment. The situation and your connectors appear when you start.',
@@ -263,6 +265,8 @@ const I18N = {
     m2obsConnOk: (list) => `Buen uso de ${list} en tu texto.`,
     m2obsAccent: (pairs) => `Palabras frecuentes sin tilde: ${pairs}.`,
     m2obsCap: (pairs) => `Una oración nueva empieza con mayúscula: ${pairs}.`,
+    m2obsCtx: (list) => `${list} cuenta como conector solo al inicio de una oración, después de una coma o justo después de «et».`,
+    m2exLabel: 'Ejemplo', m2exHint: 'Toca para ver un ejemplo de una línea',
     m2reactNote: (s) => `Tiempo hasta la primera tecla: ${s} s. Es un dato orientativo: conviene pensar antes que empezar rápido.`,
     say2: {
       ready: 'Cuando quieras. La situación y tus conectores aparecen al empezar.',
@@ -683,6 +687,48 @@ function boardNotes() {                   // prizes only when the ranking is liv
   return rules + `<p class="rv-note demo">${esc(t('lbNoPrize'))}${LB.live ? '' : ' ' + esc(t('lbLocal'))}</p>`;
 }
 
+/* =================== CONNECTOR MATCHING (shared: Improv live chips + post-test review) ===================
+   Whole words, case and accent insensitive (an accent slip is still found, and flagged). Ambiguous words (bank flag `amb`,
+   or aussi / puis / alors / ainsi / enfin) only count in a connector position: start of the text or of a sentence,
+   after , ; : or right after « et ». « alors que » and « ainsi que » are never the connector. */
+const ConnMatch = (() => {
+  const AMB = new Set(['aussi', 'puis', 'alors', 'ainsi', 'enfin']);
+  const fold = (ch) => (ch === '’' || ch === '‘') ? "'" : /\s/.test(ch) ? ' ' : ((ch.normalize('NFD')[0] || ch).toLowerCase());
+  const isL = (ch) => !!ch && /\p{L}/u.test(ch);
+  const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const same = (s) => String(s).replace(/[’‘]/g, "'").replace(/\s+/g, ' ').toLowerCase();
+  const ambiguous = (c) => c.amb === true || AMB.has(String(c.fr).trim().toLowerCase());
+  function ctxOk(text, s, e, c) {
+    if (!ambiguous(c)) return true;
+    const word = String(c.fr).trim().toLowerCase(), next = text.slice(e).replace(/^\s+/, '').toLowerCase();
+    if ((word === 'alors' || word === 'ainsi') && /^qu(e\b|'|’)/.test(next)) return false;
+    let i = s - 1; while (i >= 0 && /[\s«»"“”(\-–—]/.test(text[i])) i--;
+    if (i < 0 || /[.!?…:;,]/.test(text[i])) return true;
+    const prev = text.slice(Math.max(0, i - 20), i + 1).match(/(\p{L}+)$/u);
+    return !!prev && prev[1].toLowerCase() === 'et';
+  }
+  function find(text, c) {                 // every whole-word occurrence: { s, e, orig, accentMissing, ok }
+    text = String(text || ''); const out = [];
+    if (!c || !c.fr || !text) return out;
+    const base = text.split('').map(fold).join('');
+    const words = String(c.fr).split('').map(fold).join('').trim().split(/ +/).filter(Boolean);
+    if (!words.length) return out;
+    const re = new RegExp(words.map(reEsc).join(' +'), 'g'); let m, guard = 0;
+    while ((m = re.exec(base)) && guard++ < 80) {
+      const s = m.index, e = s + m[0].length;
+      if (isL(text[s - 1]) || isL(text[e])) continue;
+      const orig = text.slice(s, e);
+      out.push({ s, e, orig, accentMissing: same(orig) !== same(c.fr), ok: ctxOk(text, s, e, c) });
+    }
+    return out;
+  }
+  function detect(text, c) {               // found = at least one valid use; loose = only out-of-context uses of an ambiguous word
+    const hits = find(text, c), ok = hits.filter(h => h.ok);
+    return { found: ok.length > 0, accentMissing: ok.length > 0 && ok.every(h => h.accentMissing), loose: !ok.length && hits.length > 0 };
+  }
+  return { find, detect, ambiguous };
+})();
+
 /* =================== IMPROV REVIEW (pure, post-test only; never runs while writing) ===================
    Builds the highlighted copy of the learner's text and at most 3 calm remarks:
    1) connectors found (soft highlight; flags a missing accent), 2) frequent French words written without their accent,
@@ -708,25 +754,20 @@ const ImprovReview = (function () {
   const isL = (ch) => !!ch && /\p{L}/u.test(ch);
   const q = (s) => (lang === 'es' || lang === 'fr') ? `« ${s} »` : `“${s}”`;
   function connectorMarks(text, conns, det) {
-    const base = Array.from(text, (ch) => (ch === '’' || ch === '‘' ? "'" : strip1(ch))).join('');
-    const marks = [], miss = [], used = [];
+    const marks = [], miss = [], used = [], loose = [];
     (conns || []).forEach((c, ci) => {
       if (!c || !c.fr) return;
-      const needle = Array.from(c.fr, (ch) => (ch === '’' ? "'" : strip1(ch))).join('');
-      let from = 0, hit = false, guard = 0;
-      while (guard++ < 50) {
-        const at = base.indexOf(needle, from); if (at === -1) break;
-        from = at + 1;
-        if (isL(text[at - 1]) || isL(text[at + needle.length])) continue;          // whole words only
-        const orig = text.slice(at, at + needle.length);
-        const accentMissing = orig.replace(/[’‘]/g, "'").toLowerCase() !== c.fr.replace(/[’‘]/g, "'").toLowerCase();
-        marks.push({ s: at, e: at + needle.length, cls: 'mk-conn' + (accentMissing ? ' warn' : ''), title: accentMissing ? c.fr : '' });
-        if (accentMissing && miss.length < MAX_MARKS) miss.push(`${q(orig)} → ${q(c.fr)}`);
+      let hit = false, out = false;
+      ConnMatch.find(text, c).forEach(h => {
+        if (!h.ok) { out = true; return; }                                         // ambiguous word outside a connector position: not counted
+        marks.push({ s: h.s, e: h.e, cls: 'mk-conn' + (h.accentMissing ? ' warn' : ''), title: h.accentMissing ? c.fr : '' });
+        if (h.accentMissing && miss.length < MAX_MARKS) miss.push(`${q(h.orig)} → ${q(c.fr)}`);
         hit = true;
-      }
+      });
       if (hit || (det && det[ci] && det[ci].found)) used.push(q(c.fr));
+      else if (out) loose.push(q(c.fr));
     });
-    return { marks, miss, used };
+    return { marks, miss, used, loose };
   }
   function accentMarks(text) {
     const marks = [], pairs = [], seen = new Set();
@@ -774,6 +815,7 @@ const ImprovReview = (function () {
       try {
         const c = connectorMarks(text, conns, det), a = accentMarks(text), k = capitalMarks(text), obs = [];
         if (c.miss.length) obs.push({ kind: 'conn', text: t('m2obsConn')(c.miss.join(', ')) });
+        if (c.loose.length) obs.push({ kind: 'ctx', text: t('m2obsCtx')(c.loose.join(', ')) });
         if (a.pairs.length) obs.push({ kind: 'acc', text: t('m2obsAccent')(a.pairs.join(', ')) });
         if (k.pairs.length) obs.push({ kind: 'cap', text: t('m2obsCap')(k.pairs.join(', ')) });
         if (obs.length < MAX_OBS && !c.miss.length && c.used.length) obs.push({ kind: 'ok', text: t('m2obsConnOk')(c.used.join(lang === 'es' ? ' y ' : ' and ')) });
@@ -1062,7 +1104,25 @@ const Levels = {
     return pos === -1 ? P[0].i : P[(pos + 1) % P.length].i;
   },
   keep(mode, from) { const P = Levels.pool(mode).list; if (!P.length) return 0; return P.some(x => x.i === from) ? from : P[0].i; },
-  connectors(level) {                              // 2 connectors of different type, from the scenario's level (all if that level has too few)
+  /* A pair with a teaching sense, fitted to the prompt: one connector to DEVELOP (add, explain, give a cause, sequence)
+     + one to TURN or CLOSE (contrast, concede, consequence, conclusion; purpose in letters). Opinion prompts never get
+     a sequence word; letters never get a concession. Level first, then the next levels up/down, then the whole bank. */
+  PAIRS: {
+    opinion: [['addition', 'reinforce', 'explain', 'cause', 'topic'], ['contrast', 'concession', 'consequence', 'conclusion']],
+    letter: [['sequence', 'addition', 'cause', 'explain', 'reinforce'], ['consequence', 'conclusion', 'purpose', 'contrast']]
+  },
+  connectors(level, kind) {
+    const all = Bank.list('connectors'), [DEV, TURN] = Levels.PAIRS[kind] || Levels.PAIRS.opinion;
+    const pick = (a) => a[Math.floor(Math.random() * a.length)];
+    const li = LEVELS.indexOf(level), lvIn = (c, f) => Array.isArray(c.lv) && c.lv.some(f);
+    const tiers = [(c) => lvIn(c, (v) => v === level), (c) => li !== -1 && lvIn(c, (v) => Math.abs(LEVELS.indexOf(v) - li) <= 1 && LEVELS.indexOf(v) !== -1), () => true];
+    for (const inTier of tiers) {
+      const pool = all.filter(inTier), a = pool.filter(c => DEV.indexOf(c.type) !== -1), b = pool.filter(c => TURN.indexOf(c.type) !== -1);
+      if (a.length && b.length) return [pick(a), pick(b)];
+    }
+    return Levels.anyPair(level);                  // old banks without these types: any two of different type
+  },
+  anyPair(level) {
     let pool = Bank.list('connectors').filter(c => Array.isArray(c.lv) && c.lv.indexOf(level) !== -1);
     if (new Set(pool.map(c => c.type)).size < 2) pool = Bank.list('connectors');
     if (new Set(pool.map(c => c.type)).size < 2) return [];
@@ -1444,6 +1504,7 @@ Modules[2] = (function Improv() {
       <div class="prompt mt-2" id="m2prompt" lang="fr"></div>
       <div class="eyebrow mt-4" data-i18n="m2connLabel"></div>
       <div class="chips mt-2" id="m2conns"></div>
+      <p class="conn-ex" id="m2connEx" aria-live="polite" hidden></p>
       <div class="flex items-center justify-between gap-2 mt-4 mb-2"><div class="eyebrow" data-i18n="keysLabel"></div><div class="eyebrow" style="text-transform:none;letter-spacing:0;font-weight:500" data-i18n="keysHint"></div></div>
       <div class="accents" id="m2accents"></div>
       <div class="eyebrow mt-4" id="m2notesLabel"></div>
@@ -1463,19 +1524,12 @@ Modules[2] = (function Improv() {
   const accents = Accents($('m2accents'), () => (phase === 'plan' ? notes : editor), () => phase === 'plan' || phase === 'write');
 
   let phase = 'ready';            // ready | plan | write | done
-  let scenario = null, conns = [], seen = [], lastIdx = -1;
+  let scenario = null, conns = [], seen = [], lastIdx = -1, exOpen = -1;   // exOpen: chip whose one-line example is shown
   let phaseT0 = 0, dur = PLAN, timerId = null, lastSec = PLAN, firstKeyAt = null, lastRes = null;
 
   /* ----- text utilities ----- */
   const countWords = (s) => (String(s || '').match(/[\p{L}\p{N}][\p{L}\p{N}'’\-]*/gu) || []).length;
-  const flat = (s) => String(s || '').toLowerCase().replace(/[’‘]/g, "'");
-  const loose = (s) => flat(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/œ/g, 'oe');
-  const spaced = (s, keepAccents) => ' ' + (keepAccents ? flat(s).replace(/[^\p{L}\p{N}' ]/gu, ' ') : loose(s).replace(/[^a-z0-9' ]/g, ' ')).replace(/\s+/g, ' ').trim() + ' ';
-  function detect(text, c) {        // word-boundary match, case and accent insensitive; flags a missing accent
-    const found = spaced(text, false).includes(spaced(c.fr, false));
-    const exact = spaced(text, true).includes(spaced(c.fr, true));
-    return { found, accentMissing: found && !exact };
-  }
+  const detect = (text, c) => ConnMatch.detect(text, c);   // whole words, accent-insensitive; ambiguous words only in a connector position
 
   /* ----- scenario ----- */
   function loadScenario() {
@@ -1486,7 +1540,7 @@ Modules[2] = (function Improv() {
     }
     let k; do { k = Math.floor(Math.random() * P.length); } while (P.length > 1 && P[k].i === lastIdx);
     lastIdx = P[k].i; scenario = P[k].item;
-    conns = Levels.connectors(lvlOf(scenario)); seen = [false, false];
+    conns = Levels.connectors(lvlOf(scenario), scenario.kind); seen = [false, false]; exOpen = -1;
     $('m2prompt').textContent = scenario.text; $('m2lvl').textContent = Levels.full(lvlOf(scenario));
     renderConns(editor.value);
     Levels.note('improv');
@@ -1494,12 +1548,25 @@ Modules[2] = (function Improv() {
   function renderConns(v) {
     const box = $('m2conns'); box.innerHTML = '';
     conns.forEach((c, i) => {
-      const d = detect(v, c), chip = document.createElement('span');
-      chip.className = 'chip conn' + (d.found ? ' ok' : '');
-      chip.innerHTML = `<span class="tick">${d.found ? '✓' : '○'}</span> <b></b> <small></small>`;
+      const d = detect(v, c), chip = document.createElement('button');
+      chip.type = 'button'; chip.dataset.i = i;
+      chip.className = 'chip conn' + (d.found ? ' ok' : '') + (exOpen === i ? ' open' : '');
+      chip.setAttribute('aria-expanded', String(exOpen === i)); chip.setAttribute('aria-controls', 'm2connEx');
+      chip.title = t('m2exHint');
+      chip.innerHTML = `<span class="tick">${d.found ? '✓' : '○'}</span> <b lang="fr"></b> <small></small>`;
       chip.querySelector('b').textContent = c.fr; chip.querySelector('small').textContent = '· ' + c[lang];
+      // keep the tablet keyboard open while writing (same guard as the French keys)
+      ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => chip.addEventListener(ev, (e) => { if (e.cancelable) e.preventDefault(); }, { passive: false }));
+      chip.addEventListener('touchend', (e) => { if (e.cancelable) { e.preventDefault(); chip.click(); } }, { passive: false });
+      chip.addEventListener('click', () => { exOpen = exOpen === i ? -1 : i; renderConns(editor.value); });
       box.appendChild(chip);
     });
+    const ex = $('m2connEx'), c = conns[exOpen];
+    if (c && c.ex) {
+      ex.innerHTML = `<span class="k"></span> <span class="s" lang="fr"></span>`;
+      ex.querySelector('.k').textContent = `${t('m2exLabel')} · ${c.fr}:`; ex.querySelector('.s').textContent = c.ex;
+      ex.hidden = false;
+    } else { ex.hidden = true; ex.textContent = ''; }
   }
   function setLabels() {
     $('m2notesLabel').textContent = t(phase === 'plan' || phase === 'ready' ? 'm2notesLabel' : 'm2notesLocked');
