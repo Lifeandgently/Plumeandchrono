@@ -33,9 +33,11 @@ const I18N = {
     board: 'Weekly Leaderboard', tab1: 'Typing Sprint', tab2: '60s Improv', tab3: 'Speed Reading', soon: 'Soon',
     audioOn: 'Exam Audio: ON', audioOff: 'Exam Audio: OFF',
     m1eyebrow: 'Module I · 2 minutes', m1title: 'Typing Sprint & Accents',
-    m1intro: 'Copy the French text exactly as written: accents, capitals, and the space French puts before ? ! : ; all count. The clock starts with your first letter. Paste is disabled.',
+    m1intro: 'Copy the French text exactly as written: accents and capitals count; a missing space before ? ! : ; is only a typography notice. The clock starts with your first letter. Paste is disabled.',
     time: 'Time', wpm: 'WPM', acc: 'Accuracy', score: 'Score',
-    eAccent: 'Accents', eSpace: 'Space before ? ! : ;', eOther: 'Other',
+    eAccent: 'Accents', eSpace: 'Notice · space before ? ! : ;', eSpaceQc: 'Space before ? ! : ; optional', eOther: 'Other',
+    m1formula: 'Score = WPM × (accuracy ÷ 100)²', m1formulaNote: 'Accuracy weighs more than speed.',
+    qcLabel: 'Quebec typography', qcHint: 'Quebec typography: the space before ? ! : ; is optional. Tap to switch.', qcOffHint: 'France typography: a missing space before ? ! : ; is only a notice. Tap for Quebec typography.',
     keysLabel: 'French keys', keysHint: 'Inserts at the cursor', fieldLabel: 'Your copy', placeholder: 'Tap here and start typing…',
     start: 'Start', restart: 'Restart', next: 'New text', again: 'Try again', myBests: 'My best scores',
     resultsTitle: 'Sprint result', progress: 'Text done',
@@ -60,7 +62,11 @@ const I18N = {
     rvEyebrow: 'Results',
     rvReason: { time: 'Time is up.', complete: 'You finished the whole text.', manual: 'Submitted before the clock ended.' },
     rvFormula: (w, a, s) => `${w} WPM × (${a} / 100)² = ${s}`,
-    rvAccNote: 'Accuracy = correct characters ÷ (correct characters + errors). Missing accents and a missing space before ? ! : ; count as errors.',
+    rvAccNote: 'Accuracy = correct characters ÷ (correct characters + errors). Missing accents count as errors. A missing space before ? ! : ; is shown as a typography notice and does not lower accuracy.',
+    rvAccNoteQc: 'Accuracy = correct characters ÷ (correct characters + errors). Missing accents count as errors. Quebec typography is on: the space before ? ! : ; is optional and never marked.',
+    rvScoreExplain: 'How it works: your speed (WPM) is multiplied by your accuracy squared, so accuracy weighs more than speed. Slowing down a little and getting more right usually scores higher.',
+    rvPracticeNote: 'This score is a practice indicator inside Plume & Chrono. It does not predict or equal the grade of an official exam.',
+    rvNo_acc: (a) => `Accuracy ${a}%: the weekly ranking needs at least ${LB.MIN_ACC}% accuracy. This run is saved in your best scores, but not in the ranking.`,
     rvZero: 'Nothing was typed this time, so there is no score.',
     rvNew: 'New exercise', rvSwitch: 'Switch mode',
     rvDetail: 'correction', rvYours: 'Your answer', rvRight: 'Right answer', rvNoAns: 'No answer',
@@ -68,7 +74,9 @@ const I18N = {
     rvNo_speed: 'Over 130 WPM looks automated, so this run is discarded and not ranked.',
     rvNo_short: 'Runs under 30 seconds or 60 characters do not count for the ranking.',
     rvNo_suspect: 'This run included a very large single input, so it is not ranked.',
-    lbEyebrow: 'Weekly Top 20', lbSample: 'sample', lbYou: 'you', lbNick: 'Nickname',
+    lbEyebrow: 'Weekly Top 20', lbSample: 'example', lbLevelPick: 'Ranking level', lbEmptyLvl: 'No scores at this level yet this week.',
+    lbNoPrize: 'Practice ranking: there are no prizes for now. Rows tagged “example” are samples, not real people.', lbLocal: 'For now your scores are saved only on this device.',
+    lbRulesMin: (a) => `To enter the ranking: at least ${a}% accuracy, 30 seconds and 60 characters. Each level has its own ranking.`, lbYou: 'you', lbNick: 'Nickname',
     lbReset: (d, h) => `Resets Monday 00:00 Eastern Time · in ${d} d ${h} h`,
     lbPrize1: '#1 of the week wins the Life and Gently French Exam Survival PDF Kit for free.',
     lbPrize10: '#2 to #10 receive a 30% discount code.',
@@ -173,9 +181,11 @@ const I18N = {
     board: 'Ranking semanal', tab1: 'Sprint de tipeo', tab2: 'Improvisación 60s', tab3: 'Lectura exprés', soon: 'Pronto',
     audioOn: 'Audio de examen: ON', audioOff: 'Audio de examen: OFF',
     m1eyebrow: 'Módulo I · 2 minutos', m1title: 'Sprint de tipeo y acentos',
-    m1intro: 'Copiá el texto en francés tal cual: cuentan las tildes, las mayúsculas y el espacio que el francés pone antes de ? ! : ;. El reloj arranca con tu primera letra. Pegar está desactivado.',
+    m1intro: 'Copiá el texto en francés tal cual: cuentan las tildes y las mayúsculas; si falta el espacio antes de ? ! : ; solo se muestra un aviso tipográfico. El reloj arranca con tu primera letra. Pegar está desactivado.',
     time: 'Tiempo', wpm: 'PPM', acc: 'Precisión', score: 'Puntaje',
-    eAccent: 'Tildes', eSpace: 'Espacio antes de ? ! : ;', eOther: 'Otros',
+    eAccent: 'Tildes', eSpace: 'Aviso · espacio antes de ? ! : ;', eSpaceQc: 'Espacio antes de ? ! : ; opcional', eOther: 'Otros',
+    m1formula: 'Puntaje = PPM × (precisión ÷ 100)²', m1formulaNote: 'La precisión pesa más que la velocidad.',
+    qcLabel: 'Tipografía de Quebec', qcHint: 'Tipografía de Quebec: el espacio antes de ? ! : ; es opcional. Toca para cambiar.', qcOffHint: 'Tipografía de Francia: si falta el espacio antes de ? ! : ; solo se muestra un aviso. Toca para usar la tipografía de Quebec.',
     keysLabel: 'Teclas francesas', keysHint: 'Se insertan en el cursor', fieldLabel: 'Tu copia', placeholder: 'Tocá acá y empezá a escribir…',
     start: 'Empezar', restart: 'Reiniciar', next: 'Otro texto', again: 'Intentar de nuevo', myBests: 'Mis mejores puntajes',
     resultsTitle: 'Resultado del sprint', progress: 'Texto completado',
@@ -200,7 +210,11 @@ const I18N = {
     rvEyebrow: 'Resultados',
     rvReason: { time: 'Se acabó el tiempo.', complete: 'Terminaste todo el texto.', manual: 'Enviado antes de que terminara el reloj.' },
     rvFormula: (w, a, s) => `${w} PPM × (${a} / 100)² = ${s}`,
-    rvAccNote: 'Precisión = caracteres correctos ÷ (caracteres correctos + errores). Las tildes que faltan y el espacio que falta antes de ? ! : ; cuentan como errores.',
+    rvAccNote: 'Precisión = caracteres correctos ÷ (caracteres correctos + errores). Las tildes que faltan cuentan como error. Si falta el espacio antes de ? ! : ; se muestra un aviso tipográfico que no baja la precisión.',
+    rvAccNoteQc: 'Precisión = caracteres correctos ÷ (caracteres correctos + errores). Las tildes que faltan cuentan como error. La tipografía de Quebec está activada: el espacio antes de ? ! : ; es opcional y no se marca.',
+    rvScoreExplain: 'Cómo se calcula: la velocidad (PPM) se multiplica por la precisión al cuadrado, así que la precisión pesa más que la velocidad. Ir un poco más despacio y acertar más suele dar un puntaje mejor.',
+    rvPracticeNote: 'Este puntaje es un indicador de práctica dentro de Plume & Chrono. No predice ni equivale a la calificación de un examen oficial.',
+    rvNo_acc: (a) => `Precisión ${a} %: el ranking semanal pide al menos ${LB.MIN_ACC} % de precisión. Este intento queda en tus mejores puntajes, pero no entra al ranking.`,
     rvZero: 'No escribiste nada esta vez, así que no hay puntaje.',
     rvNew: 'Otro ejercicio', rvSwitch: 'Cambiar de modo',
     rvDetail: 'corrección', rvYours: 'Tu respuesta', rvRight: 'Respuesta correcta', rvNoAns: 'Sin respuesta',
@@ -208,7 +222,9 @@ const I18N = {
     rvNo_speed: 'Más de 130 PPM parece automático: este intento se descarta y no entra al ranking.',
     rvNo_short: 'Los intentos de menos de 30 segundos o 60 caracteres no cuentan para el ranking.',
     rvNo_suspect: 'Este intento tuvo una entrada muy grande de una sola vez, así que no entra al ranking.',
-    lbEyebrow: 'Top 20 semanal', lbSample: 'muestra', lbYou: 'vos', lbNick: 'Apodo',
+    lbEyebrow: 'Top 20 semanal', lbSample: 'ejemplo', lbLevelPick: 'Nivel del ranking', lbEmptyLvl: 'Todavía no hay puntajes en este nivel esta semana.',
+    lbNoPrize: 'Ranking de práctica: por ahora no hay premios. Las filas marcadas «ejemplo» son de muestra y no son personas reales.', lbLocal: 'Por ahora tus puntajes se guardan solo en este dispositivo.',
+    lbRulesMin: (a) => `Para entrar al ranking: al menos ${a} % de precisión, 30 segundos y 60 caracteres. Cada nivel tiene su propio ranking.`, lbYou: 'vos', lbNick: 'Apodo',
     lbReset: (d, h) => `Se reinicia el lunes a las 00:00 hora del Este · en ${d} d ${h} h`,
     lbPrize1: 'El puesto #1 de la semana gana gratis el Life and Gently French Exam Survival PDF Kit.',
     lbPrize10: 'Del #2 al #10 reciben un código de descuento del 30%.',
@@ -510,6 +526,7 @@ const SITE = {
   ads: { client: '', slot: '' },
   supabase: { url: '', anonKey: '' },
   feedbackEmail: 'lifeandgently@gmail.com',
+  prizesLive: false,     // prizes and the email field stay hidden until this is true AND the ranking is live with server-side validation
   feedbackEndpoint: ''   // optional: https URL that accepts a JSON POST (e.g. a Supabase function or form service). Empty = mailto + copy only.
 };
 /* Supabase schema (run once in the SQL editor), then add a row-level policy that allows insert/select to anon
@@ -552,26 +569,30 @@ function sampleRows(week) {
   let a = 0; for (const ch of week) a = (a * 31 + ch.charCodeAt(0)) >>> 0;
   const rnd = () => { a = (a + 0x6D2B79F5) | 0; let x = Math.imul(a ^ (a >>> 15), 1 | a); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
   const nicks = ['Marie_QC', 'Camila.T', 'LucasBXL', 'Ana-Lyon', 'Diego_MTL', 'Sofi92', 'Pierre.G', 'Valen_TO', 'Nadia_Ott', 'Mateo.fr', 'Lola_Gat', 'Jo_Laval', 'Inès_Que', 'Tomás.CA'];
-  return nicks.map((nick, i) => {
-    const wpm = Math.round(20 + rnd() * 34), acc = Math.round(88 + rnd() * 11);
-    return { id: 's' + week + i, nick, wpm, acc, score: Math.round(wpm * Math.pow(acc / 100, 2) * 10) / 10, at: week + 'T12:00:00Z', mod: 'sprint', lvl: LEVELS[Math.floor(rnd() * LEVELS.length)], sample: true };
-  });
+  const out = [];                          // 4 example rows per level (all >= the accuracy floor), clearly tagged as samples
+  LEVELS.forEach((lvl, L) => { for (let k = 0; k < 4; k++) {
+    const i = (L * 4 + k) % nicks.length, wpm = Math.round(18 + L * 4 + rnd() * 26), acc = Math.round(LB.MIN_ACC + rnd() * (99 - LB.MIN_ACC));
+    out.push({ id: 's' + week + lvl + k, nick: nicks[i], wpm, acc, score: Math.round(wpm * Math.pow(acc / 100, 2) * 10) / 10, at: week + 'T12:00:00Z', mod: 'sprint', lvl, sample: true });
+  } });
+  return out;
 }
 const sortRows = (rows) => rows.slice().sort((x, y) => (y.score - x.score) || (x.at < y.at ? -1 : 1));
 
 const LocalStore = {                      // default backend: this device only
   async getWeek(week) {
     let o = store.get('pc_week', null);
-    if (!o || o.week !== week || !Array.isArray(o.rows)) { o = { week, rows: sampleRows(week) }; store.set('pc_week', o); }
+    if (!o || o.week !== week || !Array.isArray(o.rows)) { o = { week, v: 2, rows: sampleRows(week) }; store.set('pc_week', o); }
+    else if (o.v !== 2) { o = { week, v: 2, rows: sampleRows(week).concat(o.rows.filter(r => r && !r.sample)) }; store.set('pc_week', o); }   // older sample set: replace samples, keep real rows
     return o.rows;
   },
-  async addScore(week, row) { const rows = await LocalStore.getWeek(week); rows.push(row); store.set('pc_week', { week, rows }); },
+  async addScore(week, row) { const rows = await LocalStore.getWeek(week); rows.push(row); store.set('pc_week', { week, v: 2, rows }); },
   async addLead(week, lead) { let l = store.get('pc_leads', []); if (!Array.isArray(l)) l = []; l.push(lead); store.set('pc_leads', l); }   // private: never rendered
 };
 const SupabaseStore = {                   // hook: used only when SITE.supabase is filled (needs the tables above)
   h() { const k = SITE.supabase.anonKey; return { apikey: k, Authorization: 'Bearer ' + k, 'Content-Type': 'application/json' }; },
-  async getWeek(week) {
-    const r = await fetch(`${SITE.supabase.url}/rest/v1/scores?week_id=eq.${encodeURIComponent(week)}&order=score.desc,created_at.asc&limit=${LB.TOP}&select=id,nick,score,wpm,acc,level,created_at`, { headers: SupabaseStore.h() });
+  async getWeek(week, level) {
+    const lv = level ? `&level=eq.${encodeURIComponent(level)}` : '';
+    const r = await fetch(`${SITE.supabase.url}/rest/v1/scores?week_id=eq.${encodeURIComponent(week)}${lv}&order=score.desc,created_at.asc&limit=${LB.TOP}&select=id,nick,score,wpm,acc,level,created_at`, { headers: SupabaseStore.h() });
     if (!r.ok) throw new Error('supabase read');
     return (await r.json()).map(x => ({ id: x.id, nick: x.nick, score: +x.score, wpm: x.wpm, acc: x.acc, lvl: x.level || '', at: x.created_at, mod: 'sprint' }));
   },
@@ -587,8 +608,9 @@ const SupabaseStore = {                   // hook: used only when SITE.supabase 
 const Backend = (SITE.supabase.url && SITE.supabase.anonKey) ? SupabaseStore : LocalStore;
 
 const LB = {
-  MAX_WPM: 130, MIN_SECS: 30, MIN_CHARS: 60, TOP: 20, PRIZE: 10, TZ: 'America/Toronto',
+  MAX_WPM: 130, MIN_SECS: 30, MIN_CHARS: 60, MIN_ACC: 90, TOP: 20, PRIZE: 10, TZ: 'America/Toronto',
   live: Backend !== LocalStore,
+  prizes() { return LB.live && SITE.prizesLive === true; },   // honest prizes: never shown in demo / without server validation
   etNow(now) {                            // wall clock in Eastern Time; fixed UTC-5 fallback if Intl is missing
     now = now || new Date();
     try {
@@ -609,16 +631,18 @@ const LB = {
     if (run.suspect) return 'suspect';
     if (run.wpm > LB.MAX_WPM) return 'speed';
     if (run.elapsed < LB.MIN_SECS || run.typed < LB.MIN_CHARS) return 'short';
+    if (!(fin(run.acc) >= LB.MIN_ACC)) return 'acc';                 // accuracy floor: precision first
     const exp = run.wpm * Math.pow(run.acc / 100, 2);
     if (!isFinite(exp) || Math.abs(exp - run.score) > 0.5) return 'suspect';
     return null;
   },
-  async rows() {
+  async rows(level) {                     // one ranking per level ('' / undefined = all levels)
     const week = LB.weekId(); let rows;
-    try { rows = await Backend.getWeek(week); } catch (e) { rows = await LocalStore.getWeek(week); }
+    try { rows = await Backend.getWeek(week, level); } catch (e) { rows = await LocalStore.getWeek(week); }
+    if (level) rows = rows.filter(r => r && r.lvl === level);
     return sortRows(rows);
   },
-  async previewRank(score) { const rows = await LB.rows(); return 1 + rows.filter(r => r.score > score).length; },
+  async previewRank(score, level) { const rows = await LB.rows(level); return 1 + rows.filter(r => r.score > score).length; },
   mine() { const o = store.get('pc_mine', null); return new Set(o && o.week === LB.weekId() && Array.isArray(o.ids) ? o.ids : []); },
   async submit(run, nick, email) {
     const why = LB.check(run); if (why) return { ok: false, error: why };
@@ -631,7 +655,7 @@ const LB = {
     catch (e) { await LocalStore.addScore(week, row); if (email) await LocalStore.addLead(week, { nick, email, at: row.at }); }
     const ids = LB.mine(); ids.add(row.id); store.set('pc_mine', { week, ids: [...ids] });
     store.set('pc_nick', nick);
-    const rows = await LB.rows();
+    const rows = await LB.rows(row.lvl);
     return { ok: true, rank: rows.findIndex(r => r.id === row.id) + 1, id: row.id };
   }
 };
@@ -645,15 +669,18 @@ function setBusy(b) {
   document.querySelectorAll('#levelBar .lvl').forEach(b => { b.disabled = busy; b.title = busy ? t('lvlBusy') : ''; });
 }
 function lbTable(rows, limit, mine) {
-  const body = rows.slice(0, limit).map((r, i) => `<tr class="${mine.has(r.id) ? 'mine' : ''}${i >= LB.PRIZE ? ' rest' : ''}"><td>${i + 1}</td><td>${esc(r.nick)}${r.lvl ? ` <span class="tag lvl">${esc(r.lvl)}</span>` : ''}${r.sample ? ` <span class="tag">${esc(t('lbSample'))}</span>` : ''}${mine.has(r.id) ? ` <span class="tag you">${esc(t('lbYou'))}</span>` : ''}</td><td class="r">${Math.round(r.score)}</td><td class="r">${r.wpm}</td><td class="r">${r.acc}%</td></tr>`).join('');
+  const body = rows.slice(0, limit).map((r, i) => `<tr class="${mine.has(r.id) ? 'mine' : ''}${i >= LB.PRIZE && LB.prizes() ? ' rest' : ''}${r.sample ? ' sample' : ''}"><td>${i + 1}</td><td>${esc(r.nick)}${r.lvl ? ` <span class="tag lvl">${esc(r.lvl)}</span>` : ''}${r.sample ? ` <span class="tag ex">${esc(t('lbSample'))}</span>` : ''}${mine.has(r.id) ? ` <span class="tag you">${esc(t('lbYou'))}</span>` : ''}</td><td class="r">${Math.round(r.score)}</td><td class="r">${r.wpm}</td><td class="r">${r.acc}%</td></tr>`).join('');
+  if (!rows.length) return `<p class="rv-note">${esc(t('lbEmptyLvl'))}</p>`;
   return `<div style="overflow-x:auto"><table class="board"><thead><tr><th>#</th><th>${esc(t('lbNick'))}</th><th class="r">${esc(t('thScore'))}</th><th class="r">${esc(t('thWpm'))}</th><th class="r">${esc(t('thAcc'))}</th></tr></thead><tbody>${body}</tbody></table></div>`;
 }
 function resetText() {
   const ms = LB.msToReset(), d = Math.floor(ms / 86400000), h = Math.floor((ms % 86400000) / 3600000);
   return t('lbReset')(d, h);
 }
-function boardNotes() {
-  return `<p class="rv-note">${esc(t('lbPrize1'))}<br>${esc(t('lbPrize10'))}</p>` + (LB.live ? '' : `<p class="rv-note demo">${esc(t('lbDemo'))}</p>`);
+function boardNotes() {                   // prizes only when the ranking is live AND validated on the server (SITE.prizesLive)
+  const rules = `<p class="rv-note">${esc(t('lbRulesMin')(LB.MIN_ACC))}</p>`;
+  if (LB.prizes()) return rules + `<p class="rv-note">${esc(t('lbPrize1'))}<br>${esc(t('lbPrize10'))}</p>`;
+  return rules + `<p class="rv-note demo">${esc(t('lbNoPrize'))}${LB.live ? '' : ' ' + esc(t('lbLocal'))}</p>`;
 }
 
 /* =================== IMPROV REVIEW (pure, post-test only; never runs while writing) ===================
@@ -778,6 +805,8 @@ const Results = {
     if (n === 1) {
       const w = Math.round(p.wpm), a = Math.round(p.acc), s = Math.round(p.score), prog = p.total ? Math.round((Math.min(p.reached != null ? p.reached : p.typed, p.total) / p.total) * 100) : 0;
       return `<div class="rv-hero"><div class="result-score">${s}</div><div class="formula">${esc(t('rvFormula')(w, accShown(p.acc), s))}</div></div>
+        <p class="rv-note score-explain">${esc(t('rvScoreExplain'))}</p>
+        <p class="practice-note" id="rvPractice">${esc(t('rvPracticeNote'))}</p>
         <div class="stats auto mt-4">
           <div class="stat"><div class="k">${esc(t('wpm'))}</div><div class="v">${w}</div></div>
           <div class="stat"><div class="k">${esc(t('acc'))}</div><div class="v">${a}<small>%</small></div></div>
@@ -786,9 +815,9 @@ const Results = {
         </div>
         <div class="chips mt-3">
           <span class="chip ${p.nAccent ? 'hot' : ''}">${esc(t('eAccent'))} · <b>${p.nAccent}</b></span>
-          <span class="chip ${p.nSpace ? 'hot' : ''}">${esc(t('eSpace'))} · <b>${p.nSpace}</b></span>
+          <span class="chip ${p.nSpace ? 'soft' : ''}">${esc(t(p.qc ? 'eSpaceQc' : 'eSpace'))} · <b>${p.nSpace}</b></span>
           <span class="chip">${esc(t('eOther'))} · <b>${p.nOther}</b></span></div>
-        <p class="rv-note">${esc(t('rvAccNote'))}</p>
+        <p class="rv-note">${esc(t(p.qc ? 'rvAccNoteQc' : 'rvAccNote'))}</p>
         ${p.typed === 0 ? `<div class="flag mt-3">${esc(t('rvZero'))}</div>` : ''}`;
     }
     if (n === 2) {
@@ -891,12 +920,15 @@ const Results = {
   },
   async board(p) {
     const tok = ++Results.tok, box = $('rvBoard'); if (!box) return;
-    const rows = await LB.rows(); if (tok !== Results.tok) return;
+    const lvl = LEVELS.indexOf(p.level) !== -1 ? p.level : '';
+    if (lvl) store.set('pc_lb_lvl', lvl);
+    const rows = await LB.rows(lvl); if (tok !== Results.tok) return;
     const mine = LB.mine();
     let qual = '';
     const done = Results.submitted[p.at];
     if (p.why) {
-      qual = `<div class="flag">${esc(t('rvNo_' + p.why))}</div>`;
+      const why = t('rvNo_' + p.why);
+      qual = `<div class="flag" id="lbWhy">${esc(typeof why === 'function' ? why(accShown(p.acc)) : why)}</div>`;
     } else if (done) {
       qual = `<div class="lb-ok">${esc(t('lbDone')(done))}</div>`;
     } else {
@@ -908,20 +940,20 @@ const Results = {
           <label class="lb-label" for="lbNick">${esc(t('lbNickLabel'))}</label>
           <input id="lbNick" class="input" type="text" maxlength="16" autocomplete="nickname" autocapitalize="off" autocorrect="off" spellcheck="false" value="${prefill}">
           <div class="hint">${esc(t('lbNickHint'))}</div>
-          ${rank <= LB.PRIZE ? `<label class="lb-label" for="lbEmail">${esc(t('lbEmailLabel'))}</label>
+          ${rank <= LB.PRIZE && LB.prizes() ? `<label class="lb-label" for="lbEmail">${esc(t('lbEmailLabel'))}</label>
             <input id="lbEmail" class="input" type="email" maxlength="120" autocomplete="email" autocapitalize="off" spellcheck="false">
             <div class="hint">${esc(t('lbEmailHint'))}</div>` : ''}
           <div class="err" id="lbErr" role="alert"></div>
           <button type="submit" class="btn quill">${esc(t('lbSubmit'))}</button></form>`;
       } else qual = `<div class="rv-note">${esc(t('lbOut'))}</div>`;
     }
-    box.innerHTML = `<div class="eyebrow">${esc(t('lbEyebrow'))}</div>
+    box.innerHTML = `<div class="eyebrow">${esc(t('lbEyebrow'))}${lvl ? ` <span class="chip lvl">${esc(t('rvLevel'))} ${esc(Levels.full(lvl))}</span>` : ''}</div>
       <p class="rv-note" style="margin:2px 0 8px">${esc(resetText())}</p>
       ${qual}
       <div class="mt-3">${lbTable(rows, 5, mine)}</div>
       <div class="flex flex-wrap items-center gap-3 mt-2"><button type="button" class="btn alt" id="lbAll">${esc(t('lbSeeAll'))}</button></div>
       ${boardNotes()}`;
-    const all = $('lbAll'); if (all) all.onclick = Board.open;
+    const all = $('lbAll'); if (all) all.onclick = () => { if (lvl) LBView.pick(lvl, false); Board.open(); };
     const form = $('lbForm');
     if (form) form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -938,10 +970,23 @@ const Results = {
 
 /* ranking sheet (opened from the header; disabled while a run is in progress) */
 const LBView = {
+  lvl: null, tok: 0,
+  level() {                                // chosen level > current level filter > last level played > B1 / first level
+    if (LEVELS.indexOf(LBView.lvl) !== -1) return LBView.lvl;
+    if (typeof Levels !== 'undefined' && LEVELS.indexOf(Levels.cur) !== -1) return Levels.cur;
+    const saved = store.get('pc_lb_lvl', null);
+    if (LEVELS.indexOf(saved) !== -1) return saved;
+    return LEVELS.indexOf('B1') !== -1 ? 'B1' : LEVELS[0];
+  },
+  pick(v, redraw) { if (LEVELS.indexOf(v) === -1) return; LBView.lvl = v; store.set('pc_lb_lvl', v); if (redraw !== false) LBView.sheet(); },
   async sheet() {
     const box = $('lbBox'); if (!box) return;
-    const rows = await LB.rows(), mine = LB.mine();
-    box.innerHTML = `<p class="rv-note" style="margin:0 0 8px">${esc(resetText())}</p>${lbTable(rows, LB.TOP, mine)}${boardNotes()}`;
+    const lvl = LBView.level(), tok = ++LBView.tok;
+    const rows = await LB.rows(lvl), mine = LB.mine(); if (tok !== LBView.tok) return;
+    const pills = LEVELS.map(c => `<button type="button" class="chip lb-lvl${c === lvl ? ' on' : ''}" data-lv="${esc(c)}" aria-pressed="${c === lvl}">${esc(Levels.label(c))}</button>`).join('');
+    box.innerHTML = `<div class="lb-lvls" role="group" aria-label="${esc(t('lbLevelPick'))}">${pills}</div>
+      <p class="rv-note" style="margin:6px 0 8px">${esc(resetText())}</p>${lbTable(rows, LB.TOP, mine)}${boardNotes()}`;
+    box.querySelectorAll('.lb-lvl').forEach(b => b.addEventListener('click', () => LBView.pick(b.dataset.lv)));
   }
 };
 
@@ -1110,6 +1155,10 @@ Modules[1] = (function TypingSprint() {
   const BAND = 40;
   let alKey = null, alVal = null;
   function omissionKind(j, T) { return T[j] === ' ' && DOUBLE_PUNCT.includes(T[j + 1] || '') ? 'space' : 'other'; }
+  /* Quebec typography (pc_qc): the space before ? ! : ; is optional, so skipping it costs nothing and is never marked.
+     Default (France): a missing space there is a typography NOTICE ('space'); it is shown but does not lower accuracy. */
+  let qc = store.get('pc_qc', false) === true;
+  const optSpace = (j, T) => qc && omissionKind(j, T) === 'space';
   function positional(V, T) {                        // fallback, only if the alignment band cannot be used
     const m = T.length, st = new Uint8Array(m), edits = []; let correct = 0;
     for (let i = 0; i < V.length; i++) {
@@ -1125,14 +1174,14 @@ Modules[1] = (function TypingSprint() {
     try {
       const D = new Uint16Array((n + 1) * w).fill(INF);
       const at = (i, j) => { const d = j - i + W; return (j < 0 || j > m || d < 0 || d >= w) ? -1 : i * w + d; };
-      for (let j = 0; j <= Math.min(m, W); j++) D[at(0, j)] = j;
+      for (let j = 0, c = 0; j <= Math.min(m, W); j++) { D[at(0, j)] = c; if (j < m) c += optSpace(j, T) ? 0 : 1; }
       for (let i = 1; i <= n; i++) {
         const lo = Math.max(0, i - W), hi = Math.min(m, i + W);
         for (let j = lo; j <= hi; j++) {
           let best = INF, k;
           if (j > 0 && (k = at(i - 1, j - 1)) >= 0 && D[k] < INF) best = Math.min(best, D[k] + (V[i - 1] === T[j - 1] ? 0 : 1));
           if ((k = at(i - 1, j)) >= 0 && D[k] < INF) best = Math.min(best, D[k] + 1);           // extra typed char
-          if (j > 0 && (k = at(i, j - 1)) >= 0 && D[k] < INF) best = Math.min(best, D[k] + 1);  // skipped model char
+          if (j > 0 && (k = at(i, j - 1)) >= 0 && D[k] < INF) best = Math.min(best, D[k] + (optSpace(j - 1, T) ? 0 : 1));  // skipped model char (optional space: free)
           D[at(i, j)] = best;
         }
       }
@@ -1149,6 +1198,7 @@ Modules[1] = (function TypingSprint() {
             if (V[i - 1] === T[j - 1]) { st[j - 1] = 1; correct++; } else { st[j - 1] = 2; edits.push({ ti: j - 1, ins: false, kind: classify(j - 1, V[i - 1], T) }); }
             i--; j--;
           } else if (i > 0 && (k = at(i - 1, j)) >= 0 && D[k] + 1 === cur) { ins.add(j); edits.push({ ti: j, ins: true, kind: 'other' }); i--; }
+          else if (j > 0 && optSpace(j - 1, T) && (k = at(i, j - 1)) >= 0 && D[k] === cur) { st[j - 1] = 3; j--; }   // optional space left out: fine
           else if (j > 0 && (k = at(i, j - 1)) >= 0 && D[k] + 1 === cur) { st[j - 1] = 2; edits.push({ ti: j - 1, ins: false, kind: omissionKind(j - 1, T) }); j--; }
           else break;
         }
@@ -1159,7 +1209,7 @@ Modules[1] = (function TypingSprint() {
     return alVal;
   }
   function clsFor(j, al) {
-    let cls = j < al.end ? (al.st[j] === 1 ? 'o' : 'x') : 'p';
+    let cls = j < al.end ? (al.st[j] === 1 || al.st[j] === 3 ? 'o' : 'x') : 'p';
     if (al.ins.has(j)) cls += ' i';
     if (j === al.end && phase !== 'done') cls += ' c';
     return cls;
@@ -1194,11 +1244,12 @@ Modules[1] = (function TypingSprint() {
     const elapsed = phase === 'ready' ? 0 : Math.min(DURATION, Math.max(0, fin((performance.now() - t0) / 1000)));
     const minutes = Math.max(elapsed, 1) / 60;                       // never divides by 0
     const wpm = fin(elapsed < 2 ? 0 : (correct / 5) / minutes);      // too little time -> 0, not Infinity
-    const denom = correct + errors.size;
+    let nErr = 0; errors.forEach(k => { if (k !== 'space') nErr++; });   // the space notice never lowers accuracy
+    const denom = correct + nErr;
     const acc = denom === 0 ? 100 : Math.min(100, Math.max(0, fin((correct / denom) * 100)));   // nothing typed -> 100
     const score = fin(wpm * Math.pow(acc / 100, 2));
     let a = 0, s = 0, o = 0; errors.forEach(k => { if (k === 'accent') a++; else if (k === 'space') s++; else o++; });
-    return { wpm, acc, score, correct, typed: vchars.length, reached: Math.min(al.end, tchars.length), total: tchars.length, elapsed, nAccent: a, nSpace: s, nOther: o };
+    return { wpm, acc, score, correct, typed: vchars.length, reached: Math.min(al.end, tchars.length), total: tchars.length, elapsed, nAccent: a, nSpace: s, nOther: o, qc };
   }
   function paintStats(r) {
     $('sWpm').textContent = Math.round(r.wpm);
@@ -1206,7 +1257,7 @@ Modules[1] = (function TypingSprint() {
     $('sScore').textContent = Math.round(r.score);
     $('nAccent').textContent = r.nAccent; $('nSpace').textContent = r.nSpace; $('nOther').textContent = r.nOther;
     $('cAccent').classList.toggle('hot', r.nAccent > 0);
-    $('cSpace').classList.toggle('hot', r.nSpace > 0);
+    $('cSpace').classList.toggle('soft', r.nSpace > 0);
   }
 
   /* ----- clock (driven by Timers) ----- */
@@ -1246,13 +1297,13 @@ Modules[1] = (function TypingSprint() {
     setCritical(false); setMime('calm'); say('ready');
     accents.setDisabled(false);
     $('startBtn').hidden = false;
-    renderText(''); paintStats(compute(''));
+    renderText(''); paintStats(compute('')); paintQc();
   }
   function begin() {
     phase = 'running'; t0 = performance.now(); lastSec = DURATION + 1; setBusy(true);
     setMime('typing'); say('typing');
     Sound.ding();
-    $('startBtn').hidden = true;
+    $('startBtn').hidden = true; paintQc();
     timerId = Timers.every(tick, 150);
   }
   function finish(reason) {
@@ -1266,11 +1317,11 @@ Modules[1] = (function TypingSprint() {
     if (reason === 'time') { $('clock').textContent = '0:00'; $('lsClock').textContent = '0:00'; $('timefill').style.transform = 'scaleX(0)'; Sound.alarm(); }
     else Sound.ding();
     strip.classList.remove('active'); $('mod1').classList.remove('kb');
-    renderText(prev); paintStats(r);
+    renderText(prev); paintStats(r); paintQc();
 
     r.flagged = r.wpm > MAX_WPM; r.reason = reason; r.rank = 0; r.suspect = suspect;
     r.why = LB.check({ typed: r.typed, score: r.score, wpm: r.wpm, acc: r.acc, elapsed: r.elapsed, suspect });   // null = rankable
-    if (!r.why) r.rank = Board.save({ score: Math.round(r.score * 10) / 10, wpm: Math.round(r.wpm), acc: Math.round(r.acc), ex: exIndex, lvl: lvlOf(SP()[exIndex]) });
+    if (!r.why || r.why === 'acc') r.rank = Board.save({ score: Math.round(r.score * 10) / 10, wpm: Math.round(r.wpm), acc: Math.round(r.acc), ex: exIndex, lvl: lvlOf(SP()[exIndex]) });
     if (r.flagged) { setMime('calm'); say('flagged', true); }
     else if (r.typed === 0) { setMime('calm'); say('empty'); }
     else if (r.rank === 1) { setMime('victory'); say('record'); }
@@ -1341,6 +1392,18 @@ Modules[1] = (function TypingSprint() {
   const accents = Accents($('accents'), () => field, () => phase !== 'done');
 
   /* ----- buttons ----- */
+  function paintQc() {
+    const b = $('qcBtn'); if (!b) return;
+    b.classList.toggle('on', qc); b.setAttribute('aria-pressed', String(qc));
+    b.title = t(qc ? 'qcHint' : 'qcOffHint'); b.disabled = phase === 'running';
+    $('qcLabel').textContent = t('qcLabel');
+    const sl = $('cSpace') && $('cSpace').querySelector('[data-i18n]'); if (sl) sl.textContent = t(qc ? 'eSpaceQc' : 'eSpace');
+  }
+  quiet(() => $('qcBtn').addEventListener('click', () => {
+    if (phase === 'running') return;
+    qc = !qc; store.set('pc_qc', qc); alKey = null; alVal = null; paintQc();
+    if (phase === 'ready') { renderText(prev); paintStats(compute(prev)); }
+  }));
   $('startBtn').addEventListener('click', () => { Sound.unlock(); field.focus(); });
   $('restartBtn').addEventListener('click', () => { reset(); field.focus(); });
   $('nextBtn').addEventListener('click', () => loadExercise(Levels.next('sprint', exIndex)));
@@ -1353,7 +1416,7 @@ Modules[1] = (function TypingSprint() {
     onLang() {
       field.placeholder = target ? t('placeholder') : '';
       say(lastSay, $('bubble').classList.contains('warn'));
-      renderMeta();
+      renderMeta(); paintQc();
     },
     retry() { reset(); },
     next() { loadExercise(Levels.next('sprint', exIndex)); },

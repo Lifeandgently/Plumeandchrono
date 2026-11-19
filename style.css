@@ -299,3 +299,20 @@
   .obs li { margin: 4px 0; font-size: .92rem; color: var(--ink); }
   .obs li.obs-ok { color: var(--ink-soft); }
   .react-note { margin: 14px 0 0; font-size: .78rem; color: var(--pending); max-width: 70ch; }
+
+/* ===== Point 3: understandable score, honest ranking, Quebec typography ===== */
+.formula-box { text-align: right; }
+.formula-note { font-size: .78rem; color: var(--ink-soft); margin-top: 1px; }
+@media (max-width: 560px) { .formula-box { text-align: left; } }
+.practice-note { font-size: .82rem; color: var(--ink-soft); font-style: italic; margin: 6px 0 0; padding-left: 10px; border-left: 2px solid var(--pencil); max-width: 70ch; }
+.chip.soft { border-color: var(--ink-soft); color: var(--ink); background: transparent; border-style: dashed; }
+.qc-btn { cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: .76rem; color: var(--ink-soft); }
+.qc-btn .qc-dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid currentColor; display: inline-block; }
+.qc-btn.on { border-color: var(--quill); color: var(--quill); background: var(--quill-wash); font-weight: 600; }
+.qc-btn.on .qc-dot { background: currentColor; }
+.qc-btn:disabled { opacity: .55; cursor: default; }
+.lb-lvls { display: flex; flex-wrap: wrap; gap: 6px; }
+.lb-lvls .chip { cursor: pointer; font: inherit; font-size: .8rem; min-height: 32px; }
+table.board tr.sample td { color: var(--ink-soft); font-style: italic; }
+table.board td .tag.ex { border-style: dashed; font-style: normal; }
+

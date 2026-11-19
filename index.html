@@ -71,7 +71,7 @@
         <div class="eyebrow" data-i18n="m1eyebrow">Module I · 2 minutes</div>
         <h1 class="h-serif" style="font-size:1.55rem;margin:2px 0 0;" data-i18n="m1title">Typing Sprint &amp; Accents</h1>
       </div>
-      <div class="formula">Score = WPM × (Accuracy / 100)²</div>
+      <div class="formula-box"><div class="formula" data-i18n="m1formula">Score = WPM × (accuracy ÷ 100)²</div><div class="formula-note" data-i18n="m1formulaNote">Accuracy weighs more than speed.</div></div>
     </div>
     <p class="work" style="margin:8px 0 14px;color:var(--ink-soft);font-size:.93rem;max-width:68ch;" data-i18n="m1intro">Copy the French text exactly.</p>
 
@@ -96,6 +96,7 @@
       <span class="chip" id="cAccent"><span data-i18n="eAccent">Accents</span> · <b id="nAccent">0</b></span>
       <span class="chip" id="cSpace"><span data-i18n="eSpace">Space before ? ! : ;</span> · <b id="nSpace">0</b></span>
       <span class="chip" id="cOther"><span data-i18n="eOther">Other</span> · <b id="nOther">0</b></span>
+      <button type="button" class="chip qc-btn" id="qcBtn" aria-pressed="false"><span class="qc-dot" aria-hidden="true"></span><span id="qcLabel">Quebec typography</span></button>
     </div>
 
     <!-- Source text -->

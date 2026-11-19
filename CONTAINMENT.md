@@ -95,3 +95,11 @@ Límites: C1 se muestra como "Avanzado". El ranking mezcla niveles; el nivel es 
 | Copiar texto | `Results.copyDraft()` (portapapeles, plan B `execCommand`, y si todo falla deja el texto seleccionado con aviso) | Portapapeles restringido sin errores |
 | Devolución | `ImprovReview.analyze()` (pura, solo después de la prueba, `try/catch` con texto plano de respaldo) | Máximo 3 observaciones y 3 marcas por tipo; nunca corre mientras se escribe |
 | Tiempo de reacción | nota gris secundaria, fuera de la grilla de logros | No premia empezar apurado |
+
+## Punto 3: puntaje claro, ranking honesto y tipografía de Quebec
+- La fórmula del Sprint se traduce (`m1formula`, `m1formulaNote`). En Resultados se agregan `rvScoreExplain` y la nota serena `#rvPractice`, que dice que es un indicador de práctica y no una nota de examen oficial. El cálculo sigue siendo PPM × (precisión ÷ 100)² y no puede dar NaN.
+- El espacio antes de ? ! : ; ya no baja la precisión. En modo Francia se muestra como aviso (`.chip.soft`). En modo Quebec (`#qcBtn`, `pc_qc`) es opcional: saltarlo cuesta 0 en la alineación y nunca se marca. El botón se desactiva mientras corre el reloj.
+- `LB.MIN_ACC = 90`: `LB.check` devuelve `'acc'` debajo del piso. El intento no entra al ranking (con un aviso que muestra la precisión), pero sí queda en "Mis mejores puntajes".
+- Hay un ranking por nivel: `LB.rows(level)` y Supabase usa `&level=eq.`. Resultados muestra el ranking del nivel jugado. La hoja del ranking tiene pastillas de nivel (`pc_lb_lvl`).
+- Premios honestos: `SITE.prizesLive` vale `false`. Los premios y el campo de email se muestran solo si vale `true` y además el ranking está en vivo con validación en el servidor. Las filas de muestra llevan la etiqueta "ejemplo", se ven atenuadas y hay 4 por nivel (`pc_week.v = 2`; las filas reales se conservan).
+- No se tocaron Improvisación, Lectura, Feedback (`#fbBox`), `#adSlot`, la tarjeta del kit ni el mimo del encabezado.
