@@ -335,7 +335,7 @@ table.board td .tag.ex { border-style: dashed; font-style: normal; }
   .masthead > .wrap { padding-top: 8px !important; }
   .masthead .lbl-long { display: none; }
   .masthead .lbl-short { display: inline; }
-  .masthead #mimeHeader { width: 40px !important; height: 40px !important; }
+  .masthead #brandMark { width: 40px !important; height: 40px !important; }
   .mast-tools { flex-wrap: nowrap; gap: 6px; width: 100%; }
   .masthead .ghost-btn { padding: 4px 10px; min-height: 36px; font-size: .78rem; gap: 6px; white-space: nowrap; }
   .masthead .pill-group button { padding: 4px 10px; min-height: 32px; }
@@ -356,7 +356,6 @@ table.board td .tag.ex { border-style: dashed; font-style: normal; }
 .colo-brand b { font-family: var(--serif); font-weight: 600; }
 /* Characters: same skeleton for fr / en / es (data-char). Only the clock characters change data-state;
    the header one stays calm. The critical ring only changes colour: no shake, no scale. */
-#mimeHeader .mime .st { transition: none; }
 
 /* ===== Header row stays put when switching EN <-> ES =====
    Audio and Ranking always show their short label (the long one stays in the DOM as aria-label) and have a fixed width,
@@ -374,3 +373,7 @@ table.board td .tag.ex { border-style: dashed; font-style: normal; }
 @media (max-width: 600px) {
   .masthead #audioBtn.icon-btn { width: 36px; height: 36px; min-height: 36px; }
 }
+
+/* Header logo: the brand mark (isotipo), static, one ink. The characters live only next to the clocks. */
+.brand-mark { flex: none; color: var(--ink); }
+.brand-mark .pc-mark { width: 100%; height: 100%; }

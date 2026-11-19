@@ -615,9 +615,8 @@ const PL = PRACTICE.htmlLang;               // lang attribute for every practice
 let lang = (() => { const v = store.get('pc_lang', null); return v === 'es' || v === 'en' ? v : 'en'; })();   // English by default; Spanish only when chosen
 const t = (k) => I18N[lang][k];
 
-/* Header character: STATIC. It is drawn once in the calm state and nothing ever changes its data-state.
-   It follows the practice language (practiceChar()), not the interface language, so EN|ES never redraws it. */
-$('mimeHeader').innerHTML = mimeSVG('h');
+/* Header: the brand mark (#brandMark, static SVG in index.html) is the logo. No character is drawn in the header;
+   characters appear only next to the clocks (Sprint coach and Coach() in II and III) and follow practiceChar(). */
 
 /* Module registry. A module is { mount(), unmount(), onLang() } and owns its own state and DOM ids.
    The shell never reads a module's variables; it only calls these three hooks, wrapped in safe(). */
