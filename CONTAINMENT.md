@@ -86,3 +86,12 @@ Límites: C1 se muestra como "Avanzado". El ranking mezcla niveles; el nivel es 
 | Fin del texto | exacto, o al llegar al último carácter alineado | Un texto con una omisión ya no queda "trabado" hasta 0:00 |
 | Franja compacta | `#liveStrip` (sticky arriba), `renderStrip()`, `#lsClock` | Con el teclado abierto se ve el tramo actual del modelo y el tiempo; `visualViewport` mantiene el campo a la vista |
 | Plan B | `positional()` si la alineación no se puede usar | Nunca se rompe la pantalla ni aparece NaN |
+
+## Improvisación: borrador visible y devolución suave
+
+| Responsabilidad | Dueño en el código | Qué previene |
+|---|---|---|
+| Texto del alumno en resultados | `Modules[2]` solo agrega `text` al payload; `Results.draft()` lo muestra (`#rvDraft`, `pre-wrap`, sin desborde) | La lógica de Improv no cambia |
+| Copiar texto | `Results.copyDraft()` (portapapeles, plan B `execCommand`, y si todo falla deja el texto seleccionado con aviso) | Portapapeles restringido sin errores |
+| Devolución | `ImprovReview.analyze()` (pura, solo después de la prueba, `try/catch` con texto plano de respaldo) | Máximo 3 observaciones y 3 marcas por tipo; nunca corre mientras se escribe |
+| Tiempo de reacción | nota gris secundaria, fuera de la grilla de logros | No premia empezar apurado |

@@ -99,6 +99,15 @@ const I18N = {
     m2resWords: 'Words', m2resConn: 'Connectors', m2resReact: 'Reaction time', m2resTime: 'Writing time',
     m2used: 'used', m2missing: 'missing', m2noAccent: 'accent missing', m2next: 'New situation',
     m2goalMet: 'Word goal reached', m2goalShort: (n) => `${n} words short of the goal`,
+    m2draftLabel: 'Your text', m2draftEmpty: 'You did not write anything this time.',
+    m2copy: 'Copy text', m2copied: 'Copied', m2copyFail: 'Copying is blocked here: the text is now selected, copy it from your device menu.',
+    m2legend: 'Highlighted: connectors you used. Dotted underline: worth a second look.',
+    m2reviewLabel: 'Feedback', m2reviewNone: 'No remarks on accents, capitals or connectors. Well done!',
+    m2obsConn: (pairs) => `Check the accent in the connector: ${pairs}.`,
+    m2obsConnOk: (list) => `Good use of ${list} in your text.`,
+    m2obsAccent: (pairs) => `Common words missing their accent: ${pairs}.`,
+    m2obsCap: (pairs) => `A new sentence starts with a capital letter: ${pairs}.`,
+    m2reactNote: (s) => `Time to first key: ${s} s. Just for reference: thinking first beats starting fast.`,
     say2: {
       ready: 'Pick your moment. The situation and your connectors appear when you start.',
       plan: 'Sketch three ideas. The notes lock at 0:00.',
@@ -230,6 +239,15 @@ const I18N = {
     m2resWords: 'Palabras', m2resConn: 'Conectores', m2resReact: 'Tiempo de reacción', m2resTime: 'Tiempo de redacción',
     m2used: 'usado', m2missing: 'falta', m2noAccent: 'falta la tilde', m2next: 'Otra situación',
     m2goalMet: 'Meta de palabras alcanzada', m2goalShort: (n) => `Faltaron ${n} palabras para la meta`,
+    m2draftLabel: 'Tu texto', m2draftEmpty: 'Esta vez no escribiste nada.',
+    m2copy: 'Copiar texto', m2copied: 'Copiado', m2copyFail: 'El portapapeles está bloqueado: el texto quedó seleccionado para que lo copies desde el menú del dispositivo.',
+    m2legend: 'Resaltado: conectores usados. Subrayado punteado: para revisar.',
+    m2reviewLabel: 'Devolución', m2reviewNone: 'Sin observaciones sobre tildes, mayúsculas ni conectores. ¡Bien hecho!',
+    m2obsConn: (pairs) => `Revisá la tilde en el conector: ${pairs}.`,
+    m2obsConnOk: (list) => `Buen uso de ${list} en tu texto.`,
+    m2obsAccent: (pairs) => `Palabras frecuentes sin tilde: ${pairs}.`,
+    m2obsCap: (pairs) => `Una oración nueva empieza con mayúscula: ${pairs}.`,
+    m2reactNote: (s) => `Tiempo hasta la primera tecla: ${s} s. Es un dato orientativo: conviene pensar antes que empezar rápido.`,
     say2: {
       ready: 'Cuando quieras. La situación y tus conectores aparecen al empezar.',
       plan: 'Esbozá tres ideas. Las notas se bloquean en 0:00.',
@@ -638,6 +656,106 @@ function boardNotes() {
   return `<p class="rv-note">${esc(t('lbPrize1'))}<br>${esc(t('lbPrize10'))}</p>` + (LB.live ? '' : `<p class="rv-note demo">${esc(t('lbDemo'))}</p>`);
 }
 
+/* =================== IMPROV REVIEW (pure, post-test only; never runs while writing) ===================
+   Builds the highlighted copy of the learner's text and at most 3 calm remarks:
+   1) connectors found (soft highlight; flags a missing accent), 2) frequent French words written without their accent,
+   3) a sentence that starts in lower case after . ! ?  Any failure falls back to the plain text. */
+const ImprovReview = (function () {
+  const MAX_OBS = 3, MAX_MARKS = 3;
+  // Unaccented form -> correct form. Only words whose unaccented spelling is NOT itself a French word (no a/à, ou/où, la/là...).
+  const ACC = { etre: 'être', tres: 'très', deja: 'déjà', apres: 'après', voila: 'voilà', ete: 'été', meme: 'même', memes: 'mêmes',
+    probleme: 'problème', problemes: 'problèmes', premiere: 'première', derniere: 'dernière', interessant: 'intéressant', interessante: 'intéressante',
+    ecole: 'école', etudiant: 'étudiant', etudiante: 'étudiante', etudiants: 'étudiants', etudes: 'études', societe: 'société', securite: 'sécurité',
+    sante: 'santé', qualite: 'qualité', possibilite: 'possibilité', activite: 'activité', activites: 'activités', verite: 'vérité', liberte: 'liberté',
+    necessaire: 'nécessaire', economique: 'économique', ecrire: 'écrire', idee: 'idée', idees: 'idées', telephone: 'téléphone', systeme: 'système',
+    reponse: 'réponse', repondre: 'répondre', decision: 'décision', developpement: 'développement', general: 'général', generalement: 'généralement',
+    egalement: 'également', evidemment: 'évidemment', reussir: 'réussir', reussite: 'réussite', reflechir: 'réfléchir', francais: 'français',
+    francaise: 'française', garcon: 'garçon', lecon: 'leçon', ca: 'ça', plutot: 'plutôt', bientot: 'bientôt', cout: 'coût', gout: 'goût',
+    fete: 'fête', tete: 'tête', fenetre: 'fenêtre', hopital: 'hôpital', hotel: 'hôtel', theatre: 'théâtre', cafe: 'café', experience: 'expérience',
+    difficulte: 'difficulté', difficultes: 'difficultés', realite: 'réalité', medecin: 'médecin', numero: 'numéro', energie: 'énergie',
+    enorme: 'énorme', epoque: 'époque', etat: 'état', etranger: 'étranger', etrangers: 'étrangers', evenement: 'événement', reunion: 'réunion',
+    region: 'région', annee: 'année', annees: 'années', journee: 'journée', soiree: 'soirée', mere: 'mère', pere: 'père', frere: 'frère',
+    regle: 'règle', regles: 'règles', deuxieme: 'deuxième', troisieme: 'troisième', bibliotheque: 'bibliothèque', ecologique: 'écologique',
+    electrique: 'électrique', tele: 'télé', television: 'télévision', desole: 'désolé', desolee: 'désolée', peut_etre: 'peut-être', voisinage: null };
+  const strip1 = (ch) => { const d = ch.normalize('NFD'); return (d[0] || ch).toLowerCase(); };
+  const isL = (ch) => !!ch && /\p{L}/u.test(ch);
+  const q = (s) => (lang === 'es' || lang === 'fr') ? `« ${s} »` : `“${s}”`;
+  function connectorMarks(text, conns, det) {
+    const base = Array.from(text, (ch) => (ch === '’' || ch === '‘' ? "'" : strip1(ch))).join('');
+    const marks = [], miss = [], used = [];
+    (conns || []).forEach((c, ci) => {
+      if (!c || !c.fr) return;
+      const needle = Array.from(c.fr, (ch) => (ch === '’' ? "'" : strip1(ch))).join('');
+      let from = 0, hit = false, guard = 0;
+      while (guard++ < 50) {
+        const at = base.indexOf(needle, from); if (at === -1) break;
+        from = at + 1;
+        if (isL(text[at - 1]) || isL(text[at + needle.length])) continue;          // whole words only
+        const orig = text.slice(at, at + needle.length);
+        const accentMissing = orig.replace(/[’‘]/g, "'").toLowerCase() !== c.fr.replace(/[’‘]/g, "'").toLowerCase();
+        marks.push({ s: at, e: at + needle.length, cls: 'mk-conn' + (accentMissing ? ' warn' : ''), title: accentMissing ? c.fr : '' });
+        if (accentMissing && miss.length < MAX_MARKS) miss.push(`${q(orig)} → ${q(c.fr)}`);
+        hit = true;
+      }
+      if (hit || (det && det[ci] && det[ci].found)) used.push(q(c.fr));
+    });
+    return { marks, miss, used };
+  }
+  function accentMarks(text) {
+    const marks = [], pairs = [], seen = new Set();
+    const re = /\p{L}+(?:-\p{L}+)*/gu; let m, guard = 0;
+    while ((m = re.exec(text)) && guard++ < 2000) {
+      const w = m[0], low = w.toLowerCase();
+      if (/[^\x00-\x7F]/.test(w)) continue;                                        // already has accents or special letters
+      const fix = ACC[low.replace(/-/g, '_')];
+      if (!fix) continue;
+      if (marks.length >= MAX_MARKS) break;
+      const shown = w[0] === w[0].toUpperCase() ? fix[0].toUpperCase() + fix.slice(1) : fix;
+      marks.push({ s: m.index, e: m.index + w.length, cls: 'mk-acc', title: shown });
+      if (!seen.has(low)) { seen.add(low); pairs.push(`${q(w)} → ${q(shown)}`); }
+    }
+    return { marks, pairs };
+  }
+  function capitalMarks(text) {
+    const marks = [], pairs = [];
+    const re = /(^|[.!?]["»”)]?\s+)(\p{Ll}[\p{L}'’-]*)/gu; let m, guard = 0;
+    while ((m = re.exec(text)) && guard++ < 2000) {
+      const lead = m[1], word = m[2], start = m.index + lead.length;
+      if (lead && /\.\.\.?\s*$|…/.test(text.slice(Math.max(0, m.index - 2), m.index + lead.length))) continue;   // "..." may go on in lower case
+      if (/\b(etc|cf|p\.ex|ex)\.\s*$/i.test(text.slice(Math.max(0, m.index - 6), m.index + lead.length))) continue;
+      if (marks.length >= MAX_MARKS) break;
+      marks.push({ s: start, e: start + word.length, cls: 'mk-cap', title: word[0].toUpperCase() + word.slice(1) });
+      pairs.push(`${q(word)} → ${q(word[0].toUpperCase() + word.slice(1))}`);
+    }
+    return { marks, pairs };
+  }
+  function paint(text, marks) {
+    const sorted = marks.slice().sort((a, b) => a.s - b.s || b.e - a.e), out = []; let pos = 0;
+    sorted.forEach(k => {
+      if (k.s < pos) return;                                                        // never overlap marks
+      out.push(esc(text.slice(pos, k.s)));
+      out.push(`<mark class="${k.cls}"${k.title ? ` title="${esc(k.title)}"` : ''}>${esc(text.slice(k.s, k.e))}</mark>`);
+      pos = k.e;
+    });
+    out.push(esc(text.slice(pos)));
+    return out.join('');
+  }
+  return {
+    analyze(text, conns, det) {
+      text = String(text || '');
+      if (!text.trim()) return { html: '', obs: [] };
+      try {
+        const c = connectorMarks(text, conns, det), a = accentMarks(text), k = capitalMarks(text), obs = [];
+        if (c.miss.length) obs.push({ kind: 'conn', text: t('m2obsConn')(c.miss.join(', ')) });
+        if (a.pairs.length) obs.push({ kind: 'acc', text: t('m2obsAccent')(a.pairs.join(', ')) });
+        if (k.pairs.length) obs.push({ kind: 'cap', text: t('m2obsCap')(k.pairs.join(', ')) });
+        if (obs.length < MAX_OBS && !c.miss.length && c.used.length) obs.push({ kind: 'ok', text: t('m2obsConnOk')(c.used.join(lang === 'es' ? ' y ' : ' and ')) });
+        return { html: paint(text, c.marks.concat(a.marks, k.marks)), obs: obs.slice(0, MAX_OBS) };
+      } catch (e) { return { html: esc(text), obs: [] }; }
+    }
+  };
+})();
+
 /* formula line: one decimal when rounding would hide a small error (99.7 instead of 100), so the shown formula adds up */
 const accShown = (acc) => { const x = fin(acc), r = Math.round(x * 10) / 10; const v = Number.isInteger(r) ? r : r.toFixed(1); return lang === 'es' ? String(v).replace('.', ',') : String(v); };
 const Results = {
@@ -680,14 +798,15 @@ const Results = {
       return `<div class="stats auto mt-3">
           <div class="stat"><div class="k">${esc(t('m2resWords'))}</div><div class="v">${p.words}<small> / ${p.goal}</small></div></div>
           <div class="stat"><div class="k">${esc(t('m2resConn'))}</div><div class="v">${used}/2</div></div>
-          <div class="stat"><div class="k">${esc(t('m2resReact'))}</div><div class="v">${p.react === null ? '—' : p.react.toFixed(1) + '<small> s</small>'}</div></div>
           <div class="stat"><div class="k">${esc(t('m2resTime'))}</div><div class="v" style="font-size:1.05rem">${esc(time)}</div></div>
         </div>
         <div class="goalbar mt-3" aria-hidden="true"><i style="width:${pct}%"></i></div>
         <p class="rv-note">${esc(p.words >= p.goal ? t('m2goalMet') : t('m2goalShort')(p.goal - p.words))}</p>
         <div class="eyebrow mt-4">${esc(t('m2connLabel'))}</div>
         <div class="chips mt-2">${p.conns.map((c, i) => { const d = p.det[i]; return `<span class="chip conn ${d.found ? 'ok' : 'miss'}">${d.found ? '✓' : '✗'} <b>${esc(c.fr)}</b> <small>· ${esc(t(d.found ? 'm2used' : 'm2missing'))}${d.accentMissing ? ' · ' + esc(t('m2noAccent')) : ''}</small></span>`; }).join('')}</div>
-        ${p.words === 0 ? `<div class="flag mt-3">${esc(t('say2').empty)}</div>` : ''}`;
+        ${p.words === 0 ? `<div class="flag mt-3">${esc(t('say2').empty)}</div>` : ''}
+        ${Results.draft(p)}
+        ${p.react === null ? '' : `<p class="react-note">${esc(t('m2reactNote')(lang === 'es' ? p.react.toFixed(1).replace('.', ',') : p.react.toFixed(1)))}</p>`}`;
     }
     const letters = ['A', 'B', 'C', 'D'];
     return `<div class="rv-hero"><div class="result-score">${p.score}/3</div><div class="formula">${esc(t('m3resScore'))}</div></div>
@@ -700,6 +819,34 @@ const Results = {
         <div class="corr-line">${it.chosen === it.correct ? '✓' : '✗'} ${esc(t('rvYours'))}: <span lang="fr">${it.chosen === null ? esc(t('rvNoAns')) : letters[it.chosen] + '. ' + esc(it.o[it.chosen])}</span></div>
         ${it.chosen === it.correct ? '' : `<div class="corr-line">${esc(t('rvRight'))}: <span lang="fr"><b>${letters[it.correct]}. ${esc(it.o[it.correct])}</b></span></div>`}
         <div class="why" lang="fr">${esc(it.why)}</div></div>`).join('')}`;
+  },
+  draft(p) {                               // Improv only: the learner's own text, softly marked, plus up to 3 remarks
+    const text = String(p.text || ''), rv = ImprovReview.analyze(text, p.conns, p.det);
+    if (!text.trim()) return `<div class="eyebrow mt-5">${esc(t('m2draftLabel'))}</div><p class="rv-note">${esc(t('m2draftEmpty'))}</p>`;
+    return `<div class="flex flex-wrap items-center justify-between gap-2 mt-5"><div class="eyebrow">${esc(t('m2draftLabel'))}</div>
+        <button type="button" class="btn alt btn-sm" id="rvCopyDraft">${esc(t('m2copy'))}</button></div>
+      <div class="draft mt-2" id="rvDraft" lang="fr">${rv.html}</div>
+      <p class="draft-legend">${esc(t('m2legend'))}</p>
+      <p class="draft-status" id="rvCopyStatus" role="status" aria-live="polite"></p>
+      <div class="eyebrow mt-4">${esc(t('m2reviewLabel'))}</div>
+      ${rv.obs.length ? `<ul class="obs mt-2">${rv.obs.map(o => `<li class="obs-${o.kind}">${esc(o.text)}</li>`).join('')}</ul>` : `<p class="rv-note">${esc(t('m2reviewNone'))}</p>`}`;
+  },
+  copyDraft(p) {
+    const btn = $('rvCopyDraft'), box = $('rvDraft'), status = $('rvCopyStatus'); if (!btn || !box) return;
+    const text = String(p.text || '');
+    const done = () => { btn.textContent = t('m2copied'); btn.classList.add('done'); Timers.after(() => { if (btn.isConnected) { btn.textContent = t('m2copy'); btn.classList.remove('done'); } }, 1800); };
+    const manual = () => {
+      quiet(() => { const r = document.createRange(); r.selectNodeContents(box); const s = getSelection(); s.removeAllRanges(); s.addRange(r); });
+      let ok = false; try { ok = document.execCommand && document.execCommand('copy'); } catch (e) { ok = false; }
+      if (ok) done(); else if (status) status.textContent = t('m2copyFail');
+    };
+    btn.addEventListener('click', () => {
+      if (status) status.textContent = '';
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, manual);
+        else manual();
+      } catch (e) { manual(); }
+    });
   },
   render() {
     const c = Results.cur; if (!c) return;
@@ -733,6 +880,7 @@ const Results = {
     view.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { showMod(+b.dataset.go); window.scrollTo({ top: 0, behavior: 'smooth' }); }));
     Results.ads();
     if (n === 1) Results.board(p);
+    if (n === 2) Results.copyDraft(p);
   },
   ads() {                                  // AdSense: empty placeholder until SITE.ads is filled and the page loads the AdSense script
     const slot = $('adSlot'); if (!slot || !SITE.ads.client || !SITE.ads.slot) return;
@@ -1357,7 +1505,7 @@ Modules[2] = (function Improv() {
     coach.critical(false);
     if (reason === 'time') { coach.clock(0); coach.bar(0); Sound.alarm(); } else Sound.ding();
     const words = countWords(v), det = conns.map(c => detect(v, c));
-    lastRes = { words, goal: scenario.goal, det, conns: conns.slice(), reason, level: lvlOf(scenario),
+    lastRes = { words, goal: scenario.goal, det, conns: conns.slice(), reason, level: lvlOf(scenario), text: String(v || '').slice(0, 3000),
                 react: firstKeyAt === null ? null : Math.max(0, (firstKeyAt - phaseT0) / 1000),
                 secs: Math.min(WRITE, Math.max(0, fin((now - phaseT0) / 1000))) };
     const win = words >= scenario.goal && det.every(d => d.found);
