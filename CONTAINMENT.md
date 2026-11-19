@@ -198,3 +198,9 @@ Qué revisar en la tablet: tocar EN y ES varias veces en vertical y en horizonta
 - Las claves internas (`improv` en `exercises.js`, `CTX_BY_MOD`, `Levels.pool('improv')`) y los IDs de ejercicios no cambian.
 - **Pestañas:** se respeta el diseño que Seba eligió. En el celular (≤ 600 px) son 3 columnas iguales; en pantallas más anchas van juntas a la izquierda con número romano, y su ancho depende del texto (cambian unos 9 px entre EN y ES).
 - **Medido (Chromium):** a 360, 412, 601, 800 y 1280 px, en EN y ES, Audio y Ranking no se mueven, el encabezado mide 192 px a 360 px y 169 px desde 601 px, el personaje del encabezado sigue en calma y no hay errores de página.
+
+## Sprint sin la fórmula del puntaje (`?v=20261119h`)
+**Archivos modificados:** `index.html` (tarjeta del Módulo I y versión), `app.js` (se quitó la clave `m1formula` en EN y ES) y este archivo. No cambian `style.css`, `exercises.js` ni `audio.js`.
+- La tarjeta del Sprint ya no muestra "Score = WPM × (accuracy ÷ 100)²" / "Puntaje = PPM × (precisión ÷ 100)²". Queda solo la nota "Accuracy weighs more than speed." / "La precisión pesa más que la velocidad." y la explicación del ejercicio sin cambios.
+- El cálculo del puntaje no cambia. La pantalla de resultados sigue mostrando la cuenta con los números reales.
+- Paridad de claves: EN y ES tienen 220 claves cada uno, sin faltantes. Medido a 360 y 800 px: encabezado sin cambios y sin errores de página.
