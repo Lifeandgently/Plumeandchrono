@@ -22,7 +22,7 @@
   };
 </script>
 <!-- ASSET VERSION: when you upload new files, change v= on these 4 lines (same value everywhere) so tablets do not mix old and new files. -->
-<link rel="stylesheet" href="style.css?v=20261119d">
+<link rel="stylesheet" href="style.css?v=20261119e">
 </head>
 <body>
 <!-- ============ BRAND MARK (isotipo) ============ -->
@@ -56,7 +56,7 @@
           <button type="button" id="langEN" data-lang="en">EN</button>
           <button type="button" id="langES" data-lang="es">ES</button>
         </div>
-        <button type="button" class="ghost-btn" id="audioBtn" aria-pressed="true"><span class="dot"></span><span id="audioLabel" class="lbl-long">Exam Audio: ON</span><span id="audioShort" class="lbl-short" aria-hidden="true">Audio on</span></button>
+        <button type="button" class="ghost-btn icon-btn" id="audioBtn" aria-pressed="true" aria-label="Exam Audio: ON" title="Exam Audio: ON"><svg class="snd-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 9.5h3.2L12 5.6v12.8l-4.8-3.9H4z" fill="currentColor" stroke-width="1.4"/><path class="snd-on" d="M15.4 9.2a4 4 0 0 1 0 5.6M18 6.8a7.4 7.4 0 0 1 0 10.4"/><path class="snd-off" d="M15.6 9.4l5 5.2M20.6 9.4l-5 5.2"/></svg><span id="audioLabel" hidden>Exam Audio: ON</span><span id="audioShort" hidden>Audio on</span></button>
         <button type="button" class="ghost-btn" id="boardBtn"><span aria-hidden="true">✒︎</span><span class="lbl-long" data-i18n="board">Weekly Leaderboard</span><span class="lbl-short" aria-hidden="true" data-i18n="boardShort">Ranking</span></button>
       </div>
       </div>
@@ -211,8 +211,8 @@
 </div>
 
 <!-- Load order matters: data first, then audio, then the app (all relative paths, no build step). -->
-<script src="exercises.js?v=20261119d"></script>
-<script src="audio.js?v=20261119d"></script>
-<script src="app.js?v=20261119d"></script>
+<script src="exercises.js?v=20261119e"></script>
+<script src="audio.js?v=20261119e"></script>
+<script src="app.js?v=20261119e"></script>
 </body>
 </html>

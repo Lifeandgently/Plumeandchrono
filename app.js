@@ -1105,10 +1105,11 @@ const LBView = {
   }
 };
 
-/* header audio button: full label on wide screens, short one on phones; the accessible name is always the full one */
+/* header audio button: icon only (speaker; crossed out when off), same width in every language.
+   The full label is the accessible name and the tooltip; aria-pressed drives which icon strokes show (style.css). */
 function paintAudio() {
   const full = Sound.enabled ? t('audioOn') : t('audioOff');
-  $('audioLabel').textContent = full; $('audioBtn').setAttribute('aria-label', full);
+  $('audioLabel').textContent = full; $('audioBtn').setAttribute('aria-label', full); $('audioBtn').setAttribute('title', full);
   const s = $('audioShort'); if (s) s.textContent = Sound.enabled ? t('audioShortOn') : t('audioShortOff');
 }
 /* i18n: shell texts here, module texts through each module's onLang() */

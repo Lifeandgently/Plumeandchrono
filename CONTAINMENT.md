@@ -176,3 +176,10 @@ Qué revisar en la tablet:
 - **Medido (Chromium):** a 360, 412, 601, 640, 700, 768, 800 y 1024 px, la posición y el ancho de Audio, Ranking y las pestañas son idénticos en EN y en ES. El encabezado sigue en 192 px a 360 px.
 
 Qué revisar en la tablet: tocar EN y ES varias veces en vertical y en horizontal; nada de la fila superior ni de las pestañas debe moverse ni bajar de línea.
+
+### Ajuste: audio solo con ícono (`?v=20261119e`)
+**Archivos modificados:** `index.html` (botón y versión), `style.css`, `app.js` (`paintAudio()` también pone `title`).
+- El botón de audio ahora es un círculo con un ícono de parlante (40 px; 36 px a 600 px o menos). Con el sonido activo se ven las ondas; desactivado, las ondas se cambian por una cruz y el ícono pasa a gris. Lo controla `aria-pressed`; no hay animación.
+- El texto completo ("Audio de examen: activado/desactivado") queda como `aria-label` y `title`. `#audioLabel` y `#audioShort` siguen en el DOM, ocultos.
+- "Ranking" vuelve a su ancho natural: la palabra es la misma en EN y ES.
+- Medido: a 360, 412, 601, 800 y 1280 px, Audio, Ranking y las pestañas quedan en la misma posición en EN y ES. A 601 px la fila ya entra en una sola línea (encabezado de 169 px en lugar de 223 px).
