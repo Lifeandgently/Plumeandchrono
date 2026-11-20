@@ -119,7 +119,7 @@ Límites: C1 se muestra como "Avanzado". El ranking mezcla niveles; el nivel es 
 
 | Responsabilidad | Dueño en el código | Qué previene |
 |---|---|---|
-| Caché en la tablet | `index.html`: `style.css`, `exercises.js`, `audio.js` y `app.js` llevan `?v=20261120a` (sube una letra en cada entrega) | Que el navegador mezcle un `app.js` viejo con un marcado nuevo. Al subir archivos nuevos, cambia el mismo valor en las 4 líneas |
+| Caché en la tablet | `index.html`: `style.css`, `exercises.js`, `audio.js` y `app.js` llevan `?v=20261120g` (sube una letra en cada entrega) | Que el navegador mezcle un `app.js` viejo con un marcado nuevo. Al subir archivos nuevos, cambia el mismo valor en las 4 líneas |
 | Ids estables | `exercises.js`: cada ítem de Sprint, Improvisación y Lectura tiene `id` (`fr_sp_b1_01`, `fr_a1_01`, `fr_rd_a2_01`…). `Bank.find()` / `Bank.idAt()` en `app.js` | Agregar o reordenar ítems ya no manda al alumno a otro ejercicio. Un id nunca se reutiliza ni se renombra |
 | Progreso guardado | `pc_ex_id` (Sprint), `pc_imp_last` (última consigna), `pc_rd_last` (última lectura), `exId` en "Mis mejores puntajes" | Se guarda el id, no la posición. Los datos viejos (`pc_ex` por posición) se siguen leyendo como respaldo |
 | Validación visible | `PROBLEMS[mode]` + `Bank.list()` | Un ítem mal formado se descarta y aparece en la consola (`console.warn`) con su posición, id y motivo. Un id ausente o repetido no rompe nada: usa la posición y también avisa |
@@ -244,6 +244,24 @@ Qué revisar en la tablet: tocar EN y ES varias veces en vertical y en horizonta
 - Medido (Chromium, EN y ES, 360/412/601/800/1280 px): botones FR/EN/ES visibles, Audio y Ranking sin moverse, sin errores de página. Al tocar ES se guarda `pc_plang`, la página recarga y el personaje del reloj pasa al cronista; durante una prueba los 3 botones quedan deshabilitados.
 - Qué revisar en la tablet: la línea única a 800 y 1280 px, el cambio de idioma de práctica y que el personaje cambie solo junto a los relojes.
 
+## Texto al compartir el enlace (`?v=20261120d`)
+**Archivos modificados:** `index.html` (metas y versión) y este archivo. No cambian `style.css`, `exercises.js`, `audio.js` ni `app.js`; aun así hay que subir los 5 juntos para que los 4 `?v=` coincidan.
+- La descripción de la página y de la vista previa del enlace (WhatsApp, Telegram, redes) pasa de "daily typing and accent practice for computer-based French exams" a **"Daily typing and accent practice for computer-based French, English and Spanish exams."**
+- Se agregaron las metas `og:type`, `og:site_name`, `og:title`, `og:description` y `twitter:card`, con el mismo texto, para que la vista previa use título y descripción propios.
+- WhatsApp guarda en caché la vista previa de cada enlace: puede seguir mostrando el texto viejo un tiempo. Para forzarlo, se comparte el enlace con un parámetro nuevo (por ejemplo `?v=2`) o se pide a Facebook que lo vuelva a leer (Sharing Debugger).
+- Sin cambios en la app: fórmulas, Sprint, encabezado, selectores, bancos y reglas de contención quedan igual.
+## Sin traducción automática del navegador (`?v=20261120e`)
+**Archivos modificados:** `index.html` (la etiqueta `<html>`, una meta y el `?v=`) y este archivo. No cambian `style.css`, `exercises.js`, `audio.js` ni `app.js`; se suben los 5 juntos para que los 4 `?v=` coincidan.
+- **Problema visto en un celular en Argentina:** Chrome tradujo la página al español por su cuenta: el nombre salió como "Pluma y cronógrafo", los botones `EN ES` quedaron como `ES ES` y los de práctica `FR EN ES` como `FR ES ES`. Lo peor es que el traductor también puede traducir los textos en francés que se copian, y la práctica queda inservible.
+- **Arreglo:** `<html translate="no" class="notranslate">` y `<meta name="google" content="notranslate">`. La app ya tiene su propio selector `EN | ES`, así que no se pierde nada. `app.js` solo cambia el atributo `lang` del documento, no toca estos dos atributos.
+- **Para quien ya tenía la página abierta traducida:** menú de Chrome, "Mostrar original", y recargar. Con la versión nueva, Chrome ya no ofrece traducir.
+- **Sin cambios:** todo el comportamiento de la app, el encabezado, los selectores, los bancos y las reglas de contención.
+
+## Entrega conjunta: texto al compartir + sin traducción (`?v=20261120f`)
+**Archivos modificados:** `index.html` y este archivo. Une las dos secciones anteriores (`?v=20261120d` y `?v=20261120e`) en una sola entrega con un único `?v=20261120f` en las 4 líneas. No cambian `style.css`, `exercises.js`, `audio.js` ni `app.js`; se suben (o se sirven desde GitHub Pages) los 5 juntos.
+- Quedan activos a la vez: `<html translate="no" class="notranslate">`, `<meta name="google" content="notranslate">`, la descripción nueva ("…computer-based French, English and Spanish exams.") y las metas `og:` / `twitter:card`.
+- El PR de ampliación EN/ES del otro hilo (`?v=20261120c`) deberá pasar a una versión mayor que `f` (por ejemplo `20261120g`) cuando se fusione.
+
 ## Ampliación del banco EN y ES (`?v=20261120c`)
 **Archivos modificados:** `exercises.js`, `index.html` (solo la versión, en las 4 líneas de `style.css`, `exercises.js`, `audio.js` y `app.js`) y este archivo. No cambian `app.js`, `style.css` ni `audio.js`.
 **Subir juntos:** `index.html` y `exercises.js` (los otros tres no cambian, pero se publican los 5 con la misma versión).
@@ -253,3 +271,10 @@ Qué revisar en la tablet: tocar EN y ES varias veces en vertical y en horizonta
 - **Validado:** ids únicos por idioma, cada Lectura con 3 preguntas × 4 opciones y respuesta 0–3, tipos de Improvisación válidos, sin conectores repetidos, `exercises.js` carga sin errores.
 - **Sin cambios de reglas:** encabezado, `@keyframes` (cero), `prefers-reduced-motion`, `Timers.clearAll()`, `#adSlot` oculto con `Results.ads()`, kit en «En preparación».
 - Qué revisar en la tablet: en EN y ES, que cada nivel (A1 a C1) ofrezca textos distintos en Sprint, Improvisación y Lectura, que las preguntas de Lectura tengan sentido y una sola respuesta correcta, y que los conectores se reconozcan al escribir.
+
+## Ampliación EN/ES sobre main 62084d4 (`?v=20261120g`)
+**Archivos modificados respecto de `main` 62084d4:** `exercises.js` (la ampliación EN/ES de la sección anterior), `index.html` (solo el `?v=` de las 4 líneas) y este archivo. No cambian `style.css`, `audio.js` ni `app.js`; se sirven los 5 juntos desde GitHub Pages.
+- **Cruce resuelto:** la rama del PR #5 (`?v=20261120c`) salió de `main` antes de la entrega `f`. Al traer `main` 62084d4 hubo cruce solo en `index.html` (las 4 líneas de versión) y en este archivo (secciones nuevas en ambos lados). Se tomó la cabecera de `main` completa (`translate="no"`, `class="notranslate"`, `<meta name="google" content="notranslate">`, descripción y metas `og:` / `twitter:card`) y se conservaron todas las secciones de ambos lados.
+- **Versión unificada:** `?v=20261120g` en `style.css`, `exercises.js`, `audio.js` y `app.js`, mayor que `c` y que `f`, para que ninguna tablet mezcle archivos.
+- **Bancos:** FR igual a `main` byte por byte (50 ids históricos: Sprint 12, Improvisación 27, Lectura 11). EN y ES conservan todos sus ids `en_…` / `es_…` y quedan con Sprint 15, Improvisación 13, Lectura 13 (3 preguntas cada una) y 34 conectores.
+- **Reglas de contención sin cambios:** cero `@keyframes`, `prefers-reduced-motion`, encabezado de 165 px desde 601 px (230 px a 360/412 desde la fila propia del selector FR · EN · ES), isotipo sin personaje animado, `Timers.clearAll()`, `#adSlot` oculto con `Results.ads()`, kit en «En preparación» y paridad de claves `I18N` EN/ES.
