@@ -170,6 +170,7 @@ const I18N = {
     emptyBoard: 'No runs saved yet. Finish a sprint to see it here.',
     thRank: '#', thScore: 'Score', thWpm: 'WPM', thAcc: 'Acc.', thDate: 'Date',
     boardEyebrow: 'Weekly Top 20',
+    boardTitleLang: (n) => `${n} ranking`,
     boardSoon: 'The public weekly leaderboard arrives in Iteration 3. For now, these are your best scores saved on this device.',
     rulesTitle: 'Leaderboard rules',
     rules: [
@@ -324,6 +325,7 @@ const I18N = {
     emptyBoard: 'Todavía no hay intentos guardados. Termina un sprint para verlo aquí.',
     thRank: '#', thScore: 'Puntaje', thWpm: 'PPM', thAcc: 'Prec.', thDate: 'Fecha',
     boardEyebrow: 'Top 20 semanal',
+    boardTitleLang: (n) => `Ranking de ${n.toLowerCase()}`,
     boardSoon: 'El ranking semanal público llega en la Iteración 3. Por ahora estos son tus mejores puntajes guardados en este dispositivo.',
     rulesTitle: 'Reglas del ranking',
     rules: [
@@ -725,7 +727,7 @@ const Board = {
       `</tbody></table>`;
   },
   open() { if (busy) return; Board.refresh(); $('boardSheet').hidden = false; $('closeBoard').focus(); },
-  paintLang() { const c = $('boardPlang'); if (c) c.textContent = plangName(); c.setAttribute('aria-label', t('plangAria') + ': ' + plangName()); },   // which practice language this ranking and list belong to
+  paintLang() { const h = $('boardTitle'); if (h) h.textContent = t('boardTitleLang')(plangName()); },   // "Spanish ranking" / "Ranking de español": which practice language this ranking and list belong to
   refresh() { Board.paintLang(); Board.render(); LBView.sheet(); }
 };
 $('boardBtn').addEventListener('click', Board.open);
