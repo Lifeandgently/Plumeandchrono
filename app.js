@@ -725,7 +725,8 @@ const Board = {
       `</tbody></table>`;
   },
   open() { if (busy) return; Board.refresh(); $('boardSheet').hidden = false; $('closeBoard').focus(); },
-  refresh() { Board.render(); LBView.sheet(); }
+  paintLang() { const c = $('boardPlang'); if (c) c.textContent = t('plangAria') + ': ' + plangName(); },   // which practice language this ranking and list belong to
+  refresh() { Board.paintLang(); Board.render(); LBView.sheet(); }
 };
 $('boardBtn').addEventListener('click', Board.open);
 $('closeBoard').addEventListener('click', () => { $('boardSheet').hidden = true; });
@@ -1244,7 +1245,7 @@ const LBView = {
     const rows = await LB.rows(lvl), mine = LB.mine(); if (tok !== LBView.tok) return;
     const pills = LEVELS.map(c => `<button type="button" class="chip lb-lvl${c === lvl ? ' on' : ''}" data-lv="${esc(c)}" aria-pressed="${c === lvl}">${esc(Levels.label(c))}</button>`).join('');
     box.innerHTML = `<div class="lb-lvls" role="group" aria-label="${esc(t('lbLevelPick'))}">${pills}</div>
-      <p class="rv-note" style="margin:6px 0 8px">${esc(plangName())} · ${esc(resetText())}</p>${lbTable(rows, LB.TOP, mine)}${boardNotes()}`;
+      <p class="rv-note" style="margin:6px 0 8px">${esc(resetText())}</p>${lbTable(rows, LB.TOP, mine)}${boardNotes()}`;
     box.querySelectorAll('.lb-lvl').forEach(b => b.addEventListener('click', () => LBView.pick(b.dataset.lv)));
   }
 };

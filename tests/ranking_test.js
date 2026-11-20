@@ -65,8 +65,8 @@ const ok = (n, c, x) => console.log((c ? 'PASS ' : 'FAIL ') + n + (x !== undefin
   ok('personal best saved with plang en, rank 1 in EN', pb.rank === 1 && pb.plangs.every(c => c === 'en'));
   // ranking sheet shows only the active language
   await p.click('#boardBtn'); await p.waitForTimeout(300);
-  const sheet = await p.evaluate(() => ({ note: document.querySelector('#lbBox .rv-note').textContent, nicks: [...document.querySelectorAll('#lbBox tbody tr td:nth-child(2)')].map(x => x.textContent) }));
-  ok('sheet note names the practice language', /^English/.test(sheet.note), sheet.note);
+  const chip = await p.evaluate(() => { const c = document.getElementById('boardPlang'); const r = c.getBoundingClientRect(); return { text: c.textContent, visible: r.width > 0 && r.height > 0 && getComputedStyle(c).visibility !== 'hidden', inSheet: !!c.closest('#boardSheet') && !document.getElementById('boardSheet').hidden }; });
+  ok('ranking sheet shows "Practice language: English" in a visible chip', chip.text === 'Practice language: English' && chip.visible && chip.inSheet, JSON.stringify(chip));
   ok('sheet (level B1 pre-selected by the run) lists TestEN', await p.evaluate(async () => { LBView.pick('B1'); await LBView.sheet(); return /TestEN/.test(document.getElementById('lbBox').textContent); }));
   const bt = await p.$$eval('#boardTable tbody tr td:nth-child(2)', e => e.map(x => x.textContent).join()); ok('personal list shows exactly the EN run (30)', bt === '30', bt);
   ok('no errors (en)', p.errs.length === 0, JSON.stringify(p.errs));
@@ -77,14 +77,14 @@ const ok = (n, c, x) => console.log((c ? 'PASS ' : 'FAIL ') + n + (x !== undefin
   ok('EN personal list shows only EN run', await p.evaluate(() => { Board.render(); const c = [...document.querySelectorAll('#boardTable tbody tr td:nth-child(2)')].map(x => x.textContent).join(); return c === '99'; }));
   await p.click('[data-pcode=fr]'); await p.waitForTimeout(1200); await p.waitForFunction(() => window.LB && PC_BANK.active === 'fr' && document.querySelector('[data-pcode=fr]').getAttribute('aria-pressed') === 'true', null, { timeout: 8000 });
   ok('after switching to FR the personal list shows only the FR (legacy) run', await p.evaluate(() => { Board.render(); const c = [...document.querySelectorAll('#boardTable tbody tr td:nth-child(2)')].map(x => x.textContent).join(); return c === '11'; }));
-  ok('FR ranking sheet names French', await p.evaluate(async () => { await LBView.sheet(); return /^(French|Francés)/.test(document.querySelector('#lbBox .rv-note').textContent); }));
+  ok('FR ranking sheet chip names French', await p.evaluate(() => { Board.refresh(); return document.getElementById('boardPlang').textContent === 'Practice language: French'; }));
   ok('no errors after switch', p.errs.length === 0, JSON.stringify(p.errs));
   await p.ctx.close();
 
   // 4) Spanish interface: language name and rules text
   p = await open('es', {}, 'es');
   await p.click('#boardBtn'); await p.waitForTimeout(300);
-  ok('ES sheet note starts with Español', /^Español/.test(await p.textContent('#lbBox .rv-note')));
+  ok('ES sheet chip reads "Idioma de práctica: Español"', await p.textContent('#boardPlang') === 'Idioma de práctica: Español');
   ok('rules text mentions the practice language', /idioma de práctica/.test(await p.textContent('#lbBox')));
   await p.ctx.close();
   console.log('DONE'); await b.close(); server.close(); fs.rmSync(dir, { recursive: true, force: true });
