@@ -33,9 +33,9 @@
 
   /* Header */
   .masthead { border-bottom: 1px solid var(--pencil); background: var(--paper); }
-  .brand-name { font-family: var(--serif); font-weight: 600; font-size: 1.35rem; letter-spacing: .01em; line-height: 1.1; }
+  .brand-name { font-family: var(--serif); font-weight: 600; font-size: 1.75rem; letter-spacing: .005em; line-height: 1; }
   .brand-name em { font-style: italic; font-weight: 500; color: var(--quill); }
-  .brand-by { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+  .brand-tag { font-size: .74rem; letter-spacing: .01em; line-height: 1.15; margin-top: 0; color: var(--ink-soft); white-space: nowrap; }   /* tagline: one line, quieter than the name */
   .pill-group { display: inline-flex; border: 1px solid var(--pencil); border-radius: 999px; background: var(--card); padding: 2px; }
   .pill-group button { border: 0; background: transparent; font-size: .8rem; font-weight: 600; padding: 6px 12px; border-radius: 999px; min-height: 36px; color: var(--ink-soft); }
   .pill-group button[aria-pressed="true"] { background: var(--ink); color: var(--card); }
@@ -336,6 +336,8 @@ table.board td .tag.ex { border-style: dashed; font-style: normal; }
   .masthead .lbl-long { display: none; }
   .masthead .lbl-short { display: inline; }
   .masthead #brandMark { width: 38px !important; height: 38px !important; }
+  .masthead .brand-name { font-size: 1.6rem; }   /* keeps the phone header at 230 px with the tagline line */
+  .masthead .brand-tag { margin-top: 2px; }
   .mast-tools { flex-wrap: nowrap; gap: 6px; width: 100%; }
   .masthead .ghost-btn { padding: 4px 10px; min-height: 36px; font-size: .78rem; gap: 6px; white-space: nowrap; }
   .masthead .pill-group button { padding: 4px 10px; min-height: 32px; }
