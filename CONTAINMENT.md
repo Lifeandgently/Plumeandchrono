@@ -243,3 +243,10 @@ Qué revisar en la tablet: tocar EN y ES varias veces en vertical y en horizonta
 - **Celular (600 px o menos):** los 3 botones no entran junto a los 6 niveles (suman unos 456 px y hay 312 px), así que ocupan su propia línea justo arriba de los niveles. Efecto sobre la regla de altura: a 360 px el encabezado pasa de 192 px a unos 230 px (se suma una línea de 38 px).
 - Medido (Chromium, EN y ES, 360/412/601/800/1280 px): botones FR/EN/ES visibles, Audio y Ranking sin moverse, sin errores de página. Al tocar ES se guarda `pc_plang`, la página recarga y el personaje del reloj pasa al cronista; durante una prueba los 3 botones quedan deshabilitados.
 - Qué revisar en la tablet: la línea única a 800 y 1280 px, el cambio de idioma de práctica y que el personaje cambie solo junto a los relojes.
+
+## Texto al compartir el enlace (`?v=20261120d`)
+**Archivos modificados:** `index.html` (metas y versión) y este archivo. No cambian `style.css`, `exercises.js`, `audio.js` ni `app.js`; aun así hay que subir los 5 juntos para que los 4 `?v=` coincidan.
+- La descripción de la página y de la vista previa del enlace (WhatsApp, Telegram, redes) pasa de "daily typing and accent practice for computer-based French exams" a **"Daily typing and accent practice for computer-based French, English and Spanish exams."**
+- Se agregaron las metas `og:type`, `og:site_name`, `og:title`, `og:description` y `twitter:card`, con el mismo texto, para que la vista previa use título y descripción propios.
+- WhatsApp guarda en caché la vista previa de cada enlace: puede seguir mostrando el texto viejo un tiempo. Para forzarlo, se comparte el enlace con un parámetro nuevo (por ejemplo `?v=2`) o se pide a Facebook que lo vuelva a leer (Sharing Debugger).
+- Sin cambios en la app: fórmulas, Sprint, encabezado, selectores, bancos y reglas de contención quedan igual.
