@@ -243,3 +243,10 @@ Qué revisar en la tablet: tocar EN y ES varias veces en vertical y en horizonta
 - **Celular (600 px o menos):** los 3 botones no entran junto a los 6 niveles (suman unos 456 px y hay 312 px), así que ocupan su propia línea justo arriba de los niveles. Efecto sobre la regla de altura: a 360 px el encabezado pasa de 192 px a unos 230 px (se suma una línea de 38 px).
 - Medido (Chromium, EN y ES, 360/412/601/800/1280 px): botones FR/EN/ES visibles, Audio y Ranking sin moverse, sin errores de página. Al tocar ES se guarda `pc_plang`, la página recarga y el personaje del reloj pasa al cronista; durante una prueba los 3 botones quedan deshabilitados.
 - Qué revisar en la tablet: la línea única a 800 y 1280 px, el cambio de idioma de práctica y que el personaje cambie solo junto a los relojes.
+
+## Sin traducción automática del navegador (`?v=20261120e`)
+**Archivos modificados:** `index.html` (la etiqueta `<html>`, una meta y el `?v=`) y este archivo. No cambian `style.css`, `exercises.js`, `audio.js` ni `app.js`; se suben los 5 juntos para que los 4 `?v=` coincidan.
+- **Problema visto en un celular en Argentina:** Chrome tradujo la página al español por su cuenta: el nombre salió como "Pluma y cronógrafo", los botones `EN ES` quedaron como `ES ES` y los de práctica `FR EN ES` como `FR ES ES`. Lo peor es que el traductor también puede traducir los textos en francés que se copian, y la práctica queda inservible.
+- **Arreglo:** `<html translate="no" class="notranslate">` y `<meta name="google" content="notranslate">`. La app ya tiene su propio selector `EN | ES`, así que no se pierde nada. `app.js` solo cambia el atributo `lang` del documento, no toca estos dos atributos.
+- **Para quien ya tenía la página abierta traducida:** menú de Chrome, "Mostrar original", y recargar. Con la versión nueva, Chrome ya no ofrece traducir.
+- **Sin cambios:** todo el comportamiento de la app, el encabezado, los selectores, los bancos y las reglas de contención.
