@@ -243,3 +243,13 @@ Qué revisar en la tablet: tocar EN y ES varias veces en vertical y en horizonta
 - **Celular (600 px o menos):** los 3 botones no entran junto a los 6 niveles (suman unos 456 px y hay 312 px), así que ocupan su propia línea justo arriba de los niveles. Efecto sobre la regla de altura: a 360 px el encabezado pasa de 192 px a unos 230 px (se suma una línea de 38 px).
 - Medido (Chromium, EN y ES, 360/412/601/800/1280 px): botones FR/EN/ES visibles, Audio y Ranking sin moverse, sin errores de página. Al tocar ES se guarda `pc_plang`, la página recarga y el personaje del reloj pasa al cronista; durante una prueba los 3 botones quedan deshabilitados.
 - Qué revisar en la tablet: la línea única a 800 y 1280 px, el cambio de idioma de práctica y que el personaje cambie solo junto a los relojes.
+
+## Ampliación del banco EN y ES (`?v=20261120c`)
+**Archivos modificados:** `exercises.js`, `index.html` (solo la versión, en las 4 líneas de `style.css`, `exercises.js`, `audio.js` y `app.js`) y este archivo. No cambian `app.js`, `style.css` ni `audio.js`.
+**Subir juntos:** `index.html` y `exercises.js` (los otros tres no cambian, pero se publican los 5 con la misma versión).
+- **Bloque FR intacto, byte por byte.** En EN y ES se conservan todos los ids existentes (`en_sp_a1_01`… `en_rd_c1_01`, `es_…` igual); solo se agregaron elementos al final de cada lista y la última línea de cada lista ganó una coma.
+- **Inglés (Canadá) y español neutro, mismas cantidades en cada uno:** Sprint 5 → 15 (+10: A1×2, A2×2, B1×3, B2×2, C1×1), Improvisación 5 → 13 (+8: A1×1, A2×2, B1×2, B2×2, C1×1; mezcla de carta y opinión), Lectura 5 → 13 (+8, con 3 preguntas de 4 opciones cada una), conectores +15 en EN y +16 en ES con su ejemplo, tipo y niveles. Ids nuevos con el mismo patrón (`en_sp_a1_02`, `en_a2_03`, `es_rd_b2_02`…).
+- Los conectores ambiguos (por ejemplo `Next`, `Besides`, `Since`, `Instead`, `Después`, `En vez de`, `Así que`) llevan `amb: true`, así que solo cuentan al inicio de oración o tras coma/«and».
+- **Validado:** ids únicos por idioma, cada Lectura con 3 preguntas × 4 opciones y respuesta 0–3, tipos de Improvisación válidos, sin conectores repetidos, `exercises.js` carga sin errores.
+- **Sin cambios de reglas:** encabezado, `@keyframes` (cero), `prefers-reduced-motion`, `Timers.clearAll()`, `#adSlot` oculto con `Results.ads()`, kit en «En preparación».
+- Qué revisar en la tablet: en EN y ES, que cada nivel (A1 a C1) ofrezca textos distintos en Sprint, Improvisación y Lectura, que las preguntas de Lectura tengan sentido y una sola respuesta correcta, y que los conectores se reconozcan al escribir.
