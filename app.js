@@ -725,7 +725,7 @@ const Board = {
       `</tbody></table>`;
   },
   open() { if (busy) return; Board.refresh(); $('boardSheet').hidden = false; $('closeBoard').focus(); },
-  paintLang() { const c = $('boardPlang'); if (c) c.textContent = t('plangAria') + ': ' + plangName(); },   // which practice language this ranking and list belong to
+  paintLang() { const c = $('boardPlang'); if (c) c.textContent = plangName(); c.setAttribute('aria-label', t('plangAria') + ': ' + plangName()); },   // which practice language this ranking and list belong to
   refresh() { Board.paintLang(); Board.render(); LBView.sheet(); }
 };
 $('boardBtn').addEventListener('click', Board.open);
