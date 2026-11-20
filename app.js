@@ -78,7 +78,7 @@ const I18N = {
     rvNo_suspect: 'This run included a very large single input, so it is not ranked.',
     lbEyebrow: 'Weekly Top 20', lbSample: 'example', lbLevelPick: 'Ranking level', lbEmptyLvl: 'No scores at this level yet this week.',
     lbNoPrize: 'Practice ranking: there are no prizes for now. Rows tagged “example” are samples, not real people.', lbLocal: 'For now your scores are saved only on this device.',
-    lbRulesMin: (a) => `To enter the ranking: at least ${a}% accuracy, 30 seconds and 60 characters. Each level has its own ranking.`, lbYou: 'you', lbNick: 'Nickname',
+    lbRulesMin: (a) => `To enter the ranking: at least ${a}% accuracy, 30 seconds and 60 characters. Each practice language and each level has its own ranking.`, lbYou: 'you', lbNick: 'Nickname',
     lbReset: (d, h) => `Resets Monday 00:00 Eastern Time · in ${d} d ${h} h`,
     lbPrize1: '#1 of the week receives the Plume Writing Kit for free.',
     lbPrize10: '#2 to #10 receive a 30% discount code.',
@@ -232,7 +232,7 @@ const I18N = {
     rvNo_suspect: 'Este intento tuvo una entrada muy grande de una sola vez, así que no entra al ranking.',
     lbEyebrow: 'Top 20 semanal', lbSample: 'ejemplo', lbLevelPick: 'Nivel del ranking', lbEmptyLvl: 'Todavía no hay puntajes en este nivel esta semana.',
     lbNoPrize: 'Ranking de práctica: por ahora no hay premios. Las filas marcadas «ejemplo» son de muestra y no son personas reales.', lbLocal: 'Por ahora tus puntajes se guardan solo en este dispositivo.',
-    lbRulesMin: (a) => `Para entrar al ranking: al menos ${a} % de precisión, 30 segundos y 60 caracteres. Cada nivel tiene su propio ranking.`, lbYou: 'tú', lbNick: 'Apodo',
+    lbRulesMin: (a) => `Para entrar al ranking: al menos ${a} % de precisión, 30 segundos y 60 caracteres. Cada idioma de práctica y cada nivel tiene su propio ranking.`, lbYou: 'tú', lbNick: 'Apodo',
     lbReset: (d, h) => `Se reinicia el lunes a las 00:00 hora del Este · en ${d} d ${h} h`,
     lbPrize1: 'El puesto #1 de la semana recibe gratis el Plume Writing Kit.',
     lbPrize10: 'Del #2 al #10 reciben un código de descuento del 30%.',
@@ -698,20 +698,26 @@ const t = (k) => I18N[lang][k];
 const Modules = {};
 let currentMod = 1;
 
+/* Practice language of a stored score: rows saved before this field existed (no plang) belong to French. */
+const rowLang = (r) => (r && ['fr', 'en', 'es'].indexOf(r.plang) !== -1) ? r.plang : 'fr';
+
 /* Leaderboard storage (shared service; shape is ready for a Supabase table later) */
 const Board = {
   lastAt: null,
-  load() { const r = store.get('pc_runs', []); return Array.isArray(r) ? r : []; },
-  save(run) {                                   // returns rank 1..10, or 0 if outside the personal top 10
-    const row = Object.assign({ mod: 'sprint', at: new Date().toISOString() }, run);
-    const runs = Board.load(); runs.push(row);
-    runs.sort((x, y) => fin(y.score) - fin(x.score));
-    const top = runs.slice(0, 10); store.set('pc_runs', top);
-    const idx = top.indexOf(row); Board.lastAt = idx === -1 ? null : row.at;
+  load() { const r = store.get('pc_runs', []); return Array.isArray(r) ? r.filter(x => x && typeof x === 'object') : []; },   // all languages, as stored
+  save(run) {                                   // returns rank 1..10 within the active practice language, or 0 if outside it
+    const pl = practiceCode(PRACTICE.code);
+    const row = Object.assign({ mod: 'sprint', at: new Date().toISOString() }, run, { plang: pl });
+    const all = Board.load(); all.push(row);
+    const keep = [];                            // personal top 10 PER practice language; older rows without plang count as fr
+    ['fr', 'en', 'es'].forEach(c => { all.filter(x => rowLang(x) === c).sort((x, y) => fin(y.score) - fin(x.score)).slice(0, 10).forEach(x => keep.push(x)); });
+    store.set('pc_runs', keep);
+    const mineRows = keep.filter(x => rowLang(x) === pl).sort((x, y) => fin(y.score) - fin(x.score));
+    const idx = mineRows.indexOf(row); Board.lastAt = idx === -1 ? null : row.at;
     return idx === -1 ? 0 : idx + 1;
   },
   render() {
-    const runs = Board.load(), box = $('boardTable');
+    const runs = Board.load().filter(x => rowLang(x) === practiceCode(PRACTICE.code)).sort((x, y) => fin(y.score) - fin(x.score)), box = $('boardTable');
     if (!runs.length) { box.innerHTML = `<p style="color:var(--ink-soft);font-size:.9rem;margin:4px 0">${t('emptyBoard')}</p>`; return; }
     const loc = lang === 'es' ? 'es' : 'en';
     box.innerHTML = `<table class="board"><thead><tr><th>${t('thRank')}</th><th class="r">${t('thScore')}</th><th class="r">${t('thWpm')}</th><th class="r">${t('thAcc')}</th><th>${t('thDate')}</th></tr></thead><tbody>` +
@@ -741,7 +747,9 @@ const SITE = {
    and CHECK constraints so the server also rejects cheats:
      create table scores (id uuid primary key default gen_random_uuid(), week_id text not null, nick text not null,
        score numeric not null check (score >= 0), wpm int not null check (wpm between 1 and 130),
-       acc int not null check (acc between 0 and 100), level text check (level in ('A1','A2','B1','B2','C1')), mod text default 'sprint', created_at timestamptz default now());
+       acc int not null check (acc between 0 and 100), level text check (level in ('A1','A2','B1','B2','C1')), mod text default 'sprint',
+       plang text not null default 'fr' check (plang in ('fr','en','es')), created_at timestamptz default now());
+     -- already created the table before the per-language ranking? run: alter table scores add column plang text not null default 'fr' check (plang in ('fr','en','es'));
      create table leads (id uuid primary key default gen_random_uuid(), week_id text, nick text, email text, created_at timestamptz default now());
    Keep `leads` readable only by you (no select policy for anon). */
 
@@ -773,39 +781,41 @@ function nickError(nick) {            // null when valid, else 'len' | 'chars' |
 const emailOk = (e) => /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@.]{2,}$/.test(e) && e.length <= 120;
 
 /* =================== WEEKLY RANKING (storage hook + anti-cheat) =================== */
-function sampleRows(week) {
-  let a = 0; for (const ch of week) a = (a * 31 + ch.charCodeAt(0)) >>> 0;
+function sampleRows(week, pl) {
+  pl = pl || 'fr';                         // the French set is exactly the one shipped before the per-language ranking
+  let a = 0; for (const ch of (pl === 'fr' ? week : week + '|' + pl)) a = (a * 31 + ch.charCodeAt(0)) >>> 0;
   const rnd = () => { a = (a + 0x6D2B79F5) | 0; let x = Math.imul(a ^ (a >>> 15), 1 | a); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; };
   const nicks = ['Marie_QC', 'Camila.T', 'LucasBXL', 'Ana-Lyon', 'Diego_MTL', 'Sofi92', 'Pierre.G', 'Valen_TO', 'Nadia_Ott', 'Mateo.fr', 'Lola_Gat', 'Jo_Laval', 'Inès_Que', 'Tomás.CA'];
   const out = [];                          // 4 example rows per level (all >= the accuracy floor), clearly tagged as samples
   LEVELS.forEach((lvl, L) => { for (let k = 0; k < 4; k++) {
     const i = (L * 4 + k) % nicks.length, wpm = Math.round(18 + L * 4 + rnd() * 26), acc = Math.round(LB.MIN_ACC + rnd() * (99 - LB.MIN_ACC));
-    out.push({ id: 's' + week + lvl + k, nick: nicks[i], wpm, acc, score: Math.round(wpm * Math.pow(acc / 100, 2) * 10) / 10, at: week + 'T12:00:00Z', mod: 'sprint', lvl, sample: true });
+    out.push({ id: 's' + week + (pl === 'fr' ? '' : pl) + lvl + k, nick: nicks[i], wpm, acc, score: Math.round(wpm * Math.pow(acc / 100, 2) * 10) / 10, at: week + 'T12:00:00Z', mod: 'sprint', lvl, plang: pl, sample: true });
   } });
   return out;
 }
+const allSamples = (week) => ['fr', 'en', 'es'].reduce((acc, c) => acc.concat(sampleRows(week, c)), []);
 const sortRows = (rows) => rows.slice().sort((x, y) => (y.score - x.score) || (x.at < y.at ? -1 : 1));
 
 const LocalStore = {                      // default backend: this device only
   async getWeek(week) {
     let o = store.get('pc_week', null);
-    if (!o || o.week !== week || !Array.isArray(o.rows)) { o = { week, v: 2, rows: sampleRows(week) }; store.set('pc_week', o); }
-    else if (o.v !== 2) { o = { week, v: 2, rows: sampleRows(week).concat(o.rows.filter(r => r && !r.sample)) }; store.set('pc_week', o); }   // older sample set: replace samples, keep real rows
+    if (!o || o.week !== week || !Array.isArray(o.rows)) { o = { week, v: 3, rows: allSamples(week) }; store.set('pc_week', o); }
+    else if (o.v !== 3) { o = { week, v: 3, rows: allSamples(week).concat(o.rows.filter(r => r && !r.sample).map(r => Object.assign({}, r, { plang: rowLang(r) }))) }; store.set('pc_week', o); }   // older sets: replace samples, keep real rows (no plang = fr)
     return o.rows;
   },
-  async addScore(week, row) { const rows = await LocalStore.getWeek(week); rows.push(row); store.set('pc_week', { week, v: 2, rows }); },
+  async addScore(week, row) { const rows = await LocalStore.getWeek(week); rows.push(row); store.set('pc_week', { week, v: 3, rows }); },
   async addLead(week, lead) { let l = store.get('pc_leads', []); if (!Array.isArray(l)) l = []; l.push(lead); store.set('pc_leads', l); }   // private: never rendered
 };
 const SupabaseStore = {                   // hook: used only when SITE.supabase is filled (needs the tables above)
   h() { const k = SITE.supabase.anonKey; return { apikey: k, Authorization: 'Bearer ' + k, 'Content-Type': 'application/json' }; },
-  async getWeek(week, level) {
+  async getWeek(week, level, pl) {
     const lv = level ? `&level=eq.${encodeURIComponent(level)}` : '';
-    const r = await fetch(`${SITE.supabase.url}/rest/v1/scores?week_id=eq.${encodeURIComponent(week)}${lv}&order=score.desc,created_at.asc&limit=${LB.TOP}&select=id,nick,score,wpm,acc,level,created_at`, { headers: SupabaseStore.h() });
+    const r = await fetch(`${SITE.supabase.url}/rest/v1/scores?week_id=eq.${encodeURIComponent(week)}${lv}&plang=eq.${encodeURIComponent(pl || 'fr')}&order=score.desc,created_at.asc&limit=${LB.TOP}&select=id,nick,score,wpm,acc,level,plang,created_at`, { headers: SupabaseStore.h() });
     if (!r.ok) throw new Error('supabase read');
-    return (await r.json()).map(x => ({ id: x.id, nick: x.nick, score: +x.score, wpm: x.wpm, acc: x.acc, lvl: x.level || '', at: x.created_at, mod: 'sprint' }));
+    return (await r.json()).map(x => ({ id: x.id, nick: x.nick, score: +x.score, wpm: x.wpm, acc: x.acc, lvl: x.level || '', plang: rowLang(x), at: x.created_at, mod: 'sprint' }));
   },
   async addScore(week, row) {
-    const r = await fetch(`${SITE.supabase.url}/rest/v1/scores`, { method: 'POST', headers: SupabaseStore.h(), body: JSON.stringify({ week_id: week, nick: row.nick, score: row.score, wpm: row.wpm, acc: row.acc, level: row.lvl || null, mod: row.mod }) });
+    const r = await fetch(`${SITE.supabase.url}/rest/v1/scores`, { method: 'POST', headers: SupabaseStore.h(), body: JSON.stringify({ week_id: week, nick: row.nick, score: row.score, wpm: row.wpm, acc: row.acc, level: row.lvl || null, mod: row.mod, plang: rowLang(row) }) });
     if (!r.ok) throw new Error('supabase write');
   },
   async addLead(week, lead) {
@@ -844,10 +854,11 @@ const LB = {
     if (!isFinite(exp) || Math.abs(exp - run.score) > 0.5) return 'suspect';
     return null;
   },
-  async rows(level) {                     // one ranking per level ('' / undefined = all levels)
-    const week = LB.weekId(); let rows;
-    try { rows = await Backend.getWeek(week, level); } catch (e) { rows = await LocalStore.getWeek(week); }
-    if (level) rows = rows.filter(r => r && r.lvl === level);
+  async rows(level, pl) {                 // one ranking per practice language and level ('' / undefined level = all levels)
+    const week = LB.weekId(); let rows; pl = practiceCode(pl || PRACTICE.code);
+    try { rows = await Backend.getWeek(week, level, pl); } catch (e) { rows = await LocalStore.getWeek(week); }
+    rows = rows.filter(r => r && rowLang(r) === pl);
+    if (level) rows = rows.filter(r => r.lvl === level);
     return sortRows(rows);
   },
   async previewRank(score, level) { const rows = await LB.rows(level); return 1 + rows.filter(r => r.score > score).length; },
@@ -858,7 +869,7 @@ const LB = {
     email = String(email || '').trim(); if (email && !emailOk(email)) return { ok: false, error: 'email' };
     nick = String(nick).replace(/\s+/g, ' ').trim();
     const week = LB.weekId();
-    const row = { id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), nick, wpm: Math.round(run.wpm), acc: Math.round(run.acc), score: Math.round(run.score * 10) / 10, at: new Date().toISOString(), mod: 'sprint', lvl: LEVELS.indexOf(run.level) !== -1 ? run.level : '' };
+    const row = { id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), nick, wpm: Math.round(run.wpm), acc: Math.round(run.acc), score: Math.round(run.score * 10) / 10, at: new Date().toISOString(), mod: 'sprint', plang: practiceCode(PRACTICE.code), lvl: LEVELS.indexOf(run.level) !== -1 ? run.level : '' };
     try { await Backend.addScore(week, row); if (email) await Backend.addLead(week, { nick, email, at: row.at }); }
     catch (e) { await LocalStore.addScore(week, row); if (email) await LocalStore.addLead(week, { nick, email, at: row.at }); }
     const ids = LB.mine(); ids.add(row.id); store.set('pc_mine', { week, ids: [...ids] });
@@ -1194,7 +1205,7 @@ const Results = {
           <button type="submit" class="btn quill">${esc(t('lbSubmit'))}</button></form>`;
       } else qual = `<div class="rv-note">${esc(t('lbOut'))}</div>`;
     }
-    box.innerHTML = `<div class="eyebrow">${esc(t('lbEyebrow'))}${lvl ? ` <span class="chip lvl">${esc(t('rvLevel'))} ${esc(Levels.full(lvl))}</span>` : ''}</div>
+    box.innerHTML = `<div class="eyebrow">${esc(t('lbEyebrow'))}${lvl ? ` <span class="chip lvl">${esc(t('rvLevel'))} ${esc(Levels.full(lvl))}</span>` : ''} <span class="chip lvl">${esc(plangName())}</span></div>
       <p class="rv-note" style="margin:2px 0 8px">${esc(resetText())}</p>
       ${qual}
       <div class="mt-3">${lbTable(rows, 5, mine)}</div>
@@ -1216,6 +1227,7 @@ const Results = {
 };
 
 /* ranking sheet (opened from the header; disabled while a run is in progress) */
+const plangName = () => (PRACTICE.name && (PRACTICE.name[lang] || PRACTICE.name.en)) || '';   // e.g. "English" / "Inglés"
 const LBView = {
   lvl: null, tok: 0,
   level() {                                // chosen level > current level filter > last level played > B1 / first level
@@ -1232,7 +1244,7 @@ const LBView = {
     const rows = await LB.rows(lvl), mine = LB.mine(); if (tok !== LBView.tok) return;
     const pills = LEVELS.map(c => `<button type="button" class="chip lb-lvl${c === lvl ? ' on' : ''}" data-lv="${esc(c)}" aria-pressed="${c === lvl}">${esc(Levels.label(c))}</button>`).join('');
     box.innerHTML = `<div class="lb-lvls" role="group" aria-label="${esc(t('lbLevelPick'))}">${pills}</div>
-      <p class="rv-note" style="margin:6px 0 8px">${esc(resetText())}</p>${lbTable(rows, LB.TOP, mine)}${boardNotes()}`;
+      <p class="rv-note" style="margin:6px 0 8px">${esc(plangName())} · ${esc(resetText())}</p>${lbTable(rows, LB.TOP, mine)}${boardNotes()}`;
     box.querySelectorAll('.lb-lvl').forEach(b => b.addEventListener('click', () => LBView.pick(b.dataset.lv)));
   }
 };
