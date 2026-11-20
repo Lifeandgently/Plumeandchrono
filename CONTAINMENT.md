@@ -119,7 +119,7 @@ Límites: C1 se muestra como "Avanzado". El ranking mezcla niveles; el nivel es 
 
 | Responsabilidad | Dueño en el código | Qué previene |
 |---|---|---|
-| Caché en la tablet | `index.html`: `style.css`, `exercises.js`, `audio.js` y `app.js` llevan `?v=20261120a` (sube una letra en cada entrega) | Que el navegador mezcle un `app.js` viejo con un marcado nuevo. Al subir archivos nuevos, cambia el mismo valor en las 4 líneas |
+| Caché en la tablet | `index.html`: `style.css`, `exercises.js`, `audio.js` y `app.js` llevan `?v=20261120f` (sube una letra en cada entrega) | Que el navegador mezcle un `app.js` viejo con un marcado nuevo. Al subir archivos nuevos, cambia el mismo valor en las 4 líneas |
 | Ids estables | `exercises.js`: cada ítem de Sprint, Improvisación y Lectura tiene `id` (`fr_sp_b1_01`, `fr_a1_01`, `fr_rd_a2_01`…). `Bank.find()` / `Bank.idAt()` en `app.js` | Agregar o reordenar ítems ya no manda al alumno a otro ejercicio. Un id nunca se reutiliza ni se renombra |
 | Progreso guardado | `pc_ex_id` (Sprint), `pc_imp_last` (última consigna), `pc_rd_last` (última lectura), `exId` en "Mis mejores puntajes" | Se guarda el id, no la posición. Los datos viejos (`pc_ex` por posición) se siguen leyendo como respaldo |
 | Validación visible | `PROBLEMS[mode]` + `Bank.list()` | Un ítem mal formado se descarta y aparece en la consola (`console.warn`) con su posición, id y motivo. Un id ausente o repetido no rompe nada: usa la posición y también avisa |
@@ -250,3 +250,14 @@ Qué revisar en la tablet: tocar EN y ES varias veces en vertical y en horizonta
 - Se agregaron las metas `og:type`, `og:site_name`, `og:title`, `og:description` y `twitter:card`, con el mismo texto, para que la vista previa use título y descripción propios.
 - WhatsApp guarda en caché la vista previa de cada enlace: puede seguir mostrando el texto viejo un tiempo. Para forzarlo, se comparte el enlace con un parámetro nuevo (por ejemplo `?v=2`) o se pide a Facebook que lo vuelva a leer (Sharing Debugger).
 - Sin cambios en la app: fórmulas, Sprint, encabezado, selectores, bancos y reglas de contención quedan igual.
+## Sin traducción automática del navegador (`?v=20261120e`)
+**Archivos modificados:** `index.html` (la etiqueta `<html>`, una meta y el `?v=`) y este archivo. No cambian `style.css`, `exercises.js`, `audio.js` ni `app.js`; se suben los 5 juntos para que los 4 `?v=` coincidan.
+- **Problema visto en un celular en Argentina:** Chrome tradujo la página al español por su cuenta: el nombre salió como "Pluma y cronógrafo", los botones `EN ES` quedaron como `ES ES` y los de práctica `FR EN ES` como `FR ES ES`. Lo peor es que el traductor también puede traducir los textos en francés que se copian, y la práctica queda inservible.
+- **Arreglo:** `<html translate="no" class="notranslate">` y `<meta name="google" content="notranslate">`. La app ya tiene su propio selector `EN | ES`, así que no se pierde nada. `app.js` solo cambia el atributo `lang` del documento, no toca estos dos atributos.
+- **Para quien ya tenía la página abierta traducida:** menú de Chrome, "Mostrar original", y recargar. Con la versión nueva, Chrome ya no ofrece traducir.
+- **Sin cambios:** todo el comportamiento de la app, el encabezado, los selectores, los bancos y las reglas de contención.
+
+## Entrega conjunta: texto al compartir + sin traducción (`?v=20261120f`)
+**Archivos modificados:** `index.html` y este archivo. Une las dos secciones anteriores (`?v=20261120d` y `?v=20261120e`) en una sola entrega con un único `?v=20261120f` en las 4 líneas. No cambian `style.css`, `exercises.js`, `audio.js` ni `app.js`; se suben (o se sirven desde GitHub Pages) los 5 juntos.
+- Quedan activos a la vez: `<html translate="no" class="notranslate">`, `<meta name="google" content="notranslate">`, la descripción nueva ("…computer-based French, English and Spanish exams.") y las metas `og:` / `twitter:card`.
+- El PR de ampliación EN/ES del otro hilo (`?v=20261120c`) deberá pasar a una versión mayor que `f` (por ejemplo `20261120g`) cuando se fusione.
